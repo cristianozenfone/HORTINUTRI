@@ -1,112 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP v5.0</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <style>
-        :root { --primary: #2e7d32; --accent: #1565c0; --bg: #f5f7f6; --text: #333; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
-        .navbar { background: var(--primary); padding: 10px; display: flex; gap: 5px; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
-        .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; }
-        .nav-btn.active { background: white; color: var(--primary); }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
-        
-        /* Sub-Menu de Cadastros */
-        .sub-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .sub-btn { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: #2e7d32; }
-        .sub-btn.active { background: var(--primary); color: white; }
-
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 10px; }
-        label { font-size: 0.8rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .list-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); font-size: 0.9rem; }
-        .btn-del { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .hidden { display: none; }
-        .badge-custo { background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
-        .ingrediente-row { display: grid; grid-template-columns: 2fr 1fr 40px; gap: 8px; margin-bottom: 10px; align-items: end; background: #f1f8e9; padding: 10px; border-radius: 8px; }
-    </style>
-</head>
-<body onload="iniciarApp()">
-
-<nav class="navbar">
-    <button class="nav-btn active" onclick="switchTab('cadastros', this)">📑 Cadastros</button>
-    <button class="nav-btn" onclick="switchTab('kits', this)">🛠️ Montar Kits</button>
-    <button class="nav-btn" onclick="switchTab('producao', this)">🏭 Produção</button>
-</nav>
-
-<div class="container">
-    
-    <section id="tab-cadastros" class="tab-content">
-        <div class="sub-nav">
-            <button class="sub-btn active" onclick="switchSubTab('insumos', this)">🥦 Insumos</button>
-            <button class="sub-btn" onclick="switchSubTab('embalagens', this)">📦 Embalagens</button>
-            <button class="sub-btn" onclick="switchSubTab('clientes', this)">🤝 Clientes</button>
-            <button class="sub-btn" onclick="switchSubTab('fornecedores', this)">🚚 Fornec.</button>
-        </div>
-
-        <div id="sub-insumos" class="sub-content">
-            <div class="card">
-                <h2>Novo Insumo</h2>
-                <label>Nome do Legume/Carne</label><input type="text" id="ins-nome">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div><label>Custo KG</label><input type="number" id="ins-custo" step="0.01"></div>
-                    <div><label>FAT.C</label><input type="number" id="ins-fator" step="0.01" value="1.00"></div>
-                </div>
-                <button class="btn-add" onclick="salvar('insumos')">Salvar Insumo</button>
-            </div>
-            <div id="lista-insumos"></div>
-        </div>
-
-        <div id="sub-embalagens" class="sub-content hidden">
-            <div class="card">
-                <h2>Nova Embalagem/Etiqueta</h2>
-                <label>Nome/Tamanho</label><input type="text" id="emb-nome">
-                <label>Custo Unitário (R$)</label><input type="number" id="emb-custo" step="0.01">
-                <button class="btn-add" onclick="salvar('embalagens')">Salvar Embalagem</button>
-            </div>
-            <div id="lista-embalagens"></div>
-        </div>
-
-        <div id="sub-clientes" class="sub-content hidden"><div class="card"><h2>Novo Cliente</h2><input type="text" id="cli-nome" placeholder="Nome"><button class="btn-add" onclick="salvar('clientes')">Salvar</button></div><div id="lista-clientes"></div></div>
-        <div id="sub-fornecedores" class="sub-content hidden"><div class="card"><h2>Novo Fornecedor</h2><input type="text" id="for-nome" placeholder="Nome"><button class="btn-add" onclick="salvar('fornecedores')">Salvar</button></div><div id="lista-fornecedores"></div></div>
-    </section>
-
-    <section id="tab-kits" class="tab-content hidden">
-        <div class="card">
-            <h2>Formar Kit</h2>
-            <label>Nome do Kit</label><input type="text" id="kit-nome">
-            <label>Embalagem</label><select id="kit-embalagem" onchange="calcularCustoKit()"></select>
-            <div id="ingredientes-container"></div>
-            <button class="sub-btn" style="width:100%; margin:10px 0;" onclick="addIngredienteLinha()">+ Add Legume</button>
-            <label>Preço de Venda (R$)</label><input type="number" id="kit-venda" step="0.01">
-            <div id="display-custo" class="badge-custo">Custo Total: R$ 0,00</div>
-            <button class="btn-add" style="background:var(--accent)" onclick="salvarKit()">Gravar Kit no Catálogo</button>
-        </div>
-        <div id="lista-kits"></div>
-    </section>
-
-</div>
-
 <script>
-// Configurações do Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
-    authDomain: "hortinutri-3f2ea.firebaseapp.com",
-    databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
-    projectId: "hortinutri-3f2ea",
-    storageBucket: "hortinutri-3f2ea.appspot.com",
-    messagingSenderId: "596792658513",
-    appId: "1:596792658513:web:92bb97b0d835efc5510670"
-};
-
-let db;
-let globalInsumos = {};
-let globalEmbalagens = {};
+// ... (mantenha suas configurações de Firebase aqui)
 
 function iniciarApp() {
     firebase.initializeApp(firebaseConfig);
@@ -114,99 +7,69 @@ function iniciarApp() {
     carregarDados('insumos');
     carregarDados('embalagens');
     carregarDados('clientes');
-    carregarDados('fornecedores');
     carregarKits();
+    ativarProducao(); // Nova função para monitorar a aba de produção
 }
 
-function switchTab(tab, btn) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-    btn.classList.add('active');
-}
+// --- NOVA FUNÇÃO DE PRODUÇÃO ---
+function ativarProducao() {
+    const selectKit = document.getElementById('prod-kit');
+    const selectCli = document.getElementById('prod-cliente');
 
-function switchSubTab(sub, btn) {
-    document.querySelectorAll('.sub-content').forEach(s => s.classList.add('hidden'));
-    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('sub-' + sub).classList.remove('hidden');
-    btn.classList.add('active');
-}
-
-function salvar(tipo) {
-    let dados = {};
-    const ref = db.ref('cadastros/' + tipo).push();
-    if(tipo==='insumos') dados = { nome: document.getElementById('ins-nome').value, custo: document.getElementById('ins-custo').value, fator: document.getElementById('ins-fator').value };
-    if(tipo==='embalagens') dados = { nome: document.getElementById('emb-nome').value, custo: document.getElementById('emb-custo').value };
-    if(tipo==='clientes') dados = { nome: document.getElementById('cli-nome').value };
-    if(tipo==='fornecedores') dados = { nome: document.getElementById('for-nome').value };
-    
-    ref.set(dados).then(() => alert("Cadastrado!"));
-}
-
-function carregarDados(tipo) {
-    db.ref('cadastros/' + tipo).on('value', snap => {
-        const div = document.getElementById('lista-' + tipo);
-        const selectEmb = document.getElementById('kit-embalagem');
-        if(tipo === 'insumos') globalInsumos = snap.val() || {};
-        if(tipo === 'embalagens') {
-            globalEmbalagens = snap.val() || {};
-            if(selectEmb) {
-                selectEmb.innerHTML = '<option value="">Selecione...</option>';
-                for(let id in globalEmbalagens) selectEmb.innerHTML += `<option value="${id}">${globalEmbalagens[id].nome}</option>`;
-            }
-        }
-        div.innerHTML = "";
-        snap.forEach(c => {
-            div.innerHTML += `<div class="list-item"><span>${c.val().nome}</span><button class="btn-del" onclick="remover('cadastros/${tipo}', '${c.key}')">🗑️</button></div>`;
-        });
-    });
-}
-
-function addIngredienteLinha() {
-    const container = document.getElementById('ingredientes-container');
-    const div = document.createElement('div');
-    div.className = 'ingrediente-row';
-    let opt = '<option value="">Legume...</option>';
-    for(let id in globalInsumos) opt += `<option value="${id}">${globalInsumos[id].nome}</option>`;
-    div.innerHTML = `<div><select class="ing-id" onchange="calcularCustoKit()">${opt}</select></div><div><input type="number" class="ing-peso" placeholder="Gramas" oninput="calcularCustoKit()"></div><button onclick="this.parentElement.remove(); calcularCustoKit();">❌</button>`;
-    container.appendChild(div);
-}
-
-function calcularCustoKit() {
-    let total = 0;
-    const embId = document.getElementById('kit-embalagem').value;
-    if(embId && globalEmbalagens[embId]) total += parseFloat(globalEmbalagens[embId].custo);
-    document.querySelectorAll('.ingrediente-row').forEach(r => {
-        const id = r.querySelector('.ing-id').value;
-        const g = parseFloat(r.querySelector('.ing-peso').value) || 0;
-        if(id && globalInsumos[id]) total += (g/1000) * globalInsumos[id].fator * globalInsumos[id].custo;
-    });
-    document.getElementById('display-custo').innerText = `Custo Total: R$ ${total.toFixed(2)}`;
-    return total;
-}
-
-function salvarKit() {
-    const nome = document.getElementById('kit-nome').value;
-    const venda = document.getElementById('kit-venda').value;
-    const emb = document.getElementById('kit-embalagem').value;
-    const ings = [];
-    document.querySelectorAll('.ingrediente-row').forEach(r => ings.push({id: r.querySelector('.ing-id').value, g: r.querySelector('.ing-peso').value}));
-    db.ref('catalogo_kits').push({nome, venda, emb, ings}).then(() => alert("Kit Gravado!"));
-}
-
-function carregarKits() {
+    // Carrega os Kits no seletor de Produção
     db.ref('catalogo_kits').on('value', snap => {
-        const div = document.getElementById('lista-kits');
-        div.innerHTML = "<h3>Catálogo Atual</h3>";
-        snap.forEach(c => {
-            div.innerHTML += `<div class="list-item"><span>${c.val().nome} - R$ ${c.val().venda}</span><button class="btn-del" onclick="remover('catalogo_kits', '${c.key}')">🗑️</button></div>`;
+        selectKit.innerHTML = '<option value="">Selecione o Kit...</option>';
+        snap.forEach(child => {
+            selectKit.innerHTML += `<option value="${child.key}">${child.val().nome}</option>`;
+        });
+    });
+
+    // Carrega os Clientes no seletor de Produção
+    db.ref('cadastros/clientes').on('value', snap => {
+        selectCli.innerHTML = '<option value="">Selecione o Cliente...</option>';
+        snap.forEach(child => {
+            selectCli.innerHTML += `<option value="${child.key}">${child.val().nome}</option>`;
         });
     });
 }
 
-function remover(path, id) {
-    if(confirm("Excluir item?")) db.ref(path + '/' + id).remove();
+function processarSaida() {
+    const kitId = document.getElementById('prod-kit').value;
+    const qtd = parseInt(document.getElementById('prod-qtd').value);
+    const clienteId = document.getElementById('prod-cliente').value;
+
+    if (!kitId || !qtd || !clienteId) return alert("Preencha todos os campos da produção!");
+
+    db.ref('catalogo_kits/' + kitId).once('value', snap => {
+        const kit = snap.val();
+        
+        // 1. Baixa de Embalagem
+        if (kit.emb) {
+            const refEmb = db.ref('estoque/embalagens/' + kit.emb);
+            refEmb.transaction(atual => (atual || 0) - qtd);
+        }
+
+        // 2. Baixa de cada Insumo do Kit (considerando FAT.C)
+        kit.ings.forEach(ing => {
+            const insumo = globalInsumos[ing.id];
+            if (insumo) {
+                const pesoBrutoBaixar = (ing.g / 1000) * insumo.fator * qtd;
+                const refIns = db.ref('estoque/insumos/' + ing.id);
+                refIns.transaction(atual => (atual || 0) - pesoBrutoBaixar);
+            }
+        });
+
+        // 3. Registra a Venda no Financeiro
+        const valorVendaTotal = parseFloat(kit.venda) * qtd;
+        db.ref('vendas').push({
+            data: new Date().toISOString(),
+            cliente: clienteId,
+            kit: kit.nome,
+            quantidade: qtd,
+            total: valorVendaTotal
+        });
+
+        alert("Produção registrada! Estoque atualizado e venda computada.");
+    });
 }
 </script>
-</body>
-</html>
