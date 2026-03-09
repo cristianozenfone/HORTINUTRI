@@ -3,61 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri Cloud - Gestão de Lucro</title>
+    <title>HortiNutri ERP - Cadastros</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: #f0f4f2; color: #333; }
-        .card { background: white; padding: 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 6px solid #2e7d32; }
-        h2 { color: #1b5e20; margin-top: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .status-online { font-size: 0.75rem; font-weight: bold; text-align: right; margin-bottom: 10px; }
-        .grid-estoque { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-        .item-estoque { background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-        .item-estoque input { width: 85%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; text-align: center; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .btn-green { background: #2e7d32; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; margin-top: 10px; }
-        .dash-val { font-size: 1.2rem; color: #2e7d32; font-weight: bold; display: block; }
-        .lucro { color: #1565c0; }
+        :root { --primary: #2e7d32; --accent: #1565c0; --bg: #f5f7f6; --text: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
+        
+        /* Menu Superior */
+        .navbar { background: var(--primary); padding: 10px; display: flex; gap: 5px; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
+        .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; }
+        .nav-btn.active { background: white; color: var(--primary); }
+
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
+        /* Formulários */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        
+        .btn-add { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        
+        /* Listagem */
+        .list-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); }
+        .btn-del { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+
+        .hidden { display: none; }
     </style>
 </head>
-<body onload="conectarFirebase()">
+<body onload="iniciarApp()">
 
-<div class="card">
-    <div id="status" class="status-online" style="color: orange;">☁️ Conectando...</div>
-    <h2>🗄️ Estoque Online (KG Bruto)</h2>
-    <div class="grid-estoque">
-        <div class="item-estoque"><label>CABOTIÁ</label><input type="number" id="est-cabotia" onchange="salvarEstoque()"></div>
-        <div class="item-estoque"><label>MORANGA</label><input type="number" id="est-moranga" onchange="salvarEstoque()"></div>
-        <div class="item-estoque"><label>CENOURA</label><input type="number" id="est-cenoura" onchange="salvarEstoque()"></div>
-        <div class="item-estoque"><label>B. INGLESA</label><input type="number" id="est-binglesa" onchange="salvarEstoque()"></div>
-        <div class="item-estoque"><label>MANDIOCA</label><input type="number" id="est-mandioca" onchange="salvarEstoque()"></div>
-    </div>
-</div>
+<nav class="navbar">
+    <button class="nav-btn active" onclick="switchTab('insumos', this)">🥦 Insumos</button>
+    <button class="nav-btn" onclick="switchTab('embalagens', this)">📦 Embalagens</button>
+    <button class="nav-btn" onclick="switchTab('clientes', this)">🤝 Clientes</button>
+    <button class="nav-btn" onclick="switchTab('fornecedores', this)">🚚 Fornecedores</button>
+</nav>
 
-<div class="card">
-    <h2>🏢 Produção Diária (Gaúcho)</h2>
-    <input type="text" id="nome-cliente" placeholder="Nome do Cliente..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
-    <table>
-        <thead><tr><th>Produto</th><th>Qtd (Pacotes)</th></tr></thead>
-        <tbody>
-            <tr><td>Abóbora Cabotiá</td><td><input type="number" id="prod-cabotia" value="0" style="width:60px;"></td></tr>
-            <tr><td>Abóbora Moranga</td><td><input type="number" id="prod-moranga" value="0" style="width:60px;"></td></tr>
-            <tr><td>Cenoura</td><td><input type="number" id="prod-cenoura" value="0" style="width:60px;"></td></tr>
-            <tr><td>Batata Inglesa</td><td><input type="number" id="prod-binglesa" value="0" style="width:60px;"></td></tr>
-            <tr><td>Mandioca</td><td><input type="number" id="prod-mandioca" value="0" style="width:60px;"></td></tr>
-        </tbody>
-    </table>
-    <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E CALCULAR LUCRO</button>
-</div>
+<div class="container">
+    
+    <section id="tab-insumos" class="tab-content">
+        <div class="card">
+            <h2>Cadastro de Insumo (Matéria-Prima)</h2>
+            <div class="form-group"><label>Nome</label><input type="text" id="ins-nome" placeholder="Ex: Cenoura"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group"><label>Custo KG (R$)</label><input type="number" id="ins-custo" step="0.01"></div>
+                <div class="form-group"><label>Fator (FAT.C)</label><input type="number" id="ins-fator" step="0.01" value="1.00"></div>
+            </div>
+            <button class="btn-add" onclick="salvar('insumos')">Salvar Insumo</button>
+        </div>
+        <div id="lista-insumos"></div>
+    </section>
 
-<div id="resultado" class="card" style="display:none;">
-    <h2>📊 Resumo Financeiro</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; gap: 10px;">
-        <div><span>Total Venda</span><span class="dash-val" id="res-fat">R$ 0,00</span></div>
-        <div><span>Custo Bruto</span><span class="dash-val" style="color: #c62828;" id="res-custo">R$ 0,00</span></div>
-        <div><span>Lucro Real</span><span class="dash-val lucro" id="res-lucro">R$ 0,00</span></div>
-    </div>
+    <section id="tab-embalagens" class="tab-content hidden">
+        <div class="card">
+            <h2>Cadastro de Embalagens/Etiquetas</h2>
+            <div class="form-group"><label>Nome/Tamanho</label><input type="text" id="emb-nome" placeholder="Ex: Saco 14x20 + Etiqueta M"></div>
+            <div class="form-group"><label>Custo Unitário (R$)</label><input type="number" id="emb-custo" step="0.01"></div>
+            <button class="btn-add" onclick="salvar('embalagens')">Salvar Embalagem</button>
+        </div>
+        <div id="lista-embalagens"></div>
+    </section>
+
+    <section id="tab-clientes" class="tab-content hidden">
+        <div class="card">
+            <h2>Cadastro de Clientes/Parceiros</h2>
+            <div class="form-group"><label>Nome do Estabelecimento</label><input type="text" id="cli-nome" placeholder="Ex: Supermercado Gaúcho"></div>
+            <div class="form-group"><label>Contato/Telefone</label><input type="text" id="cli-contato"></div>
+            <button class="btn-add" onclick="salvar('clientes')">Salvar Cliente</button>
+        </div>
+        <div id="lista-clientes"></div>
+    </section>
+
+    <section id="tab-fornecedores" class="tab-content hidden">
+        <div class="card">
+            <h2>Cadastro de Fornecedores</h2>
+            <div class="form-group"><label>Nome/Razão Social</label><input type="text" id="for-nome" placeholder="Ex: Ceasa Palmas"></div>
+            <div class="form-group"><label>Produto Principal</label><input type="text" id="for-prod"></div>
+            <button class="btn-add" onclick="salvar('fornecedores')">Salvar Fornecedor</button>
+        </div>
+        <div id="lista-fornecedores"></div>
+    </section>
+
 </div>
 
 <script>
@@ -71,69 +100,71 @@ const firebaseConfig = {
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
 
-// CONFIGURAÇÃO DE PREÇOS (AJUSTE AQUI OS VALORES)
-const produtos = {
-    cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70, custoKG: 1.80 },
-    moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25, custoKG: 2.00 },
-    cenoura: { nome: 'Cenoura', fator: 1.27, peso: 0.3, venda: 5.00, custoKG: 2.50 },
-    binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00, custoKG: 2.20 },
-    mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57, custoKG: 3.50 }
-};
-
 let db;
 
-function conectarFirebase() {
+function iniciarApp() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    db.ref('estoque/atual').on('value', (snapshot) => {
-        const dados = snapshot.val();
-        if (dados) {
-            for (let key in dados) {
-                const campo = document.getElementById('est-' + key);
-                if (campo) campo.value = dados[key];
-            }
-            document.getElementById('status').innerText = "✅ Sincronizado";
-            document.getElementById('status').style.color = "#2e7d32";
-        }
+    carregarDados('insumos');
+    carregarDados('embalagens');
+    carregarDados('clientes');
+    carregarDados('fornecedores');
+}
+
+function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    btn.classList.add('active');
+}
+
+function salvar(tipo) {
+    let dados = {};
+    let ref = db.ref('cadastros/' + tipo).push();
+
+    if (tipo === 'insumos') {
+        dados = { nome: document.getElementById('ins-nome').value, custo: document.getElementById('ins-custo').value, fator: document.getElementById('ins-fator').value };
+    } else if (tipo === 'embalagens') {
+        dados = { nome: document.getElementById('emb-nome').value, custo: document.getElementById('emb-custo').value };
+    } else if (tipo === 'clientes') {
+        dados = { nome: document.getElementById('cli-nome').value, contato: document.getElementById('cli-contato').value };
+    } else if (tipo === 'fornecedores') {
+        dados = { nome: document.getElementById('for-nome').value, produto: document.getElementById('for-prod').value };
+    }
+
+    if (!dados.nome) return alert("Preencha pelo menos o nome!");
+    
+    ref.set(dados).then(() => {
+        alert("Cadastrado com sucesso!");
+        limparInputs(tipo);
     });
 }
 
-function salvarEstoque() {
-    const estoque = {};
-    for (let key in produtos) {
-        estoque[key] = document.getElementById('est-' + key).value || 0;
-    }
-    db.ref('estoque/atual').set(estoque);
+function carregarDados(tipo) {
+    db.ref('cadastros/' + tipo).on('value', (snapshot) => {
+        const lista = document.getElementById('lista-' + tipo);
+        lista.innerHTML = "";
+        snapshot.forEach((child) => {
+            const val = child.val();
+            lista.innerHTML += `
+                <div class="list-item">
+                    <span><strong>${val.nome}</strong> ${val.custo ? '- R$ '+val.custo : ''}</span>
+                    <button class="btn-del" onclick="remover('${tipo}', '${child.key}')">🗑️</button>
+                </div>`;
+        });
+    });
 }
 
-function processarProducao() {
-    let totalVenda = 0;
-    let totalCusto = 0;
-    const novoEstoque = {};
-
-    for (let key in produtos) {
-        let p = produtos[key];
-        let qtdPacotes = parseInt(document.getElementById('prod-' + key).value) || 0;
-        let estoqueAtual = parseFloat(document.getElementById('est-' + key).value) || 0;
-        
-        let kgConsumido = qtdPacotes * p.peso * p.fator;
-        let saldo = estoqueAtual - kgConsumido;
-        
-        totalVenda += (qtdPacotes * p.venda);
-        totalCusto += (kgConsumido * p.custoKG);
-        novoEstoque[key] = saldo.toFixed(2);
+function remover(tipo, id) {
+    if(confirm("Deseja excluir este item?")) {
+        db.ref('cadastros/' + tipo + '/' + id).remove();
     }
+}
 
-    db.ref('estoque/atual').set(novoEstoque).then(() => {
-        document.getElementById('res-fat').innerText = `R$ ${totalVenda.toFixed(2)}`;
-        document.getElementById('res-custo').innerText = `R$ ${totalCusto.toFixed(2)}`;
-        document.getElementById('res-lucro').innerText = `R$ ${(totalVenda - totalCusto).toFixed(2)}`;
-        document.getElementById('resultado').style.display = 'block';
-        alert("Baixa realizada! Confira o lucro abaixo.");
-    });
+function limparInputs(tipo) {
+    const prefixo = tipo.substring(0,3);
+    document.querySelectorAll(`input[id^="${prefixo}-"]`).forEach(i => i.value = "");
 }
 </script>
 </body>
 </html>
-
-
