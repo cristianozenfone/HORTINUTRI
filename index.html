@@ -109,25 +109,6 @@ function processarProducao() {
     for (let key in produtos) {
         let p = produtos[key];
         let qtdProd = parseInt(document.getElementById('prod-' + key).value) || 0;
-        let estoqueAtual = parseFloat(document.getElementById('est-' + key).value) || 0;
-        
-        let consumo = qtdProd * p.peso * p.fator;
-        let saldo = estoqueAtual - consumo;
-        
-        faturamento += (qtdProd * p.venda);
-        pesoGasto += consumo;
-        novoEstoque[key] = saldo.toFixed(2);
-    }
-
-    db.ref('estoque/atual').set(novoEstoque).then(() => {
-        document.getElementById('res-fat').innerText = `R$ ${faturamento.toFixed(2)}`;
-        document.getElementById('res-gasto').innerText = `${pesoGasto.toFixed(2)} kg`;
-        document.getElementById('resultado').style.display = 'block';
-        alert("Produção baixada com sucesso!");
-    });
-}
-</script>
-</body>
-</html>
+        let
 
 
