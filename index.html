@@ -88,4 +88,18 @@ function conectarFirebase() {
                 const campo = document.getElementById('est-' + key);
                 if (campo) campo.value = dados[key];
             }
-            document.getElementById('status').innerText = "✅ Online
+            document.getElementById('status').innerText = "✅ Online e Sincronizado";
+            document.getElementById('status').style.color = "#2e7d32";
+        }
+    });
+}
+
+function salvarEstoque() {
+    const estoque = {};
+    for (let key in produtos) {
+        estoque[key] = document.getElementById('est-' + key).value || 0;
+    }
+    db.ref('estoque/atual').set(estoque);
+}
+
+function processar
