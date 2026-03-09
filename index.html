@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri Cloud - Online</title>
+    <title>HortiNutri Cloud - Gestão de Lucro</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
@@ -18,6 +18,7 @@
         th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
         .btn-green { background: #2e7d32; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; margin-top: 10px; }
         .dash-val { font-size: 1.2rem; color: #2e7d32; font-weight: bold; display: block; }
+        .lucro { color: #1565c0; }
     </style>
 </head>
 <body onload="conectarFirebase()">
@@ -35,23 +36,27 @@
 </div>
 
 <div class="card">
-    <h2>🏢 Produção Diária</h2>
-    <input type="text" id="nome-cliente" placeholder="Nome do Supermercado..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
+    <h2>🏢 Produção Diária (Gaúcho)</h2>
+    <input type="text" id="nome-cliente" placeholder="Nome do Cliente..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
     <table>
-        <tr><td>Abóbora Cabotiá</td><td><input type="number" id="prod-cabotia" value="0" style="width:60px;"></td></tr>
-        <tr><td>Abóbora Moranga</td><td><input type="number" id="prod-moranga" value="0" style="width:60px;"></td></tr>
-        <tr><td>Cenoura</td><td><input type="number" id="prod-cenoura" value="0" style="width:60px;"></td></tr>
-        <tr><td>Batata Inglesa</td><td><input type="number" id="prod-binglesa" value="0" style="width:60px;"></td></tr>
-        <tr><td>Mandioca</td><td><input type="number" id="prod-mandioca" value="0" style="width:60px;"></td></tr>
+        <thead><tr><th>Produto</th><th>Qtd (Pacotes)</th></tr></thead>
+        <tbody>
+            <tr><td>Abóbora Cabotiá</td><td><input type="number" id="prod-cabotia" value="0" style="width:60px;"></td></tr>
+            <tr><td>Abóbora Moranga</td><td><input type="number" id="prod-moranga" value="0" style="width:60px;"></td></tr>
+            <tr><td>Cenoura</td><td><input type="number" id="prod-cenoura" value="0" style="width:60px;"></td></tr>
+            <tr><td>Batata Inglesa</td><td><input type="number" id="prod-binglesa" value="0" style="width:60px;"></td></tr>
+            <tr><td>Mandioca</td><td><input type="number" id="prod-mandioca" value="0" style="width:60px;"></td></tr>
+        </tbody>
     </table>
-    <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E SALVAR</button>
+    <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E CALCULAR LUCRO</button>
 </div>
 
 <div id="resultado" class="card" style="display:none;">
-    <h2>📊 Resumo</h2>
-    <div style="display: flex; justify-content: space-around; text-align: center;">
-        <div><span>Venda</span><span class="dash-val" id="res-fat">R$ 0,00</span></div>
-        <div><span>Gasto Bruto</span><span class="dash-val" id="res-gasto">0.0 kg</span></div>
+    <h2>📊 Resumo Financeiro</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; gap: 10px;">
+        <div><span>Total Venda</span><span class="dash-val" id="res-fat">R$ 0,00</span></div>
+        <div><span>Custo Bruto</span><span class="dash-val" style="color: #c62828;" id="res-custo">R$ 0,00</span></div>
+        <div><span>Lucro Real</span><span class="dash-val lucro" id="res-lucro">R$ 0,00</span></div>
     </div>
 </div>
 
@@ -66,12 +71,13 @@ const firebaseConfig = {
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
 
+// CONFIGURAÇÃO DE PREÇOS (AJUSTE AQUI OS VALORES)
 const produtos = {
-    cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70 },
-    moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25 },
-    cenoura: { nome: 'Cenoura', fator: 1.27, peso: 0.3, venda: 5.00 },
-    binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00 },
-    mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57 }
+    cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70, custoKG: 1.80 },
+    moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25, custoKG: 2.00 },
+    cenoura: { nome: 'Cenoura', fator: 1.27, peso: 0.3, venda: 5.00, custoKG: 2.50 },
+    binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00, custoKG: 2.20 },
+    mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57, custoKG: 3.50 }
 };
 
 let db;
@@ -86,7 +92,7 @@ function conectarFirebase() {
                 const campo = document.getElementById('est-' + key);
                 if (campo) campo.value = dados[key];
             }
-            document.getElementById('status').innerText = "✅ Online e Sincronizado";
+            document.getElementById('status').innerText = "✅ Sincronizado";
             document.getElementById('status').style.color = "#2e7d32";
         }
     });
@@ -101,26 +107,33 @@ function salvarEstoque() {
 }
 
 function processarProducao() {
-    let faturamento = 0, pesoGasto = 0;
+    let totalVenda = 0;
+    let totalCusto = 0;
     const novoEstoque = {};
+
     for (let key in produtos) {
         let p = produtos[key];
-        let qtdProd = parseInt(document.getElementById('prod-' + key).value) || 0;
+        let qtdPacotes = parseInt(document.getElementById('prod-' + key).value) || 0;
         let estoqueAtual = parseFloat(document.getElementById('est-' + key).value) || 0;
-        let consumo = qtdProd * p.peso * p.fator;
-        let saldo = estoqueAtual - consumo;
-        faturamento += (qtdProd * p.venda);
-        pesoGasto += consumo;
+        
+        let kgConsumido = qtdPacotes * p.peso * p.fator;
+        let saldo = estoqueAtual - kgConsumido;
+        
+        totalVenda += (qtdPacotes * p.venda);
+        totalCusto += (kgConsumido * p.custoKG);
         novoEstoque[key] = saldo.toFixed(2);
     }
+
     db.ref('estoque/atual').set(novoEstoque).then(() => {
-        document.getElementById('res-fat').innerText = `R$ ${faturamento.toFixed(2)}`;
-        document.getElementById('res-gasto').innerText = `${pesoGasto.toFixed(2)} kg`;
+        document.getElementById('res-fat').innerText = `R$ ${totalVenda.toFixed(2)}`;
+        document.getElementById('res-custo').innerText = `R$ ${totalCusto.toFixed(2)}`;
+        document.getElementById('res-lucro').innerText = `R$ ${(totalVenda - totalCusto).toFixed(2)}`;
         document.getElementById('resultado').style.display = 'block';
-        alert("Produção baixada com sucesso!");
+        alert("Baixa realizada! Confira o lucro abaixo.");
     });
 }
 </script>
 </body>
 </html>
+
 
