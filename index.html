@@ -21,6 +21,7 @@
     </style>
 </head>
 <body onload="conectarFirebase()">
+
 <div class="card">
     <div id="status" class="status-online" style="color: orange;">☁️ Conectando...</div>
     <h2>🗄️ Estoque Online (KG Bruto)</h2>
@@ -32,6 +33,7 @@
         <div class="item-estoque"><label>MANDIOCA</label><input type="number" id="est-mandioca" onchange="salvarEstoque()"></div>
     </div>
 </div>
+
 <div class="card">
     <h2>🏢 Produção Diária</h2>
     <input type="text" id="nome-cliente" placeholder="Nome do Supermercado..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
@@ -44,6 +46,7 @@
     </table>
     <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E SALVAR</button>
 </div>
+
 <div id="resultado" class="card" style="display:none;">
     <h2>📊 Resumo</h2>
     <div style="display: flex; justify-content: space-around; text-align: center;">
@@ -51,6 +54,7 @@
         <div><span>Gasto Bruto</span><span class="dash-val" id="res-gasto">0.0 kg</span></div>
     </div>
 </div>
+
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
@@ -61,6 +65,7 @@ const firebaseConfig = {
     messagingSenderId: "596792658513",
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
+
 const produtos = {
     cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70 },
     moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25 },
@@ -68,7 +73,9 @@ const produtos = {
     binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00 },
     mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57 }
 };
+
 let db;
+
 function conectarFirebase() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
@@ -84,6 +91,7 @@ function conectarFirebase() {
         }
     });
 }
+
 function salvarEstoque() {
     const estoque = {};
     for (let key in produtos) {
@@ -91,6 +99,7 @@ function salvarEstoque() {
     }
     db.ref('estoque/atual').set(estoque);
 }
+
 function processarProducao() {
     let faturamento = 0, pesoGasto = 0;
     const novoEstoque = {};
@@ -114,3 +123,4 @@ function processarProducao() {
 </script>
 </body>
 </html>
+
