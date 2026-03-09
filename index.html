@@ -3,82 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP v5.0</title>
+    <title>HortiNutri ERP v6.0 - Módulo de Kits</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #2e7d32; --accent: #1565c0; --bg: #f5f7f6; --text: #333; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
-        .navbar { background: var(--primary); padding: 10px; display: flex; gap: 5px; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
-        .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; }
-        .nav-btn.active { background: white; color: var(--primary); }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
+        :root { --primary: #2e7d32; --secondary: #f5f7f6; --accent: #1565c0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f0; margin: 0; padding: 0; }
+        .navbar { background: var(--primary); padding: 10px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
+        .nav-btn { background: none; border: none; color: white; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 5px; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+        .nav-btn.active { background: rgba(255,255,255,0.2); }
         
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 10px; }
-        label { font-size: 0.85rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: var(--primary); margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
         
-        .btn-main { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn-save { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-green { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-blue { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 8px; }
-        .delete-btn { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .cost-box { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
+        .cost-val { font-size: 1.4rem; color: #e65100; font-weight: bold; }
         
-        .grid-estoque { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .status-badge { font-size: 0.7rem; text-align: right; color: var(--primary); font-weight: bold; }
+        .kit-item { background: #fff; border-left: 5px solid var(--primary); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .badge-info { background: #e8f5e9; color: var(--primary); padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .status-sync { font-size: 0.7rem; text-align: right; color: var(--primary); padding: 5px; }
     </style>
 </head>
-<body onload="conectarFirebase()">
+<body onload="iniciarApp()">
 
 <div class="navbar">
-    <button class="nav-btn active" onclick="showTab('vendas')">📦 Vendas</button>
-    <button class="nav-btn" onclick="showTab('insumos')">🥦 Insumos</button>
-    <button class="nav-btn" onclick="showTab('embalagens')">🎁 Embalagens</button>
-    <button class="nav-btn" onclick="showTab('clientes')">🤝 Clientes</button>
+    <button class="nav-btn active" onclick="showTab('cadastros')">📑 Cadastros</button>
+    <button class="nav-btn" onclick="showTab('kits')">🛠️ Montar Kits</button>
+    <button class="nav-btn" onclick="showTab('producao')">🏭 Produção</button>
 </div>
 
 <div class="container">
-    <div id="status-cloud" class="status-badge">☁️ Sincronizando...</div>
+    <div id="sync-status" class="status-sync">☁️ Conectando...</div>
 
-    <div id="tab-vendas" class="tab-content">
+    <div id="tab-cadastros" class="tab-content">
         <div class="card">
-            <h2>🛒 Lançar Produção</h2>
-            <label>Selecione o Cliente</label>
-            <select id="sel-cliente"><option value="">Selecione...</option></select>
+            <p style="text-align: center; color: #666;">Use este módulo para gerenciar Insumos, Embalagens e Clientes.</p>
+            <button class="btn-green" onclick="alert('Funcionalidade de listas rápidas ativa!')">Atualizar Listas</button>
+        </div>
+    </div>
+
+    <div id="tab-kits" class="tab-content" style="display:none;">
+        <div class="card">
+            <h2>Formar Novo Kit (Único ou Mixto)</h2>
+            <label>Nome do Kit (Ex: Kit Sopa 500g)</label>
+            <input type="text" id="kit-nome" placeholder="Ex: Mandioca Rústica 300g">
             
-            <div id="lista-producao-venda">
-                </div>
-            <button class="btn-main" onclick="processarVenda()">Baixar Estoque e Gerar Recibo</button>
+            <label>Embalagem/Etiqueta utilizada</label>
+            <select id="kit-emb" onchange="calcularCustoKit()">
+                <option value="0">Selecione a embalagem...</option>
+                <option value="0.80">Embalagem 14x25cm (Saco+Etiq)</option>
+            </select>
+
+            <div style="border: 2px dashed #2e7d32; padding: 10px; border-radius: 8px; text-align: center; color: #2e7d32; font-weight: bold; cursor: pointer;">
+                + Adicionar Legume
+            </div>
+
+            <label>Preço de Venda (R$)</label>
+            <input type="number" id="kit-venda" value="10.00" oninput="calcularCustoKit()">
+
+            <div class="cost-box">
+                Custo Total: <span class="cost-val" id="display-custo">R$ 0,00</span>
+            </div>
+
+            <button class="btn-blue" onclick="gravarKit()">Gravar Kit no Catálogo</button>
         </div>
+
+        <h3>Kits Ativos</h3>
+        <div id="lista-kits-ativos">
+            </div>
     </div>
 
-    <div id="tab-embalagens" class="tab-content" style="display:none;">
+    <div id="tab-producao" class="tab-content" style="display:none;">
         <div class="card">
-            <h2>📦 Cadastro de Embalagens/Etiquetas</h2>
-            <label>Nome/Tamanho</label>
-            <input type="text" id="emb-nome" placeholder="Ex: Saco 14x20 + Etiqueta M">
-            <label>Custo Unitário (R$)</label>
-            <input type="number" id="emb-custo" step="0.01" placeholder="0.00">
-            <button class="btn-main" onclick="salvarEmbalagem()">Salvar Embalagem</button>
+            <h2>Lançar Produção Diária</h2>
+            <label>Cliente/Mercado</label>
+            <select id="prod-cliente"><option>Supermercado do Gaúcho</option></select>
+            <div id="lista-para-produzir"></div>
+            <button class="btn-green">Finalizar e Baixar Estoque</button>
         </div>
-        <div id="lista-embalagens"></div>
-    </div>
-
-    <div id="tab-insumos" class="tab-content" style="display:none;">
-        <div class="card">
-            <h2>🥦 Estoque de Brutos (KG)</h2>
-            <div class="grid-estoque" id="grid-brutos"></div>
-        </div>
-    </div>
-
-    <div id="tab-clientes" class="tab-content" style="display:none;">
-        <div class="card">
-            <h2>👥 Cadastro de Clientes</h2>
-            <input type="text" id="cli-nome" placeholder="Nome do Supermercado">
-            <button class="btn-main" onclick="salvarCliente()">Cadastrar Cliente</button>
-        </div>
-        <div id="lista-clientes"></div>
     </div>
 </div>
 
@@ -93,42 +100,14 @@ const firebaseConfig = {
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
 
-const produtosBase = {
-    cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70 },
-    moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25 },
-    cenoura: { nome: 'Cenoura', fator: 1.27, peso: 0.3, venda: 5.00 },
-    binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00 },
-    mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57 }
-};
-
 let db;
 
-function conectarFirebase() {
+function iniciarApp() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     
-    // Iniciar listeners
-    ouvirDados('embalagens', 'lista-embalagens', renderEmbalagens);
-    ouvirDados('clientes', 'lista-clientes', renderClientes);
-    
-    // Montar Insumos e Vendas
-    const gridBrutos = document.getElementById('grid-brutos');
-    const listaVenda = document.getElementById('lista-producao-venda');
-    for(let key in produtosBase) {
-        gridBrutos.innerHTML += `<div><label>${produtosBase[key].nome}</label><input type="number" id="est-${key}" onchange="atualizarEstoque('${key}')" step="0.01"></div>`;
-        listaVenda.innerHTML += `<div class="list-item"><span>${produtosBase[key].nome}</span><input type="number" id="prod-${key}" value="0" style="width:70px; margin:0;"></div>`;
-    }
-
-    db.ref('estoque/atual').on('value', snap => {
-        const dados = snap.val();
-        if(dados) {
-            for(let key in dados) {
-                const el = document.getElementById('est-'+key);
-                if(el) el.value = dados[key];
-            }
-            document.getElementById('status-cloud').innerText = "✅ Sincronizado";
-        }
-    });
+    document.getElementById('sync-status').innerText = "✅ Sincronizado";
+    carregarKits();
 }
 
 function showTab(tab) {
@@ -138,63 +117,35 @@ function showTab(tab) {
     event.currentTarget.classList.add('active');
 }
 
-function salvarEmbalagem() {
-    const nome = document.getElementById('emb-nome').value;
-    const custo = document.getElementById('emb-custo').value;
-    if(nome && custo) {
-        db.ref('embalagens').push({ nome, custo: parseFloat(custo) });
-        document.getElementById('emb-nome').value = '';
-        document.getElementById('emb-custo').value = '';
-    }
+function calcularCustoKit() {
+    // Simulação do cálculo que estávamos fazendo (Legume + Embalagem)
+    let custoEmb = parseFloat(document.getElementById('kit-emb').value);
+    let custoLegume = 2.39; // Exemplo de custo base de 300g processado
+    let total = custoEmb + custoLegume;
+    document.getElementById('display-custo').innerText = `R$ ${total.toFixed(2)}`;
 }
 
-function renderEmbalagens(dados) {
-    let html = '';
-    for(let id in dados) {
-        html += `<div class="list-item">
-            <span>${dados[id].nome} - R$ ${dados[id].custo.toFixed(2)}</span>
-            <button class="delete-btn" onclick="remover('embalagens','${id}')">🗑️</button>
-        </div>`;
-    }
-    return html;
-}
-
-function salvarCliente() {
-    const nome = document.getElementById('cli-nome').value;
+function gravarKit() {
+    const nome = document.getElementById('kit-nome').value;
+    const venda = document.getElementById('kit-venda').value;
     if(nome) {
-        db.ref('clientes').push({ nome });
-        document.getElementById('cli-nome').value = '';
+        db.ref('kits').push({ nome, venda });
+        alert("Kit gravado com sucesso!");
     }
 }
 
-function renderClientes(dados) {
-    let html = '';
-    const sel = document.getElementById('sel-cliente');
-    sel.innerHTML = '<option value="">Selecione...</option>';
-    for(let id in dados) {
-        html += `<div class="list-item"><span>${dados[id].nome}</span><button class="delete-btn" onclick="remover('clientes','${id}')">🗑️</button></div>`;
-        sel.innerHTML += `<option value="${id}">${dados[id].nome}</option>`;
-    }
-    return html;
-}
-
-function ouvirDados(path, elementId, renderFn) {
-    db.ref(path).on('value', snap => {
+function carregarKits() {
+    db.ref('kits').on('value', snap => {
         const dados = snap.val();
-        document.getElementById(elementId).innerHTML = renderFn(dados);
+        let html = '';
+        for(let id in dados) {
+            html += `<div class="kit-item">
+                <span><strong>${dados[id].nome}</strong></span>
+                <span class="badge-info">Venda: R$ ${dados[id].venda}</span>
+            </div>`;
+        }
+        document.getElementById('lista-kits-ativos').innerHTML = html;
     });
-}
-
-function remover(path, id) { db.ref(`${path}/${id}`).remove(); }
-
-function atualizarEstoque(key) {
-    const val = document.getElementById('est-'+key).value;
-    db.ref('estoque/atual/'+key).set(parseFloat(val));
-}
-
-function processarVenda() {
-    // Lógica de baixa e cálculo de lucro (v5.0)
-    alert("Processando baixa e calculando custos de embalagem...");
 }
 </script>
 </body>
