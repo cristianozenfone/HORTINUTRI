@@ -1,152 +1,76 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP v6.0 - Módulo de Kits</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <style>
-        :root { --primary: #2e7d32; --secondary: #f5f7f6; --accent: #1565c0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f0; margin: 0; padding: 0; }
-        .navbar { background: var(--primary); padding: 10px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: white; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 5px; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        .nav-btn.active { background: rgba(255,255,255,0.2); }
+<div id="tab-cadastros" class="tab-content">
+    <div class="card">
+        <h2>📂 Gerenciar Cadastros</h2>
         
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: var(--primary); margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
-        
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-green { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-blue { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .cost-box { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
-        .cost-val { font-size: 1.4rem; color: #e65100; font-weight: bold; }
-        
-        .kit-item { background: #fff; border-left: 5px solid var(--primary); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .badge-info { background: #e8f5e9; color: var(--primary); padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .status-sync { font-size: 0.7rem; text-align: right; color: var(--primary); padding: 5px; }
-    </style>
-</head>
-<body onload="iniciarApp()">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('insumo')">🥦 Insumos</button>
+            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('embalagem')">📦 Embalagens</button>
+            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('cliente')">🤝 Clientes</button>
+            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('fornecedor')">🚚 Fornecedores</button>
+        </div>
 
-<div class="navbar">
-    <button class="nav-btn active" onclick="showTab('cadastros')">📑 Cadastros</button>
-    <button class="nav-btn" onclick="showTab('kits')">🛠️ Montar Kits</button>
-    <button class="nav-btn" onclick="showTab('producao')">🏭 Produção</button>
-</div>
+        <div id="sub-insumo" class="sub-tab" style="display:none;">
+            <h3>🥦 Novo Insumo</h3>
+            <input type="text" id="ins-nome" placeholder="Nome do Legume (Ex: Abóbora)">
+            <input type="number" id="ins-fator" step="0.01" placeholder="Fator de Perda (Ex: 1.65)">
+            <button class="btn-green" onclick="salvarGenerico('insumos', 'ins-nome', 'ins-fator')">Cadastrar Legume</button>
+        </div>
 
-<div class="container">
-    <div id="sync-status" class="status-sync">☁️ Conectando...</div>
+        <div id="sub-embalagem" class="sub-tab" style="display:none;">
+            <h3>📦 Nova Embalagem/Etiqueta</h3>
+            <input type="text" id="emb-nome" placeholder="Ex: Saco 14x25 + Etiqueta">
+            <input type="number" id="emb-custo" step="0.01" placeholder="Custo Unitário R$">
+            <button class="btn-green" onclick="salvarGenerico('embalagens', 'emb-nome', 'emb-custo')">Salvar Embalagem</button>
+        </div>
 
-    <div id="tab-cadastros" class="tab-content">
-        <div class="card">
-            <p style="text-align: center; color: #666;">Use este módulo para gerenciar Insumos, Embalagens e Clientes.</p>
-            <button class="btn-green" onclick="alert('Funcionalidade de listas rápidas ativa!')">Atualizar Listas</button>
+        <div id="sub-cliente" class="sub-tab" style="display:none;">
+            <h3>🤝 Novo Cliente</h3>
+            <input type="text" id="cli-nome" placeholder="Nome do Supermercado">
+            <button class="btn-green" onclick="salvarGenerico('clientes', 'cli-nome')">Cadastrar Cliente</button>
         </div>
     </div>
-
-    <div id="tab-kits" class="tab-content" style="display:none;">
-        <div class="card">
-            <h2>Formar Novo Kit (Único ou Mixto)</h2>
-            <label>Nome do Kit (Ex: Kit Sopa 500g)</label>
-            <input type="text" id="kit-nome" placeholder="Ex: Mandioca Rústica 300g">
-            
-            <label>Embalagem/Etiqueta utilizada</label>
-            <select id="kit-emb" onchange="calcularCustoKit()">
-                <option value="0">Selecione a embalagem...</option>
-                <option value="0.80">Embalagem 14x25cm (Saco+Etiq)</option>
-            </select>
-
-            <div style="border: 2px dashed #2e7d32; padding: 10px; border-radius: 8px; text-align: center; color: #2e7d32; font-weight: bold; cursor: pointer;">
-                + Adicionar Legume
-            </div>
-
-            <label>Preço de Venda (R$)</label>
-            <input type="number" id="kit-venda" value="10.00" oninput="calcularCustoKit()">
-
-            <div class="cost-box">
-                Custo Total: <span class="cost-val" id="display-custo">R$ 0,00</span>
-            </div>
-
-            <button class="btn-blue" onclick="gravarKit()">Gravar Kit no Catálogo</button>
-        </div>
-
-        <h3>Kits Ativos</h3>
-        <div id="lista-kits-ativos">
-            </div>
-    </div>
-
-    <div id="tab-producao" class="tab-content" style="display:none;">
-        <div class="card">
-            <h2>Lançar Produção Diária</h2>
-            <label>Cliente/Mercado</label>
-            <select id="prod-cliente"><option>Supermercado do Gaúcho</option></select>
-            <div id="lista-para-produzir"></div>
-            <button class="btn-green">Finalizar e Baixar Estoque</button>
-        </div>
+    
+    <div id="lista-cadastros-geral" class="card" style="margin-top:10px;">
+        <p style="color:#666; font-size:0.9rem;">Selecione uma categoria acima para ver os itens.</p>
     </div>
 </div>
 
 <script>
-const firebaseConfig = {
-    apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
-    authDomain: "hortinutri-3f2ea.firebaseapp.com",
-    databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
-    projectId: "hortinutri-3f2ea",
-    storageBucket: "hortinutri-3f2ea.appspot.com",
-    messagingSenderId: "596792658513",
-    appId: "1:596792658513:web:92bb97b0d835efc5510670"
-};
+// ADICIONE ESTAS FUNÇÕES NO SEU <script> PARA TUDO FUNCIONAR:
 
-let db;
+function showSubTab(categoria) {
+    document.querySelectorAll('.sub-tab').forEach(s => s.style.display = 'none');
+    document.getElementById('sub-' + categoria).style.display = 'block';
+    carregarListaCadastros(categoria);
+}
 
-function iniciarApp() {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
+function salvarGenerico(path, idNome, idValor) {
+    const nome = document.getElementById(idNome).value;
+    const dadoExtra = idValor ? document.getElementById(idValor).value : null;
     
-    document.getElementById('sync-status').innerText = "✅ Sincronizado";
-    carregarKits();
-}
-
-function showTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tab).style.display = 'block';
-    event.currentTarget.classList.add('active');
-}
-
-function calcularCustoKit() {
-    // Simulação do cálculo que estávamos fazendo (Legume + Embalagem)
-    let custoEmb = parseFloat(document.getElementById('kit-emb').value);
-    let custoLegume = 2.39; // Exemplo de custo base de 300g processado
-    let total = custoEmb + custoLegume;
-    document.getElementById('display-custo').innerText = `R$ ${total.toFixed(2)}`;
-}
-
-function gravarKit() {
-    const nome = document.getElementById('kit-nome').value;
-    const venda = document.getElementById('kit-venda').value;
     if(nome) {
-        db.ref('kits').push({ nome, venda });
-        alert("Kit gravado com sucesso!");
+        const payload = { nome: nome };
+        if(dadoExtra) payload.valor = parseFloat(dadoExtra);
+        
+        db.ref(path).push(payload).then(() => {
+            alert("Cadastrado com sucesso!");
+            document.getElementById(idNome).value = "";
+            if(idValor) document.getElementById(idValor).value = "";
+        });
     }
 }
 
-function carregarKits() {
-    db.ref('kits').on('value', snap => {
+function carregarListaCadastros(path) {
+    db.ref(path + 's').on('value', snap => {
         const dados = snap.val();
-        let html = '';
+        let html = `<h4>Lista de ${path}s</h4>`;
         for(let id in dados) {
-            html += `<div class="kit-item">
-                <span><strong>${dados[id].nome}</strong></span>
-                <span class="badge-info">Venda: R$ ${dados[id].venda}</span>
+            html += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;">
+                <span>${dados[id].nome}</span>
+                <button onclick="db.ref('${path}s/${id}').remove()" style="border:none; background:none; cursor:pointer;">🗑️</button>
             </div>`;
         }
-        document.getElementById('lista-kits-ativos').innerHTML = html;
+        document.getElementById('lista-cadastros-geral').innerHTML = html;
     });
 }
 </script>
-</body>
-</html>
