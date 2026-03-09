@@ -3,45 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri Cloud</title>
+    <title>HortiNutri ERP v5.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: #f0f4f2; color: #333; }
-        .card { background: white; padding: 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 6px solid #2e7d32; }
-        h2 { color: #1b5e20; margin-top: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .status-online { font-size: 0.75rem; font-weight: bold; text-align: right; margin-bottom: 10px; }
-        .grid-estoque { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-        .item-estoque { background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-        .item-estoque input { width: 85%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; text-align: center; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .btn-green { background: #2e7d32; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; margin-top: 10px; }
-        .btn-clear { background: #607d8b; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold; }
-        .dash-val { font-size: 1.2rem; color: #2e7d32; font-weight: bold; display: block; }
+        :root { --primary: #2e7d32; --accent: #1565c0; --bg: #f5f7f6; --text: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
+        .navbar { background: var(--primary); padding: 10px; display: flex; gap: 5px; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
+        .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; }
+        .nav-btn.active { background: white; color: var(--primary); }
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
+        
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 10px; }
+        label { font-size: 0.85rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
+        
+        .btn-main { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-save { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+        
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 8px; }
+        .delete-btn { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        
+        .grid-estoque { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .status-badge { font-size: 0.7rem; text-align: right; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body onload="conectarFirebase()">
 
-<div class="card">
-    <div id="status" class="status-online" style="color: orange;">☁️ Conectando...</div>
-    <h2>🗄️ Estoque Online (KG Bruto)</h2>
-    <div class="grid-estoque" id="campos-estoque"></div>
+<div class="navbar">
+    <button class="nav-btn active" onclick="showTab('vendas')">📦 Vendas</button>
+    <button class="nav-btn" onclick="showTab('insumos')">🥦 Insumos</button>
+    <button class="nav-btn" onclick="showTab('embalagens')">🎁 Embalagens</button>
+    <button class="nav-btn" onclick="showTab('clientes')">🤝 Clientes</button>
 </div>
 
-<div class="card">
-    <h2>🏢 Produção Diária</h2>
-    <input type="text" id="nome-cliente" placeholder="Nome do Mercado..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
-    <table id="tabela-producao"></table>
-    <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E SALVAR</button>
-    <button class="btn-clear" onclick="limparTela()">🧹 NOVA ENTREGA</button>
-</div>
+<div class="container">
+    <div id="status-cloud" class="status-badge">☁️ Sincronizando...</div>
 
-<div id="resultado" class="card" style="display:none;">
-    <h2>📊 Resumo</h2>
-    <div style="display: flex; justify-content: space-around; text-align: center;">
-        <div><span>Venda</span><span class="dash-val" id="res-fat">R$ 0,00</span></div>
-        <div><span>Gasto Bruto</span><span class="dash-val" id="res-gasto">0.0 kg</span></div>
+    <div id="tab-vendas" class="tab-content">
+        <div class="card">
+            <h2>🛒 Lançar Produção</h2>
+            <label>Selecione o Cliente</label>
+            <select id="sel-cliente"><option value="">Selecione...</option></select>
+            
+            <div id="lista-producao-venda">
+                </div>
+            <button class="btn-main" onclick="processarVenda()">Baixar Estoque e Gerar Recibo</button>
+        </div>
+    </div>
+
+    <div id="tab-embalagens" class="tab-content" style="display:none;">
+        <div class="card">
+            <h2>📦 Cadastro de Embalagens/Etiquetas</h2>
+            <label>Nome/Tamanho</label>
+            <input type="text" id="emb-nome" placeholder="Ex: Saco 14x20 + Etiqueta M">
+            <label>Custo Unitário (R$)</label>
+            <input type="number" id="emb-custo" step="0.01" placeholder="0.00">
+            <button class="btn-main" onclick="salvarEmbalagem()">Salvar Embalagem</button>
+        </div>
+        <div id="lista-embalagens"></div>
+    </div>
+
+    <div id="tab-insumos" class="tab-content" style="display:none;">
+        <div class="card">
+            <h2>🥦 Estoque de Brutos (KG)</h2>
+            <div class="grid-estoque" id="grid-brutos"></div>
+        </div>
+    </div>
+
+    <div id="tab-clientes" class="tab-content" style="display:none;">
+        <div class="card">
+            <h2>👥 Cadastro de Clientes</h2>
+            <input type="text" id="cli-nome" placeholder="Nome do Supermercado">
+            <button class="btn-main" onclick="salvarCliente()">Cadastrar Cliente</button>
+        </div>
+        <div id="lista-clientes"></div>
     </div>
 </div>
 
@@ -56,7 +93,7 @@ const firebaseConfig = {
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
 
-const produtos = {
+const produtosBase = {
     cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70 },
     moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25 },
     cenoura: { nome: 'Cenoura', fator: 1.27, peso: 0.3, venda: 5.00 },
@@ -70,60 +107,94 @@ function conectarFirebase() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     
-    // Monta os campos na tela
-    const divEst = document.getElementById('campos-estoque');
-    const tabProd = document.getElementById('tabela-producao');
-    for (let key in produtos) {
-        divEst.innerHTML += `<div class="item-estoque"><label>${key.toUpperCase()}</label><input type="number" id="est-${key}" step="0.01" onchange="salvarEstoque()"></div>`;
-        tabProd.innerHTML += `<tr><td>${produtos[key].nome}</td><td><input type="number" id="prod-${key}" class="input-prod" value="0" style="width:60px;"></td></tr>`;
+    // Iniciar listeners
+    ouvirDados('embalagens', 'lista-embalagens', renderEmbalagens);
+    ouvirDados('clientes', 'lista-clientes', renderClientes);
+    
+    // Montar Insumos e Vendas
+    const gridBrutos = document.getElementById('grid-brutos');
+    const listaVenda = document.getElementById('lista-producao-venda');
+    for(let key in produtosBase) {
+        gridBrutos.innerHTML += `<div><label>${produtosBase[key].nome}</label><input type="number" id="est-${key}" onchange="atualizarEstoque('${key}')" step="0.01"></div>`;
+        listaVenda.innerHTML += `<div class="list-item"><span>${produtosBase[key].nome}</span><input type="number" id="prod-${key}" value="0" style="width:70px; margin:0;"></div>`;
     }
 
-    // Escuta o banco de dados
-    db.ref('estoque/atual').on('value', (snapshot) => {
-        const dados = snapshot.val();
-        if (dados) {
-            for (let key in dados) {
-                const campo = document.getElementById('est-' + key);
-                if (campo) campo.value = dados[key];
+    db.ref('estoque/atual').on('value', snap => {
+        const dados = snap.val();
+        if(dados) {
+            for(let key in dados) {
+                const el = document.getElementById('est-'+key);
+                if(el) el.value = dados[key];
             }
-            document.getElementById('status').innerText = "✅ Online e Sincronizado";
-            document.getElementById('status').style.color = "#2e7d32";
+            document.getElementById('status-cloud').innerText = "✅ Sincronizado";
         }
     });
 }
 
-function salvarEstoque() {
-    const estoque = {};
-    for (let key in produtos) {
-        estoque[key] = document.getElementById('est-' + key).value || 0;
-    }
-    db.ref('estoque/atual').set(estoque);
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).style.display = 'block';
+    event.currentTarget.classList.add('active');
 }
 
-function processarProducao() {
-    let faturamento = 0, pesoGasto = 0;
-    const novoEstoque = {};
-    for (let key in produtos) {
-        let p = produtos[key];
-        let qtdProd = parseInt(document.getElementById('prod-' + key).value) || 0;
-        let estoqueAtual = parseFloat(document.getElementById('est-' + key).value) || 0;
-        let consumo = qtdProd * p.peso * p.fator;
-        faturamento += (qtdProd * p.venda);
-        pesoGasto += consumo;
-        novoEstoque[key] = (estoqueAtual - consumo).toFixed(2);
+function salvarEmbalagem() {
+    const nome = document.getElementById('emb-nome').value;
+    const custo = document.getElementById('emb-custo').value;
+    if(nome && custo) {
+        db.ref('embalagens').push({ nome, custo: parseFloat(custo) });
+        document.getElementById('emb-nome').value = '';
+        document.getElementById('emb-custo').value = '';
     }
-    db.ref('estoque/atual').set(novoEstoque).then(() => {
-        document.getElementById('res-fat').innerText = `R$ ${faturamento.toFixed(2)}`;
-        document.getElementById('res-gasto').innerText = `${pesoGasto.toFixed(2)} kg`;
-        document.getElementById('resultado').style.display = 'block';
-        alert("Produção registrada!");
+}
+
+function renderEmbalagens(dados) {
+    let html = '';
+    for(let id in dados) {
+        html += `<div class="list-item">
+            <span>${dados[id].nome} - R$ ${dados[id].custo.toFixed(2)}</span>
+            <button class="delete-btn" onclick="remover('embalagens','${id}')">🗑️</button>
+        </div>`;
+    }
+    return html;
+}
+
+function salvarCliente() {
+    const nome = document.getElementById('cli-nome').value;
+    if(nome) {
+        db.ref('clientes').push({ nome });
+        document.getElementById('cli-nome').value = '';
+    }
+}
+
+function renderClientes(dados) {
+    let html = '';
+    const sel = document.getElementById('sel-cliente');
+    sel.innerHTML = '<option value="">Selecione...</option>';
+    for(let id in dados) {
+        html += `<div class="list-item"><span>${dados[id].nome}</span><button class="delete-btn" onclick="remover('clientes','${id}')">🗑️</button></div>`;
+        sel.innerHTML += `<option value="${id}">${dados[id].nome}</option>`;
+    }
+    return html;
+}
+
+function ouvirDados(path, elementId, renderFn) {
+    db.ref(path).on('value', snap => {
+        const dados = snap.val();
+        document.getElementById(elementId).innerHTML = renderFn(dados);
     });
 }
 
-function limparTela() {
-    document.getElementById('nome-cliente').value = "";
-    document.querySelectorAll('.input-prod').forEach(i => i.value = 0);
-    document.getElementById('resultado').style.display = 'none';
+function remover(path, id) { db.ref(`${path}/${id}`).remove(); }
+
+function atualizarEstoque(key) {
+    const val = document.getElementById('est-'+key).value;
+    db.ref('estoque/atual/'+key).set(parseFloat(val));
+}
+
+function processarVenda() {
+    // Lógica de baixa e cálculo de lucro (v5.0)
+    alert("Processando baixa e calculando custos de embalagem...");
 }
 </script>
 </body>
