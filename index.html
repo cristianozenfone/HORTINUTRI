@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - Produção</title>
+    <title>HortiNutri ERP v5.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
@@ -13,17 +13,22 @@
         .nav-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; }
         .nav-btn.active { background: white; color: var(--primary); }
         .container { padding: 15px; max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #666; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
-        .btn-outline { background: #e8f5e9; color: var(--primary); border: 2px dashed var(--primary); padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
-        .list-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); }
-        .ingrediente-row { display: grid; grid-template-columns: 2fr 1fr 40px; gap: 10px; margin-bottom: 10px; align-items: end; }
+        .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
+        
+        /* Sub-Menu de Cadastros */
+        .sub-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .sub-btn { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: #2e7d32; }
+        .sub-btn.active { background: var(--primary); color: white; }
+
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 10px; }
+        label { font-size: 0.8rem; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .list-item { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); font-size: 0.9rem; }
+        .btn-del { background: #ff5252; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         .hidden { display: none; }
-        .badge-custo { background: #fff3e0; color: #e65100; padding: 10px; border-radius: 8px; font-weight: bold; text-align: center; margin-top: 10px; border: 1px solid #ffe0b2; }
+        .badge-custo { background: #fff3e0; color: #e65100; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
+        .ingrediente-row { display: grid; grid-template-columns: 2fr 1fr 40px; gap: 8px; margin-bottom: 10px; align-items: end; background: #f1f8e9; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -37,68 +42,58 @@
 <div class="container">
     
     <section id="tab-cadastros" class="tab-content">
-        <div class="card">
-            <p>Use este módulo para gerenciar seus Insumos, Embalagens, Clientes e Fornecedores.</p>
-            <button class="btn-add" onclick="window.location.reload()">Atualizar Listas</button>
+        <div class="sub-nav">
+            <button class="sub-btn active" onclick="switchSubTab('insumos', this)">🥦 Insumos</button>
+            <button class="sub-btn" onclick="switchSubTab('embalagens', this)">📦 Embalagens</button>
+            <button class="sub-btn" onclick="switchSubTab('clientes', this)">🤝 Clientes</button>
+            <button class="sub-btn" onclick="switchSubTab('fornecedores', this)">🚚 Fornec.</button>
         </div>
-        </section>
+
+        <div id="sub-insumos" class="sub-content">
+            <div class="card">
+                <h2>Novo Insumo</h2>
+                <label>Nome do Legume/Carne</label><input type="text" id="ins-nome">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>Custo KG</label><input type="number" id="ins-custo" step="0.01"></div>
+                    <div><label>FAT.C</label><input type="number" id="ins-fator" step="0.01" value="1.00"></div>
+                </div>
+                <button class="btn-add" onclick="salvar('insumos')">Salvar Insumo</button>
+            </div>
+            <div id="lista-insumos"></div>
+        </div>
+
+        <div id="sub-embalagens" class="sub-content hidden">
+            <div class="card">
+                <h2>Nova Embalagem/Etiqueta</h2>
+                <label>Nome/Tamanho</label><input type="text" id="emb-nome">
+                <label>Custo Unitário (R$)</label><input type="number" id="emb-custo" step="0.01">
+                <button class="btn-add" onclick="salvar('embalagens')">Salvar Embalagem</button>
+            </div>
+            <div id="lista-embalagens"></div>
+        </div>
+
+        <div id="sub-clientes" class="sub-content hidden"><div class="card"><h2>Novo Cliente</h2><input type="text" id="cli-nome" placeholder="Nome"><button class="btn-add" onclick="salvar('clientes')">Salvar</button></div><div id="lista-clientes"></div></div>
+        <div id="sub-fornecedores" class="sub-content hidden"><div class="card"><h2>Novo Fornecedor</h2><input type="text" id="for-nome" placeholder="Nome"><button class="btn-add" onclick="salvar('fornecedores')">Salvar</button></div><div id="lista-fornecedores"></div></div>
+    </section>
 
     <section id="tab-kits" class="tab-content hidden">
         <div class="card">
-            <h2>Formar Novo Kit (Único ou Mixto)</h2>
-            <div class="form-group">
-                <label>Nome do Kit (Ex: Kit Sopa 500g)</label>
-                <input type="text" id="kit-nome" placeholder="Ex: Mandioca Rústica 300g">
-            </div>
-
-            <div class="form-group">
-                <label>Embalagem/Etiqueta utilizada</label>
-                <select id="kit-embalagem" onchange="calcularCustoKit()">
-                    <option value="">Selecione a embalagem...</option>
-                </select>
-            </div>
-
-            <div id="ingredientes-container">
-                <label>Ingredientes (Legumes)</label>
-                </div>
-            <button class="btn-outline" onclick="addIngredienteLinha()">+ Adicionar Legume</button>
-
-            <div class="form-group">
-                <label>Preço de Venda (R$)</label>
-                <input type="number" id="kit-venda" step="0.01" placeholder="0,00">
-            </div>
-
+            <h2>Formar Kit</h2>
+            <label>Nome do Kit</label><input type="text" id="kit-nome">
+            <label>Embalagem</label><select id="kit-embalagem" onchange="calcularCustoKit()"></select>
+            <div id="ingredientes-container"></div>
+            <button class="sub-btn" style="width:100%; margin:10px 0;" onclick="addIngredienteLinha()">+ Add Legume</button>
+            <label>Preço de Venda (R$)</label><input type="number" id="kit-venda" step="0.01">
             <div id="display-custo" class="badge-custo">Custo Total: R$ 0,00</div>
-            
-            <button class="btn-add" style="background: var(--accent);" onclick="salvarKit()">Gravar Kit no Catálogo</button>
+            <button class="btn-add" style="background:var(--accent)" onclick="salvarKit()">Gravar Kit no Catálogo</button>
         </div>
-
-        <div id="lista-kits">
-            </div>
-    </section>
-
-    <section id="tab-producao" class="tab-content hidden">
-        <div class="card">
-            <h2>Registrar Produção / Saída</h2>
-            <div class="form-group">
-                <label>Selecione o Cliente</label>
-                <select id="prod-cliente"></select>
-            </div>
-            <div class="form-group">
-                <label>Selecione o Kit Produzido</label>
-                <select id="prod-kit"></select>
-            </div>
-            <div class="form-group">
-                <label>Quantidade de Pacotes</label>
-                <input type="number" id="prod-qtd" value="1">
-            </div>
-            <button class="btn-add" onclick="processarSaida()">Baixar Estoque e Registrar Venda</button>
-        </div>
+        <div id="lista-kits"></div>
     </section>
 
 </div>
 
 <script>
+// Configurações do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
     authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -116,7 +111,10 @@ let globalEmbalagens = {};
 function iniciarApp() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    carregarSeletores();
+    carregarDados('insumos');
+    carregarDados('embalagens');
+    carregarDados('clientes');
+    carregarDados('fornecedores');
     carregarKits();
 }
 
@@ -127,28 +125,40 @@ function switchTab(tab, btn) {
     btn.classList.add('active');
 }
 
-function carregarSeletores() {
-    // Carrega Insumos
-    db.ref('cadastros/insumos').on('value', snap => {
-        globalInsumos = snap.val() || {};
-    });
+function switchSubTab(sub, btn) {
+    document.querySelectorAll('.sub-content').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('sub-' + sub).classList.remove('hidden');
+    btn.classList.add('active');
+}
 
-    // Carrega Embalagens
-    db.ref('cadastros/embalagens').on('value', snap => {
-        const select = document.getElementById('kit-embalagem');
-        globalEmbalagens = snap.val() || {};
-        select.innerHTML = '<option value="">Selecione...</option>';
-        for(let id in globalEmbalagens) {
-            select.innerHTML += `<option value="${id}">${globalEmbalagens[id].nome}</option>`;
+function salvar(tipo) {
+    let dados = {};
+    const ref = db.ref('cadastros/' + tipo).push();
+    if(tipo==='insumos') dados = { nome: document.getElementById('ins-nome').value, custo: document.getElementById('ins-custo').value, fator: document.getElementById('ins-fator').value };
+    if(tipo==='embalagens') dados = { nome: document.getElementById('emb-nome').value, custo: document.getElementById('emb-custo').value };
+    if(tipo==='clientes') dados = { nome: document.getElementById('cli-nome').value };
+    if(tipo==='fornecedores') dados = { nome: document.getElementById('for-nome').value };
+    
+    ref.set(dados).then(() => alert("Cadastrado!"));
+}
+
+function carregarDados(tipo) {
+    db.ref('cadastros/' + tipo).on('value', snap => {
+        const div = document.getElementById('lista-' + tipo);
+        const selectEmb = document.getElementById('kit-embalagem');
+        if(tipo === 'insumos') globalInsumos = snap.val() || {};
+        if(tipo === 'embalagens') {
+            globalEmbalagens = snap.val() || {};
+            if(selectEmb) {
+                selectEmb.innerHTML = '<option value="">Selecione...</option>';
+                for(let id in globalEmbalagens) selectEmb.innerHTML += `<option value="${id}">${globalEmbalagens[id].nome}</option>`;
+            }
         }
-    });
-
-    // Carrega Clientes
-    db.ref('cadastros/clientes').on('value', snap => {
-        const select = document.getElementById('prod-cliente');
-        const dados = snap.val() || {};
-        select.innerHTML = '';
-        for(let id in dados) { select.innerHTML += `<option value="${id}">${dados[id].nome}</option>`; }
+        div.innerHTML = "";
+        snap.forEach(c => {
+            div.innerHTML += `<div class="list-item"><span>${c.val().nome}</span><button class="btn-del" onclick="remover('cadastros/${tipo}', '${c.key}')">🗑️</button></div>`;
+        });
     });
 }
 
@@ -156,94 +166,46 @@ function addIngredienteLinha() {
     const container = document.getElementById('ingredientes-container');
     const div = document.createElement('div');
     div.className = 'ingrediente-row';
-    
-    let options = '<option value="">Selecione...</option>';
-    for(let id in globalInsumos) {
-        options += `<option value="${id}">${globalInsumos[id].nome}</option>`;
-    }
-
-    div.innerHTML = `
-        <div><label>Legume</label><select class="ing-id" onchange="calcularCustoKit()">${options}</select></div>
-        <div><label>Peso(g)</label><input type="number" class="ing-peso" oninput="calcularCustoKit()" placeholder="Ex: 300"></div>
-        <button onclick="this.parentElement.remove(); calcularCustoKit();">❌</button>
-    `;
+    let opt = '<option value="">Legume...</option>';
+    for(let id in globalInsumos) opt += `<option value="${id}">${globalInsumos[id].nome}</option>`;
+    div.innerHTML = `<div><select class="ing-id" onchange="calcularCustoKit()">${opt}</select></div><div><input type="number" class="ing-peso" placeholder="Gramas" oninput="calcularCustoKit()"></div><button onclick="this.parentElement.remove(); calcularCustoKit();">❌</button>`;
     container.appendChild(div);
 }
 
 function calcularCustoKit() {
-    let custoTotal = 0;
-    
-    // Custo da Embalagem
+    let total = 0;
     const embId = document.getElementById('kit-embalagem').value;
-    if(embId && globalEmbalagens[embId]) {
-        custoTotal += parseFloat(globalEmbalagens[embId].custo);
-    }
-
-    // Custo dos Insumos
-    const linhas = document.querySelectorAll('.ingrediente-row');
-    linhas.forEach(linha => {
-        const id = linha.querySelector('.ing-id').value;
-        const pesoG = parseFloat(linha.querySelector('.ing-peso').value) || 0;
-        
-        if(id && globalInsumos[id]) {
-            const ins = globalInsumos[id];
-            const pesoBrutoKg = (pesoG / 1000) * parseFloat(ins.fator);
-            custoTotal += pesoBrutoKg * parseFloat(ins.custo);
-        }
+    if(embId && globalEmbalagens[embId]) total += parseFloat(globalEmbalagens[embId].custo);
+    document.querySelectorAll('.ingrediente-row').forEach(r => {
+        const id = r.querySelector('.ing-id').value;
+        const g = parseFloat(r.querySelector('.ing-peso').value) || 0;
+        if(id && globalInsumos[id]) total += (g/1000) * globalInsumos[id].fator * globalInsumos[id].custo;
     });
-
-    document.getElementById('display-custo').innerText = `Custo Total: R$ ${custoTotal.toFixed(2)}`;
-    return custoTotal;
+    document.getElementById('display-custo').innerText = `Custo Total: R$ ${total.toFixed(2)}`;
+    return total;
 }
 
 function salvarKit() {
     const nome = document.getElementById('kit-nome').value;
-    const embId = document.getElementById('kit-embalagem').value;
-    const precoVenda = document.getElementById('kit-venda').value;
-    
-    const ingredientes = [];
-    document.querySelectorAll('.ingrediente-row').forEach(linha => {
-        ingredientes.push({
-            insumoId: linha.querySelector('.ing-id').value,
-            pesoLiquidoG: linha.querySelector('.ing-peso').value
-        });
-    });
-
-    if(!nome || !embId || ingredientes.length === 0) return alert("Preencha todos os campos!");
-
-    db.ref('catalogo_kits').push({
-        nome, embId, precoVenda, ingredientes, custoBase: calcularCustoKit()
-    }).then(() => {
-        alert("Kit salvo com sucesso!");
-        document.getElementById('kit-nome').value = "";
-        document.getElementById('ingredientes-container').innerHTML = "";
-    });
+    const venda = document.getElementById('kit-venda').value;
+    const emb = document.getElementById('kit-embalagem').value;
+    const ings = [];
+    document.querySelectorAll('.ingrediente-row').forEach(r => ings.push({id: r.querySelector('.ing-id').value, g: r.querySelector('.ing-peso').value}));
+    db.ref('catalogo_kits').push({nome, venda, emb, ings}).then(() => alert("Kit Gravado!"));
 }
 
 function carregarKits() {
     db.ref('catalogo_kits').on('value', snap => {
-        const lista = document.getElementById('lista-kits');
-        const selectProd = document.getElementById('prod-kit');
-        lista.innerHTML = "<h3>Kits Ativos</h3>";
-        selectProd.innerHTML = "";
-        
-        snap.forEach(child => {
-            const kit = child.val();
-            lista.innerHTML += `<div class="list-item"><span>${kit.nome} - Venda: R$ ${kit.precoVenda}</span></div>`;
-            selectProd.innerHTML += `<option value="${child.key}">${kit.nome}</option>`;
+        const div = document.getElementById('lista-kits');
+        div.innerHTML = "<h3>Catálogo Atual</h3>";
+        snap.forEach(c => {
+            div.innerHTML += `<div class="list-item"><span>${c.val().nome} - R$ ${c.val().venda}</span><button class="btn-del" onclick="remover('catalogo_kits', '${c.key}')">🗑️</button></div>`;
         });
     });
 }
 
-function processarSaida() {
-    const kitId = document.getElementById('prod-kit').value;
-    const qtd = parseInt(document.getElementById('prod-qtd').value) || 0;
-
-    db.ref('catalogo_kits/' + kitId).once('value', snap => {
-        const kit = snap.val();
-        // Lógica de baixa de estoque seria implementada aqui no Módulo Financeiro/Estoque
-        alert(`Sucesso! Produzido ${qtd} pacotes de ${kit.nome}. Embalagem e Insumos baixados.`);
-    });
+function remover(path, id) {
+    if(confirm("Excluir item?")) db.ref(path + '/' + id).remove();
 }
 </script>
 </body>
