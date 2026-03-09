@@ -6,7 +6,6 @@
     <title>HortiNutri Cloud - Online</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    
     <style>
         body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: #f0f4f2; color: #333; }
         .card { background: white; padding: 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 6px solid #2e7d32; }
@@ -22,7 +21,6 @@
     </style>
 </head>
 <body onload="conectarFirebase()">
-
 <div class="card">
     <div id="status" class="status-online" style="color: orange;">☁️ Conectando...</div>
     <h2>🗄️ Estoque Online (KG Bruto)</h2>
@@ -34,7 +32,6 @@
         <div class="item-estoque"><label>MANDIOCA</label><input type="number" id="est-mandioca" onchange="salvarEstoque()"></div>
     </div>
 </div>
-
 <div class="card">
     <h2>🏢 Produção Diária</h2>
     <input type="text" id="nome-cliente" placeholder="Nome do Supermercado..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom: 10px; box-sizing: border-box;">
@@ -47,7 +44,6 @@
     </table>
     <button class="btn-green" onclick="processarProducao()">🚀 BAIXAR ESTOQUE E SALVAR</button>
 </div>
-
 <div id="resultado" class="card" style="display:none;">
     <h2>📊 Resumo</h2>
     <div style="display: flex; justify-content: space-around; text-align: center;">
@@ -55,7 +51,6 @@
         <div><span>Gasto Bruto</span><span class="dash-val" id="res-gasto">0.0 kg</span></div>
     </div>
 </div>
-
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
@@ -66,7 +61,6 @@ const firebaseConfig = {
     messagingSenderId: "596792658513",
     appId: "1:596792658513:web:92bb97b0d835efc5510670"
 };
-
 const produtos = {
     cabotia: { nome: 'Abóbora Cabotiá', fator: 1.65, peso: 0.3, venda: 4.70 },
     moranga: { nome: 'Abóbora Moranga', fator: 1.70, peso: 0.3, venda: 5.25 },
@@ -74,16 +68,49 @@ const produtos = {
     binglesa: { nome: 'Batata Inglesa', fator: 1.30, peso: 0.3, venda: 5.00 },
     mandioca: { nome: 'Mandioca', fator: 1.10, peso: 0.3, venda: 10.57 }
 };
-
 let db;
-
 function conectarFirebase() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    
     db.ref('estoque/atual').on('value', (snapshot) => {
         const dados = snapshot.val();
         if (dados) {
             for (let key in dados) {
                 const campo = document.getElementById('est-' + key);
-                if (campo) campo.value = dados
+                if (campo) campo.value = dados[key];
+            }
+            document.getElementById('status').innerText = "✅ Online e Sincronizado";
+            document.getElementById('status').style.color = "#2e7d32";
+        }
+    });
+}
+function salvarEstoque() {
+    const estoque = {};
+    for (let key in produtos) {
+        estoque[key] = document.getElementById('est-' + key).value || 0;
+    }
+    db.ref('estoque/atual').set(estoque);
+}
+function processarProducao() {
+    let faturamento = 0, pesoGasto = 0;
+    const novoEstoque = {};
+    for (let key in produtos) {
+        let p = produtos[key];
+        let qtdProd = parseInt(document.getElementById('prod-' + key).value) || 0;
+        let estoqueAtual = parseFloat(document.getElementById('est-' + key).value) || 0;
+        let consumo = qtdProd * p.peso * p.fator;
+        let saldo = estoqueAtual - consumo;
+        faturamento += (qtdProd * p.venda);
+        pesoGasto += consumo;
+        novoEstoque[key] = saldo.toFixed(2);
+    }
+    db.ref('estoque/atual').set(novoEstoque).then(() => {
+        document.getElementById('res-fat').innerText = `R$ ${faturamento.toFixed(2)}`;
+        document.getElementById('res-gasto').innerText = `${pesoGasto.toFixed(2)} kg`;
+        document.getElementById('resultado').style.display = 'block';
+        alert("Produção baixada com sucesso!");
+    });
+}
+</script>
+</body>
+</html>
