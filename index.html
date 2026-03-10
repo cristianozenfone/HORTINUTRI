@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v9.0 Realtime</title>
+    <title>HortiNutri ERP - v10.0 Realtime</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -21,19 +21,19 @@
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; color: white; transition: 0.3s; }
         .btn-save { background: var(--primary); width: 100%; }
-        .btn-pdf { background: var(--danger); }
+        .btn-pdf { background: var(--danger); margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th { text-align: left; padding: 10px; background: #f8f9fa; border-bottom: 2px solid #eee; }
         td { padding: 10px; border-bottom: 1px solid #eee; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
+        .badge-del { background: none; border: none; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body onload="iniciarApp()">
 
 <div class="navbar">
     <div class="nav-item active" id="btn-cadastros" onclick="showTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" id="btn-kits" onclick="showTab('kits')">🛠️ MIX / KITS</div>
     <div class="nav-item" id="btn-vendas" onclick="showTab('vendas')">💰 VENDAS</div>
     <div class="nav-item" id="btn-relatorios" onclick="showTab('relatorios')">📊 RELATÓRIOS</div>
 </div>
@@ -41,22 +41,22 @@
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="card">
-            <h3>Novo Cadastro (Insumos/Clientes/Emb)</h3>
+            <h3>Novo Cadastro</h3>
             <div class="grid-form">
-                <select id="cad-tipo" onchange="ajustarCampos()">
+                <select id="cad-tipo" onchange="renderizarCadastros()">
                     <option value="insumos">🥦 Insumo</option>
                     <option value="clientes">🤝 Cliente</option>
-                    <option value="embalagens">📦 Embalagem/Etiqueta</option>
+                    <option value="embalagens">📦 Embalagem</option>
                 </select>
                 <input type="text" id="cad-nome" placeholder="Nome/Descrição">
-                <input type="number" id="cad-v1" step="0.01" placeholder="FC ou Preço">
+                <input type="number" id="cad-v1" step="0.01" placeholder="Fator ou Preço">
                 <input type="number" id="cad-v2" step="0.01" placeholder="Preço KG (se insumo)">
             </div>
             <button class="btn btn-save" onclick="salvarCadastro()">SALVAR NO BANCO</button>
         </div>
         <div class="card">
             <h3>Registros Salvos</h3>
-            <div id="tabela-cadastros">Carregando...</div>
+            <div id="tabela-cadastros">Carregando dados...</div>
         </div>
     </div>
 
@@ -64,8 +64,8 @@
         <div class="card">
             <h3>💰 Registrar Venda</h3>
             <div class="grid-form">
-                <input type="text" id="v-cliente" list="lista-clientes" placeholder="Nome do Cliente">
-                <input type="text" id="v-produto" placeholder="Produto">
+                <input type="text" id="v-cliente" placeholder="Nome do Cliente">
+                <input type="text" id="v-produto" placeholder="Produto/Kit">
                 <input type="number" id="v-qtd" value="1" placeholder="Qtd">
                 <input type="number" id="v-preco" step="0.01" placeholder="Preço Venda (R$)">
                 <input type="number" id="v-custo" step="0.01" placeholder="Custo Prod. (R$)">
@@ -73,7 +73,7 @@
             <button class="btn btn-save" style="background:var(--secondary);" onclick="lancarVenda()">✅ CONFIRMAR VENDA</button>
         </div>
         <div class="card">
-            <h3>📋 Histórico de Vendas (Com Data/Hora)</h3>
+            <h3>📋 Histórico de Vendas</h3>
             <div id="lista-vendas-html"></div>
         </div>
     </div>
@@ -90,7 +90,7 @@
 </div>
 
 <script>
-    // CONFIGURAÇÃO DO SEU FIREBASE
+    // CONFIGURAÇÃO DO SEU FIREBASE (CRISTIANO)
     const firebaseConfig = {
         apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -105,12 +105,20 @@
     let dadosApp = { insumos: {}, clientes: {}, embalagens: {}, vendas: {} };
 
     function iniciarApp() {
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         db = firebase.database();
         
-        // Escutar mudanças em tempo real
-        db.ref('erp_v3').on('value', snapshot => {
-            dadosApp = snapshot.val() || { insumos: {}, clientes: {}, embalagens: {}, vendas: {} };
+        // Escuta a RAIZ '/' para carregar os dados antigos e novos
+        db.ref('/').on('value', snapshot => {
+            const data = snapshot.val() || {};
+            dadosApp = {
+                insumos: data.insumos || {},
+                clientes: data.clientes || {},
+                embalagens: data.embalagens || {},
+                vendas: data.vendas || {}
+            };
             renderizarCadastros();
             renderizarVendas();
             atualizarFinanceiro();
@@ -124,20 +132,20 @@
         document.getElementById('btn-' + tab).classList.add('active');
     }
 
-    // --- LÓGICA DE CADASTROS ---
+    // --- CADASTROS ---
     function salvarCadastro() {
         const tipo = document.getElementById('cad-tipo').value;
         const nome = document.getElementById('cad-nome').value.toUpperCase();
-        if(!nome) return alert("Nome obrigatório!");
+        if(!nome) return alert("Preencha o nome!");
 
-        const dados = {
+        const registro = {
             nome: nome,
-            v1: document.getElementById('cad-v1').value || 0,
-            v2: document.getElementById('cad-v2').value || 0
+            v1: parseFloat(document.getElementById('cad-v1').value) || 0,
+            v2: parseFloat(document.getElementById('cad-v2').value) || 0
         };
 
-        db.ref('erp_v3/' + tipo).push(dados).then(() => {
-            alert("Salvo com sucesso!");
+        db.ref(tipo).push(registro).then(() => {
+            alert("Salvo!");
             document.getElementById('cad-nome').value = "";
         });
     }
@@ -147,21 +155,20 @@
         let html = `<table><tr><th>Nome</th><th>Ação</th></tr>`;
         const lista = dadosApp[tipo] || {};
         for(let id in lista) {
-            html += `<tr><td>${lista[id].nome}</td><td><button onclick="remover('erp_v3/${tipo}/${id}')">🗑️</button></td></tr>`;
+            html += `<tr><td>${lista[id].nome}</td><td><button class="badge-del" onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
         }
         document.getElementById('tabela-cadastros').innerHTML = html + "</table>";
     }
 
-    // --- LÓGICA DE VENDAS ---
+    // --- VENDAS ---
     function lancarVenda() {
         const agora = new Date();
         const dataStr = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
         const venda = {
             data: dataStr,
-            timestamp: Date.now(),
-            cliente: document.getElementById('v-cliente').value || "GERAL",
-            produto: document.getElementById('v-produto').value,
+            cliente: document.getElementById('v-cliente').value.toUpperCase() || "GERAL",
+            produto: document.getElementById('v-produto').value.toUpperCase(),
             qtd: parseFloat(document.getElementById('v-qtd').value) || 0,
             preco: parseFloat(document.getElementById('v-preco').value) || 0,
             custo: parseFloat(document.getElementById('v-custo').value) || 0
@@ -169,7 +176,7 @@
 
         if(!venda.produto) return alert("Qual o produto?");
 
-        db.ref('erp_v3/vendas').push(venda).then(() => {
+        db.ref('vendas').push(venda).then(() => {
             alert("Venda registrada!");
             ['v-produto', 'v-preco', 'v-custo'].forEach(id => document.getElementById(id).value = '');
         });
@@ -184,28 +191,30 @@
                 <td><small>${v.data}</small></td>
                 <td>${v.produto}</td>
                 <td>R$ ${(v.qtd * v.preco).toFixed(2)}</td>
-                <td><button onclick="remover('erp_v3/vendas/${v.id}')">🗑️</button></td>
+                <td><button class="badge-del" onclick="remover('vendas/${v.id}')">🗑️</button></td>
             </tr>`;
         });
         document.getElementById('lista-vendas-html').innerHTML = html + "</table>";
     }
 
     function atualizarFinanceiro() {
-        let fat = 0, custo = 0;
+        let fat = 0, custoTotal = 0;
         const vendas = dadosApp.vendas || {};
         for(let id in vendas) {
-            fat += (vendas[id].qtd * vendas[id].preco);
-            custo += (vendas[id].qtd * vendas[id].custo);
+            const v = vendas[id];
+            fat += (parseFloat(v.qtd) * parseFloat(v.preco)) || 0;
+            custoTotal += (parseFloat(v.qtd) * parseFloat(v.custo)) || 0;
         }
         document.getElementById('rel-fat').innerText = "R$ " + fat.toFixed(2);
-        document.getElementById('rel-custo').innerText = "R$ " + custo.toFixed(2);
-        document.getElementById('rel-lucro').innerText = "R$ " + (fat - custo).toFixed(2);
+        document.getElementById('rel-custo').innerText = "R$ " + custoTotal.toFixed(2);
+        document.getElementById('rel-lucro').innerText = "R$ " + (fat - custoTotal).toFixed(2);
     }
 
     function exportarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("Relatório de Vendas - HortiNutri", 14, 15);
+        doc.setFontSize(18);
+        doc.text("Relatório de Vendas - HortiNutri", 14, 20);
         
         const rows = [];
         const vendas = dadosApp.vendas || {};
@@ -217,17 +226,17 @@
         doc.autoTable({
             head: [['Data', 'Cliente', 'Produto', 'Qtd', 'Total (R$)']],
             body: rows,
-            startY: 20,
-            theme: 'grid'
+            startY: 30,
+            theme: 'striped'
         });
         doc.save('Relatorio_HortiNutri.pdf');
     }
 
     function remover(caminho) {
-        if(confirm("Deseja excluir?")) db.ref(caminho).remove();
+        if(confirm("Deseja realmente excluir este registro?")) {
+            db.ref(caminho).remove();
+        }
     }
-    
-    function ajustarCampos() { renderizarCadastros(); }
 </script>
 </body>
 </html>
