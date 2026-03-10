@@ -4,106 +4,93 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>HORTINUTRI ERP v10</title>
+<title>HORTINUTRI ERP v13</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-body{
-font-family:Segoe UI;
-background:#f4f7f6;
-margin:0;
-}
+body{font-family:Segoe UI;background:#f4f7f6;margin:0}
 
-.navbar{
-display:flex;
-background:#2e7d32;
-}
+.navbar{display:flex;background:#2e7d32}
 
-.nav-item{
-flex:1;
-padding:14px;
-color:white;
-font-weight:bold;
-text-align:center;
-cursor:pointer;
-}
+.nav-item{flex:1;padding:14px;color:white;font-weight:bold;text-align:center;cursor:pointer}
 
-.nav-item:hover{
-background:#1b5e20;
-}
+.container{max-width:1100px;margin:auto;padding:20px}
 
-.container{
-max-width:1100px;
-margin:auto;
-padding:20px;
-}
+.card{background:white;padding:20px;border-radius:10px;margin-bottom:20px}
 
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-box-shadow:0 4px 6px rgba(0,0,0,0.05);
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:10px;
-}
+input,select{padding:10px;border-radius:6px;border:1px solid #ccc}
 
-input,select{
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-}
+button{padding:10px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
 
-button{
-padding:10px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-weight:bold;
-}
+.btn-save{background:#2e7d32;color:white}
 
-.btn-save{background:#2e7d32;color:white;}
-.btn-edit{background:#ff9800;color:white;}
-.btn-del{background:#d32f2f;color:white;}
+.btn-del{background:#d32f2f;color:white}
 
-table{
-width:100%;
-border-collapse:collapse;
-}
+table{width:100%;border-collapse:collapse}
 
-td,th{
-padding:10px;
-border-bottom:1px solid #eee;
-}
+td,th{padding:10px;border-bottom:1px solid #eee}
+
+.low{color:red;font-weight:bold}
 
 </style>
 
 </head>
 
-<body onload="startApp()">
+<body>
+
+<!-- ==============================
+LOGIN
+============================== -->
+
+<div id="login" style="display:flex;align-items:center;justify-content:center;height:100vh">
+
+<div style="background:white;padding:30px;border-radius:10px;width:300px;text-align:center">
+
+<h3>HORTINUTRI ERP</h3>
+
+<input id="user" placeholder="Usuário"><br><br>
+
+<input id="pass" type="password" placeholder="Senha"><br><br>
+
+<button onclick="logar()">Entrar</button>
+
+</div>
+
+</div>
+
+<div id="app" style="display:none">
+
+<!-- ==============================
+MENU
+============================== -->
 
 <div class="navbar">
 
 <div class="nav-item" onclick="tab('cad')">CADASTROS</div>
+
 <div class="nav-item" onclick="tab('mix')">MIX</div>
+
 <div class="nav-item" onclick="tab('estoque')">ESTOQUE</div>
+
 <div class="nav-item" onclick="tab('fin')">VENDAS</div>
+
 <div class="nav-item" onclick="tab('rel')">DASHBOARD</div>
 
 </div>
 
 <div class="container">
+
+<!-- ==============================
+CADASTRO INSUMOS
+============================== -->
 
 <div id="cad">
 
@@ -114,9 +101,14 @@ border-bottom:1px solid #eee;
 <div class="grid">
 
 <input id="ins-nome" placeholder="Nome">
+
 <input id="ins-fc" placeholder="Fator Correção">
+
 <input id="ins-preco" placeholder="Preço Kg">
+
 <input id="ins-est" placeholder="Estoque Kg">
+
+<input id="ins-min" placeholder="Estoque mínimo">
 
 </div>
 
@@ -136,6 +128,10 @@ border-bottom:1px solid #eee;
 
 </div>
 
+<!-- ==============================
+FICHA TECNICA
+============================== -->
+
 <div id="mix" style="display:none">
 
 <div class="card">
@@ -147,6 +143,7 @@ border-bottom:1px solid #eee;
 <div class="grid">
 
 <select id="sel-insumo"></select>
+
 <input id="mix-peso" placeholder="Peso g">
 
 </div>
@@ -167,6 +164,10 @@ Preço venda
 
 <input id="mix-preco">
 
+Preço atacado
+
+<input id="mix-atacado">
+
 <br><br>
 
 <button class="btn-save" onclick="salvarMix()">Salvar Produto</button>
@@ -183,6 +184,10 @@ Preço venda
 
 </div>
 
+<!-- ==============================
+ESTOQUE
+============================== -->
+
 <div id="estoque" style="display:none">
 
 <div class="card">
@@ -194,6 +199,10 @@ Preço venda
 </div>
 
 </div>
+
+<!-- ==============================
+VENDAS
+============================== -->
 
 <div id="fin" style="display:none">
 
@@ -207,6 +216,8 @@ Preço venda
 
 <button class="btn-save" onclick="vender()">Registrar</button>
 
+<button onclick="exportarExcel()">Exportar Excel</button>
+
 </div>
 
 <div class="card">
@@ -219,14 +230,20 @@ Preço venda
 
 </div>
 
+<!-- ==============================
+DASHBOARD
+============================== -->
+
 <div id="rel" style="display:none">
 
 <div class="card">
 
-<h3>Dashboard</h3>
+<h3>Financeiro</h3>
 
 Faturamento: <b id="fat"></b><br>
+
 Custo: <b id="cus"></b><br>
+
 Lucro: <b id="luc"></b>
 
 </div>
@@ -237,28 +254,63 @@ Lucro: <b id="luc"></b>
 
 </div>
 
+<div class="card">
+
+<h3>Lucro por Produto</h3>
+
+<div id="lucro-prod"></div>
+
+</div>
+
+</div>
+
 </div>
 
 </div>
 
 <script>
 
+/* ==============================
+CONFIGURAÇÃO FIREBASE
+============================== */
+
 const firebaseConfig={
-apiKey:"AIza...",
-authDomain:"hortinutri.firebaseapp.com",
-databaseURL:"https://hortinutri-default-rtdb.firebaseio.com",
-projectId:"hortinutri"
+apiKey:"SUA_API",
+authDomain:"SEU_DOMINIO",
+databaseURL:"SUA_DATABASE_URL",
+projectId:"SEU_PROJECT"
 }
 
 let db
+let chart
+let dados={insumos:{},produtos:{},vendas:{}}
+let ingredientes=[]
 
-let dados={
-insumos:{},
-produtos:{},
-vendas:{}
+/* ==============================
+LOGIN
+============================== */
+
+function logar(){
+
+if(user.value==="admin" && pass.value==="1234"){
+
+login.style.display="none"
+
+app.style.display="block"
+
+startApp()
+
+}else{
+
+alert("Login inválido")
+
 }
 
-let ingredientes=[]
+}
+
+/* ==============================
+INICIAR FIREBASE
+============================== */
 
 function startApp(){
 
@@ -270,51 +322,80 @@ escutar()
 
 }
 
+/* ==============================
+LISTENERS
+============================== */
+
 function escutar(){
 
 db.ref("erp_v2/insumos").on("value",s=>{
+
 dados.insumos=s.val()||{}
+
 tabInsumos()
+
 selInsumos()
+
 estoqueTela()
+
 })
 
 db.ref("erp_v2/produtos_final").on("value",s=>{
+
 dados.produtos=s.val()||{}
+
 tabProdutos()
+
 selProdutos()
+
 })
 
 db.ref("erp_v2/vendas").on("value",s=>{
+
 dados.vendas=s.val()||{}
+
 tabVendas()
+
 dashboard()
+
 })
 
 }
 
+/* ==============================
+NAVEGAÇÃO
+============================== */
+
 function tab(x){
 
 ["cad","mix","estoque","fin","rel"].forEach(i=>{
+
 document.getElementById(i).style.display="none"
+
 })
 
 document.getElementById(x).style.display="block"
 
 }
 
+/* ==============================
+INSUMOS
+============================== */
+
 function salvarInsumo(){
 
-let n=ins_nome.value
-let fc=ins_fc.value
-let p=ins_preco.value
-let e=ins_est.value
-
 db.ref("erp_v2/insumos").push({
-nome:n,
-fc:fc,
-preco:p,
-estoque:e
+
+nome:ins_nome.value,
+
+fc:ins_fc.value,
+
+preco:ins_preco.value,
+
+estoque:ins_est.value,
+
+min:ins_min.value
+
 })
 
 }
@@ -327,10 +408,14 @@ for(let id in dados.insumos){
 
 let i=dados.insumos[id]
 
+let est=i.estoque||0
+
+let cls=est<i.min?"low":""
+
 h+=`<tr>
 <td>${i.nome}</td>
 <td>${i.preco}</td>
-<td>${i.estoque||0}</td>
+<td class="${cls}">${est}</td>
 <td><button class="btn-del" onclick="del('erp_v2/insumos/${id}')">X</button></td>
 </tr>`
 
@@ -348,9 +433,7 @@ let h=""
 
 for(let id in dados.insumos){
 
-h+=`<option value="${id}">
-${dados.insumos[id].nome}
-</option>`
+h+=`<option value="${id}">${dados.insumos[id].nome}</option>`
 
 }
 
@@ -358,9 +441,14 @@ sel_insumo.innerHTML=h
 
 }
 
+/* ==============================
+FICHA TECNICA
+============================== */
+
 function addIngrediente(){
 
 let id=sel_insumo.value
+
 let peso=mix_peso.value
 
 let ins=dados.insumos[id]
@@ -368,9 +456,13 @@ let ins=dados.insumos[id]
 let custo=(peso/1000)*ins.preco*ins.fc
 
 ingredientes.push({
+
 nome:ins.nome,
+
 peso:peso,
+
 custo:custo
+
 })
 
 desenhar()
@@ -384,7 +476,9 @@ function desenhar(){
 let h=""
 
 ingredientes.forEach(i=>{
+
 h+=`${i.nome} ${i.peso}g R$${i.custo.toFixed(2)}<br>`
+
 })
 
 lista.innerHTML=h
@@ -403,12 +497,11 @@ let preco=custo+(custo*margem/100)
 
 mix_preco.value=preco.toFixed(2)
 
+mix_atacado.value=(preco*0.9).toFixed(2)
+
 }
 
 function salvarMix(){
-
-let nome=mix_nome.value
-let preco=mix_preco.value
 
 let custo=0
 
@@ -416,16 +509,27 @@ ingredientes.forEach(i=>custo+=i.custo)
 
 db.ref("erp_v2/produtos_final").push({
 
-nome:nome,
-precoSugerido:preco,
+nome:mix_nome.value,
+
+precoSugerido:mix_preco.value,
+
+precoAtacado:mix_atacado.value,
+
 custoProducao:custo,
+
 ingredientes:ingredientes
 
 })
 
 ingredientes=[]
 
+lista.innerHTML=""
+
 }
+
+/* ==============================
+PRODUTOS
+============================== */
 
 function tabProdutos(){
 
@@ -438,7 +542,8 @@ let p=dados.produtos[id]
 h+=`<tr>
 <td>${p.nome}</td>
 <td>${p.precoSugerido}</td>
-<td><button class="btn-del" onclick="del('erp_v2/produtos_final/${id}')">X</button></td>
+<td>${p.precoAtacado||""}</td>
+<td><button onclick="del('erp_v2/produtos_final/${id}')">X</button></td>
 </tr>`
 
 }
@@ -455,9 +560,7 @@ let h=""
 
 for(let id in dados.produtos){
 
-h+=`<option value="${id}">
-${dados.produtos[id].nome}
-</option>`
+h+=`<option value="${id}">${dados.produtos[id].nome}</option>`
 
 }
 
@@ -465,10 +568,15 @@ v_prod.innerHTML=h
 
 }
 
+/* ==============================
+VENDAS
+============================== */
+
 function vender(){
 
 let id=v_prod.value
-let qtd=v_qtd.value
+
+let qtd=parseFloat(v_qtd.value)
 
 let prod=dados.produtos[id]
 
@@ -477,8 +585,11 @@ let total=qtd*prod.precoSugerido
 db.ref("erp_v2/vendas").push({
 
 produto:prod.nome,
+
 idProduto:id,
+
 qtd:qtd,
+
 total:total
 
 })
@@ -494,20 +605,30 @@ let prod=dados.produtos[id]
 prod.ingredientes.forEach(ing=>{
 
 let insID=Object.keys(dados.insumos)
+
 .find(i=>dados.insumos[i].nome==ing.nome)
 
 let atual=dados.insumos[insID].estoque||0
 
 let consumo=(ing.peso/1000)*qtd
 
-db.ref("erp_v2/insumos/"+insID)
-.update({
-estoque:atual-consumo
+let novo=atual-consumo
+
+if(novo<0){novo=0}
+
+db.ref("erp_v2/insumos/"+insID).update({
+
+estoque:novo
+
 })
 
 })
 
 }
+
+/* ==============================
+ESTOQUE
+============================== */
 
 function estoqueTela(){
 
@@ -529,6 +650,10 @@ h+="</table>"
 tab_est.innerHTML=h
 
 }
+
+/* ==============================
+VENDAS HISTÓRICO
+============================== */
 
 function tabVendas(){
 
@@ -553,56 +678,111 @@ tab_vendas.innerHTML=h
 
 }
 
+/* ==============================
+DASHBOARD
+============================== */
+
 function dashboard(){
 
-let fat=0
-let cus=0
+let fatur=0
+
+let custo=0
 
 let cont={}
+
+let lucroProd={}
 
 for(let id in dados.vendas){
 
 let v=dados.vendas[id]
 
-fat+=parseFloat(v.total)
+fatur+=parseFloat(v.total)
 
 let p=dados.produtos[v.idProduto]
 
 if(p){
 
-cus+=p.custoProducao*v.qtd
+custo+=p.custoProducao*v.qtd
 
 cont[p.nome]=(cont[p.nome]||0)+parseInt(v.qtd)
 
-}
+let lucro=(p.precoSugerido-p.custoProducao)*v.qtd
+
+lucroProd[p.nome]=(lucroProd[p.nome]||0)+lucro
 
 }
 
-fat.innerText=fat.toFixed(2)
-cus.innerText=cus.toFixed(2)
-luc.innerText=(fat-cus).toFixed(2)
+}
+
+fat.innerText=fatur.toFixed(2)
+
+cus.innerText=custo.toFixed(2)
+
+luc.innerText=(fatur-custo).toFixed(2)
 
 grafico(cont)
+
+let h=""
+
+for(let p in lucroProd){
+
+h+=`${p} : R$ ${lucroProd[p].toFixed(2)}<br>`
+
+}
+
+lucro_prod.innerHTML=h
 
 }
 
 function grafico(d){
 
 let labels=Object.keys(d)
+
 let valores=Object.values(d)
 
-new Chart(document.getElementById("grafico"),{
+if(chart){chart.destroy()}
+
+chart=new Chart(document.getElementById("grafico"),{
 
 type:"bar",
 
-data:{
-labels:labels,
-datasets:[{data:valores}]
-}
+data:{labels:labels,datasets:[{data:valores}]}
 
 })
 
 }
+
+/* ==============================
+EXPORTAR EXCEL
+============================== */
+
+function exportarExcel(){
+
+let csv="Produto,Quantidade,Total\n"
+
+for(let id in dados.vendas){
+
+let v=dados.vendas[id]
+
+csv+=`${v.produto},${v.qtd},${v.total}\n`
+
+}
+
+let blob=new Blob([csv],{type:"text/csv"})
+
+let a=document.createElement("a")
+
+a.href=URL.createObjectURL(blob)
+
+a.download="vendas.csv"
+
+a.click()
+
+}
+
+/* ==============================
+DELETE
+============================== */
 
 function del(p){
 
