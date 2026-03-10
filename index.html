@@ -180,9 +180,14 @@
 
     function carregarTabelaGeral() {
         let lista = dadosGlobal[subAtual];
-        let html = '<table><tr><th>Nome</th><th>Info</th><th>Ação</th></tr>';
+        let html = '<table><tr><th>Nome</th><th>Detalhes</th><th>Ação</th></tr>';
         for(let id in lista) {
-            let info = subAtual==='insumos' ? "FC: "+lista[id].fc : (lista[id].tipo || "R$ "+lista[id].custo);
+            let info = "";
+            if(subAtual === 'insumos') {
+                info = `FC: ${lista[id].fc} | R$ ${lista[id].preco}`;
+            } else {
+                info = lista[id].tipo || "R$ " + lista[id].custo;
+            }
             html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="db.ref('erp_v2/${subAtual}/${id}').remove()">🗑️</button></td></tr>`;
         }
         document.getElementById('tabela-registros').innerHTML = html + '</table>';
