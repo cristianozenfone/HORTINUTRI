@@ -215,4 +215,19 @@
         }
 
         doc.autoTable({
-            head: [['Data', 'Cliente', 'Produto', 'Qtd',
+            head: [['Data', 'Cliente', 'Produto', 'Qtd', 'Total (R$)']],
+            body: rows,
+            startY: 20,
+            theme: 'grid'
+        });
+        doc.save('Relatorio_HortiNutri.pdf');
+    }
+
+    function remover(caminho) {
+        if(confirm("Deseja excluir?")) db.ref(caminho).remove();
+    }
+    
+    function ajustarCampos() { renderizarCadastros(); }
+</script>
+</body>
+</html>
