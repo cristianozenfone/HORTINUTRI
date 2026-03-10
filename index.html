@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>HORTINUTRI ERP v9</title>
+<title>HORTINUTRI ERP v10</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
@@ -22,27 +22,27 @@ margin:0;
 }
 
 .navbar{
-background:#2e7d32;
 display:flex;
+background:#2e7d32;
 }
 
 .nav-item{
-color:white;
-padding:15px;
-cursor:pointer;
 flex:1;
-text-align:center;
+padding:14px;
+color:white;
 font-weight:bold;
+text-align:center;
+cursor:pointer;
 }
 
-.nav-item.active{
+.nav-item:hover{
 background:#1b5e20;
 }
 
 .container{
-padding:20px;
 max-width:1100px;
 margin:auto;
+padding:20px;
 }
 
 .card{
@@ -73,20 +73,9 @@ cursor:pointer;
 font-weight:bold;
 }
 
-.btn-save{
-background:#2e7d32;
-color:white;
-}
-
-.btn-edit{
-background:#ff9800;
-color:white;
-}
-
-.btn-delete{
-background:#d32f2f;
-color:white;
-}
+.btn-save{background:#2e7d32;color:white;}
+.btn-edit{background:#ff9800;color:white;}
+.btn-del{background:#d32f2f;color:white;}
 
 table{
 width:100%;
@@ -99,16 +88,18 @@ border-bottom:1px solid #eee;
 }
 
 </style>
+
 </head>
 
-<body onload="iniciarApp()">
+<body onload="startApp()">
 
 <div class="navbar">
 
-<div class="nav-item active" onclick="changeTab('cad')">CADASTROS</div>
-<div class="nav-item" onclick="changeTab('mix')">MIX/KITS</div>
-<div class="nav-item" onclick="changeTab('fin')">FINANCEIRO</div>
-<div class="nav-item" onclick="changeTab('rel')">RELATÓRIOS</div>
+<div class="nav-item" onclick="tab('cad')">CADASTROS</div>
+<div class="nav-item" onclick="tab('mix')">MIX</div>
+<div class="nav-item" onclick="tab('estoque')">ESTOQUE</div>
+<div class="nav-item" onclick="tab('fin')">VENDAS</div>
+<div class="nav-item" onclick="tab('rel')">DASHBOARD</div>
 
 </div>
 
@@ -123,8 +114,9 @@ border-bottom:1px solid #eee;
 <div class="grid">
 
 <input id="ins-nome" placeholder="Nome">
-<input id="ins-fc" placeholder="FC">
-<input id="ins-preco" placeholder="Preço KG">
+<input id="ins-fc" placeholder="Fator Correção">
+<input id="ins-preco" placeholder="Preço Kg">
+<input id="ins-est" placeholder="Estoque Kg">
 
 </div>
 
@@ -136,9 +128,9 @@ border-bottom:1px solid #eee;
 
 <div class="card">
 
-<h3>Lista de Insumos</h3>
+<h3>Lista</h3>
 
-<div id="tabela-insumos"></div>
+<div id="tab-insumos"></div>
 
 </div>
 
@@ -150,23 +142,28 @@ border-bottom:1px solid #eee;
 
 <h3>Ficha Técnica</h3>
 
-<input id="mix-nome" placeholder="Nome Produto">
+<input id="mix-nome" placeholder="Nome produto">
 
 <div class="grid">
 
 <select id="sel-insumo"></select>
-
 <input id="mix-peso" placeholder="Peso g">
 
-<button onclick="addIngrediente()">Adicionar</button>
-
 </div>
+
+<br>
+
+<button onclick="addIngrediente()">Adicionar</button>
 
 <div id="lista"></div>
 
 <br>
 
-Preço Venda
+Margem %
+
+<input id="mix-margem" value="60">
+
+Preço venda
 
 <input id="mix-preco">
 
@@ -180,7 +177,19 @@ Preço Venda
 
 <h3>Produtos</h3>
 
-<div id="tabela-produtos"></div>
+<div id="tab-prod"></div>
+
+</div>
+
+</div>
+
+<div id="estoque" style="display:none">
+
+<div class="card">
+
+<h3>Estoque Atual</h3>
+
+<div id="tab-est"></div>
 
 </div>
 
@@ -192,11 +201,11 @@ Preço Venda
 
 <h3>Registrar Venda</h3>
 
-<select id="venda-prod"></select>
+<select id="v-prod"></select>
 
-<input id="venda-qtd" value="1">
+<input id="v-qtd" value="1">
 
-<button class="btn-save" onclick="registrarVenda()">Vender</button>
+<button class="btn-save" onclick="vender()">Registrar</button>
 
 </div>
 
@@ -204,7 +213,7 @@ Preço Venda
 
 <h3>Histórico</h3>
 
-<div id="tabela-vendas"></div>
+<div id="tab-vendas"></div>
 
 </div>
 
@@ -214,11 +223,17 @@ Preço Venda
 
 <div class="card">
 
-<h3>Resumo Financeiro</h3>
+<h3>Dashboard</h3>
 
-Faturamento: <b id="fat">0</b><br>
-Custo: <b id="cus">0</b><br>
-Lucro: <b id="luc">0</b>
+Faturamento: <b id="fat"></b><br>
+Custo: <b id="cus"></b><br>
+Lucro: <b id="luc"></b>
+
+</div>
+
+<div class="card">
+
+<canvas id="grafico"></canvas>
 
 </div>
 
@@ -228,20 +243,14 @@ Lucro: <b id="luc">0</b>
 
 <script>
 
-const firebaseConfig = {
-
-apiKey:"AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
-authDomain:"hortinutri-3f2ea.firebaseapp.com",
-databaseURL:"https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
-projectId:"hortinutri-3f2ea"
-
+const firebaseConfig={
+apiKey:"AIza...",
+authDomain:"hortinutri.firebaseapp.com",
+databaseURL:"https://hortinutri-default-rtdb.firebaseio.com",
+projectId:"hortinutri"
 }
 
 let db
-
-let ingredientes=[]
-
-let editing=null
 
 let dados={
 insumos:{},
@@ -249,7 +258,9 @@ produtos:{},
 vendas:{}
 }
 
-function iniciarApp(){
+let ingredientes=[]
+
+function startApp(){
 
 firebase.initializeApp(firebaseConfig)
 
@@ -262,255 +273,183 @@ escutar()
 function escutar(){
 
 db.ref("erp_v2/insumos").on("value",s=>{
-
 dados.insumos=s.val()||{}
-
-tabelaInsumos()
-
-selectInsumos()
-
+tabInsumos()
+selInsumos()
+estoqueTela()
 })
 
 db.ref("erp_v2/produtos_final").on("value",s=>{
-
 dados.produtos=s.val()||{}
-
-tabelaProdutos()
-
-selectProdutos()
-
+tabProdutos()
+selProdutos()
 })
 
 db.ref("erp_v2/vendas").on("value",s=>{
-
 dados.vendas=s.val()||{}
-
-tabelaVendas()
-
-relatorio()
-
+tabVendas()
+dashboard()
 })
 
 }
 
-function changeTab(t){
+function tab(x){
 
-document.getElementById("cad").style.display="none"
-document.getElementById("mix").style.display="none"
-document.getElementById("fin").style.display="none"
-document.getElementById("rel").style.display="none"
+["cad","mix","estoque","fin","rel"].forEach(i=>{
+document.getElementById(i).style.display="none"
+})
 
-document.getElementById(t).style.display="block"
+document.getElementById(x).style.display="block"
 
 }
 
 function salvarInsumo(){
 
-let n=document.getElementById("ins-nome").value
-let fc=document.getElementById("ins-fc").value
-let p=document.getElementById("ins-preco").value
-
-if(!n||!fc||!p){
-
-alert("Preencha todos campos")
-
-return
-
-}
+let n=ins_nome.value
+let fc=ins_fc.value
+let p=ins_preco.value
+let e=ins_est.value
 
 db.ref("erp_v2/insumos").push({
-
-nome:n.toUpperCase(),
+nome:n,
 fc:fc,
-preco:p
-
+preco:p,
+estoque:e
 })
 
 }
 
-function tabelaInsumos(){
+function tabInsumos(){
 
-let html="<table>"
+let h="<table>"
 
 for(let id in dados.insumos){
 
 let i=dados.insumos[id]
 
-html+=`<tr>
-
+h+=`<tr>
 <td>${i.nome}</td>
-
-<td>
-
-<button class="btn-delete"
-onclick="deletar('erp_v2/insumos/${id}')">Excluir</button>
-
-</td>
-
+<td>${i.preco}</td>
+<td>${i.estoque||0}</td>
+<td><button class="btn-del" onclick="del('erp_v2/insumos/${id}')">X</button></td>
 </tr>`
 
 }
 
-html+="</table>"
+h+="</table>"
 
-document.getElementById("tabela-insumos").innerHTML=html
+tab_insumos.innerHTML=h
 
 }
 
-function selectInsumos(){
+function selInsumos(){
 
-let h="<option></option>"
+let h=""
 
 for(let id in dados.insumos){
 
-h+=`<option value="${id}">${dados.insumos[id].nome}</option>`
+h+=`<option value="${id}">
+${dados.insumos[id].nome}
+</option>`
 
 }
 
-document.getElementById("sel-insumo").innerHTML=h
+sel_insumo.innerHTML=h
 
 }
 
 function addIngrediente(){
 
-let id=document.getElementById("sel-insumo").value
-let peso=document.getElementById("mix-peso").value
-
-if(!id||!peso){
-
-alert("Informe insumo e peso")
-
-return
-
-}
+let id=sel_insumo.value
+let peso=mix_peso.value
 
 let ins=dados.insumos[id]
 
-let custo=(peso/1000)*ins.fc*ins.preco
+let custo=(peso/1000)*ins.preco*ins.fc
 
 ingredientes.push({
-
 nome:ins.nome,
 peso:peso,
 custo:custo
-
 })
 
 desenhar()
+
+calcPreco()
 
 }
 
 function desenhar(){
 
-let html=""
+let h=""
 
-ingredientes.forEach((i,x)=>{
-
-html+=`${i.nome} ${i.peso}g R$${i.custo.toFixed(2)}
-<button onclick="ingredientes.splice(${x},1);desenhar()">X</button><br>`
-
+ingredientes.forEach(i=>{
+h+=`${i.nome} ${i.peso}g R$${i.custo.toFixed(2)}<br>`
 })
 
-document.getElementById("lista").innerHTML=html
+lista.innerHTML=h
 
 }
 
-function salvarMix(){
-
-let nome=document.getElementById("mix-nome").value
-let preco=document.getElementById("mix-preco").value
-
-if(!nome||!preco||ingredientes.length==0){
-
-alert("Preencha dados")
-
-return
-
-}
+function calcPreco(){
 
 let custo=0
 
 ingredientes.forEach(i=>custo+=i.custo)
 
-let obj={
+let margem=mix_margem.value
+
+let preco=custo+(custo*margem/100)
+
+mix_preco.value=preco.toFixed(2)
+
+}
+
+function salvarMix(){
+
+let nome=mix_nome.value
+let preco=mix_preco.value
+
+let custo=0
+
+ingredientes.forEach(i=>custo+=i.custo)
+
+db.ref("erp_v2/produtos_final").push({
 
 nome:nome,
-custoProducao:custo,
 precoSugerido:preco,
+custoProducao:custo,
 ingredientes:ingredientes
 
-}
-
-if(editing){
-
-db.ref("erp_v2/produtos_final/"+editing).update(obj)
-
-editing=null
-
-}else{
-
-db.ref("erp_v2/produtos_final").push(obj)
-
-}
+})
 
 ingredientes=[]
 
-desenhar()
-
 }
 
-function tabelaProdutos(){
+function tabProdutos(){
 
-let html="<table>"
+let h="<table>"
 
 for(let id in dados.produtos){
 
 let p=dados.produtos[id]
 
-html+=`<tr>
-
+h+=`<tr>
 <td>${p.nome}</td>
-
-<td>R$${p.precoSugerido}</td>
-
-<td>
-
-<button class="btn-edit"
-onclick="editar('${id}')">Corrigir</button>
-
-<button class="btn-delete"
-onclick="deletar('erp_v2/produtos_final/${id}')">Excluir</button>
-
-</td>
-
+<td>${p.precoSugerido}</td>
+<td><button class="btn-del" onclick="del('erp_v2/produtos_final/${id}')">X</button></td>
 </tr>`
 
 }
 
-html+="</table>"
+h+="</table>"
 
-document.getElementById("tabela-produtos").innerHTML=html
-
-}
-
-function editar(id){
-
-let p=dados.produtos[id]
-
-editing=id
-
-document.getElementById("mix-nome").value=p.nome
-document.getElementById("mix-preco").value=p.precoSugerido
-
-ingredientes=p.ingredientes||[]
-
-desenhar()
-
-window.scrollTo(0,0)
+tab_prod.innerHTML=h
 
 }
 
-function selectProdutos(){
+function selProdutos(){
 
 let h=""
 
@@ -522,14 +461,14 @@ ${dados.produtos[id].nome}
 
 }
 
-document.getElementById("venda-prod").innerHTML=h
+v_prod.innerHTML=h
 
 }
 
-function registrarVenda(){
+function vender(){
 
-let id=document.getElementById("venda-prod").value
-let qtd=document.getElementById("venda-qtd").value
+let id=v_prod.value
+let qtd=v_qtd.value
 
 let prod=dados.produtos[id]
 
@@ -544,42 +483,82 @@ total:total
 
 })
 
+baixarEstoque(id,qtd)
+
 }
 
-function tabelaVendas(){
+function baixarEstoque(id,qtd){
 
-let html="<table>"
+let prod=dados.produtos[id]
+
+prod.ingredientes.forEach(ing=>{
+
+let insID=Object.keys(dados.insumos)
+.find(i=>dados.insumos[i].nome==ing.nome)
+
+let atual=dados.insumos[insID].estoque||0
+
+let consumo=(ing.peso/1000)*qtd
+
+db.ref("erp_v2/insumos/"+insID)
+.update({
+estoque:atual-consumo
+})
+
+})
+
+}
+
+function estoqueTela(){
+
+let h="<table>"
+
+for(let id in dados.insumos){
+
+let i=dados.insumos[id]
+
+h+=`<tr>
+<td>${i.nome}</td>
+<td>${i.estoque||0} kg</td>
+</tr>`
+
+}
+
+h+="</table>"
+
+tab_est.innerHTML=h
+
+}
+
+function tabVendas(){
+
+let h="<table>"
 
 for(let id in dados.vendas){
 
 let v=dados.vendas[id]
 
-html+=`<tr>
-
+h+=`<tr>
 <td>${v.produto}</td>
 <td>${v.qtd}</td>
-<td>R$${v.total}</td>
-
-<td>
-
-<button onclick="deletar('erp_v2/vendas/${id}')">Excluir</button>
-
-</td>
-
+<td>${v.total}</td>
+<td><button onclick="del('erp_v2/vendas/${id}')">X</button></td>
 </tr>`
 
 }
 
-html+="</table>"
+h+="</table>"
 
-document.getElementById("tabela-vendas").innerHTML=html
+tab_vendas.innerHTML=h
 
 }
 
-function relatorio(){
+function dashboard(){
 
 let fat=0
 let cus=0
+
+let cont={}
 
 for(let id in dados.vendas){
 
@@ -593,27 +572,43 @@ if(p){
 
 cus+=p.custoProducao*v.qtd
 
-}
+cont[p.nome]=(cont[p.nome]||0)+parseInt(v.qtd)
 
 }
 
-document.getElementById("fat").innerText=fat.toFixed(2)
+}
 
-document.getElementById("cus").innerText=cus.toFixed(2)
+fat.innerText=fat.toFixed(2)
+cus.innerText=cus.toFixed(2)
+luc.innerText=(fat-cus).toFixed(2)
 
-document.getElementById("luc").innerText=(fat-cus).toFixed(2)
+grafico(cont)
 
 }
 
-function deletar(path){
+function grafico(d){
 
-if(confirm("Deseja excluir?")){
+let labels=Object.keys(d)
+let valores=Object.values(d)
 
-if(confirm("Tem certeza absoluta?")){
+new Chart(document.getElementById("grafico"),{
 
-db.ref(path).remove()
+type:"bar",
+
+data:{
+labels:labels,
+datasets:[{data:valores}]
+}
+
+})
 
 }
+
+function del(p){
+
+if(confirm("Excluir?")){
+
+db.ref(p).remove()
 
 }
 
