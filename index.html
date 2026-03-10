@@ -7,141 +7,157 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root { --verde-escuro: #2e7d32; --verde-medio: #4caf50; --branco: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; }
-        header { background: var(--verde-escuro); color: white; padding: 10px; text-align: center; }
-        
-        /* Menu de Abas */
-        .nav-tabs { display: flex; background: var(--verde-medio); overflow-x: auto; }
-        .nav-tabs button { background: none; border: none; color: white; padding: 15px 20px; cursor: pointer; flex: 1; font-weight: bold; }
-        .nav-tabs button.active { background: var(--verde-escuro); }
-
-        .container { padding: 20px; max-width: 800px; margin: auto; }
-        .card { background: var(--branco); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background: var(--verde-escuro); color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { opacity: 0.9; }
-        
+        :root { --verde-escuro: #2e7d32; --verde-corpo: #f1f8e9; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--verde-corpo); margin: 0; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .aba-nav { display: flex; gap: 10px; margin-bottom: 20px; background: var(--verde-escuro); padding: 10px; border-radius: 8px; }
+        .aba-nav button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; padding: 10px; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button.btn-save { background-color: var(--verde-escuro); color: white; border: none; font-size: 16px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        th { background: #f8f9fa; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .total-venda { font-size: 20px; font-weight: bold; color: var(--verde-escuro); text-align: center; padding: 10px; }
+        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; color: #555; }
+        .total-venda { font-size: 24px; font-weight: bold; color: var(--verde-escuro); text-align: center; margin: 15px 0; }
     </style>
 </head>
 <body>
 
-<header><h1>HortiNutri+</h1></header>
+    <div class="aba-nav">
+        <button onclick="mudarAba('cadastros')">📦 CADASTROS</button>
+        <button onclick="mudarAba('vendas')">💰 VENDAS</button>
+        <button onclick="mudarAba('relatorios')">📊 RELATÓRIOS</button>
+    </div>
 
-<div class="nav-tabs">
-    <button onclick="abrirAba('cadastros')" class="tab-btn active">📁 CADASTROS</button>
-    <button onclick="abrirAba('mix')" class="tab-btn">⚒️ MIX/KITS</button>
-    <button onclick="abrirAba('vendas')" class="tab-btn">💰 VENDAS</button>
-    <button onclick="abrirAba('relatorios')" class="tab-btn">📊 RELATÓRIOS</button>
-</div>
+    <div id="secao-cadastros" class="card">
+        <h3>Gerenciar Mix/Produtos</h3>
+        <input type="text" id="cad-nome" placeholder="Nome do Item/Mix">
+        <input type="number" id="cad-custo" placeholder="Custo de Produção (R$)">
+        <input type="number" id="cad-venda" placeholder="Preço Sugerido (R$)">
+        <button class="btn-save" onclick="gravarNoFirebase()">SALVAR REGISTRO</button>
 
-<div class="container">
-    
-    <div id="cadastros" class="tab-content active">
-        <div class="card">
-            <h3>Gerenciar Cadastros</h3>
-            <select id="cad-categoria">
-                <option value="insumos">🥦 Insumos / Legumes</option>
-                <option value="clientes">🤝 Clientes</option>
-                <option value="embalagens">📦 Embalagens/Etiquetas</option>
-            </select>
-            <input type="text" id="cad-nome" placeholder="Nome/Descrição">
-            <input type="number" id="cad-valor" placeholder="Preço/Custo (R$)">
-            <button onclick="salvarCadastro()">SALVAR REGISTRO</button>
-        </div>
-        
-        <div class="card">
-            <h3>Registros Salvos</h3>
+        <div style="margin-top:20px;">
+            <h4>Registros Salvos</h4>
             <table>
-                <thead><tr><th>Nome</th><th>Valor</th><th>Ação</th></tr></thead>
-                <tbody id="lista-cadastros"></tbody>
+                <thead>
+                    <tr><th>Nome</th><th>Preço</th><th>Ações</th></tr>
+                </thead>
+                <tbody id="tabela-itens-cadastrados"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="mix" class="tab-content">
-        <div class="card">
-            <h3>Montar Ficha Técnica</h3>
-            <input type="text" id="mix-nome" placeholder="Ex: Mix Salada 300g">
-            <select id="mix-insumo"></select>
-            <input type="number" id="mix-peso" placeholder="Peso (g)">
-            <button style="background:#f39c12" onclick="adicionarAoMix()">+ ADICIONAR ITEM</button>
-            <div id="itens-do-mix" style="margin:10px 0; font-size:14px; color:#666;"></div>
-            <hr>
-            <button onclick="gravarMix()">GRAVAR NO CATÁLOGO</button>
-        </div>
+    <div id="secao-vendas" class="card" style="display:none;">
+        <h3>Nova Venda</h3>
+        <label>Produto:</label>
+        <select id="venda-select-produto" onchange="autoPreencherPreco()"></select>
+        
+        <label>Preço Unitário:</label>
+        <input type="number" id="venda-preco" step="0.01">
+        
+        <label>Quantidade:</label>
+        <input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()">
+        
+        <label>Desconto (R$):</label>
+        <input type="number" id="venda-desconto" value="0" oninput="calcularTotalVenda()">
+
+        <div class="total-venda" id="venda-total-display">Total: R$ 0,00</div>
+        
+        <button class="btn-save" onclick="finalizarVenda()">FINALIZAR E GERAR PDF</button>
     </div>
 
-    <div id="vendas" class="tab-content">
-        <div class="card">
-            <h3>Realizar Venda</h3>
-            <select id="venda-produto" onchange="puxarPrecoVenda()"></select>
-            <input type="number" id="venda-qtd" placeholder="Quantidade" value="1" oninput="calcularTotalVenda()">
-            <input type="number" id="venda-preco" placeholder="Preço Unitário" readonly>
-            <input type="number" id="venda-desconto" placeholder="Desconto (R$)" oninput="calcularTotalVenda()">
-            <div class="total-venda" id="total-venda-display">Total: R$ 0,00</div>
-            <button onclick="finalizarVenda()">FINALIZAR E IMPRIMIR PDF</button>
-        </div>
-    </div>
+    <script>
+        // CONFIGURAÇÃO FIREBASE
+        const firebaseConfig = { databaseURL: "https://SEU-PROJETO.firebaseio.com" }; // Substitua pelo seu link real
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <div id="relatorios" class="tab-content">
-        <div class="card">
-            <h3>Relatórios de Sistema</h3>
-            <button onclick="gerarRelatorioPDF()">GERAR PDF DOS PRODUTOS</button>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    // --- CONFIGURAÇÃO FIREBASE (Substitua pelos seus dados do console Firebase) ---
-    const firebaseConfig = { databaseURL: "https://hortinutri-plus-default-rtdb.firebaseio.com/" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Controle de Abas
-    function abrirAba(id) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if(id === 'vendas') carregarProdutosVenda();
-        if(id === 'mix') carregarInsumosMix();
-    }
-
-    // CRUD Cadastros
-    function salvarCadastro() {
-        const cat = document.getElementById('cad-categoria').value;
-        const nome = document.getElementById('cad-nome').value.toUpperCase();
-        const valor = document.getElementById('cad-valor').value;
-        if(nome && valor) {
-            db.ref('cadastros/' + cat).push({ nome, valor: parseFloat(valor) });
-            document.getElementById('cad-nome').value = "";
-            document.getElementById('cad-valor').value = "";
+        // 1. GERENCIAMENTO DE ABAS
+        function mudarAba(aba) {
+            document.getElementById('secao-cadastros').style.display = aba === 'cadastros' ? 'block' : 'none';
+            document.getElementById('secao-vendas').style.display = aba === 'vendas' ? 'block' : 'none';
         }
-    }
 
-    // Listagem em Tempo Real
-    db.ref('cadastros/insumos').on('value', snap => {
-        const tbody = document.getElementById('lista-cadastros');
-        tbody.innerHTML = "";
-        snap.forEach(item => {
-            const d = item.val();
-            tbody.innerHTML += `<tr><td>${d.nome}</td><td>R$ ${d.valor.toFixed(2)}</td>
-            <td><button onclick="remover('insumos','${item.key}')" style="background:red; padding:5px">X</button></td></tr>`;
+        // 2. GRAVAÇÃO E LISTAGEM AUTOMÁTICA
+        async function gravarNoFirebase() {
+            const nome = document.getElementById('cad-nome').value;
+            const custo = document.getElementById('cad-custo').value;
+            const venda = document.getElementById('cad-venda').value;
+
+            if(!nome || !venda) return alert("Preencha Nome e Preço!");
+
+            await db.ref('produtos').push({ nome, custo, venda, data: new Date().toLocaleDateString() });
+            
+            alert("Sucesso!");
+            document.getElementById('cad-nome').value = "";
+            document.getElementById('cad-custo').value = "";
+            document.getElementById('cad-venda').value = "";
+        }
+
+        // Escuta o banco e atualiza a tabela e os selects em tempo real
+        db.ref('produtos').on('value', (snapshot) => {
+            const corpoTabela = document.getElementById('tabela-itens-cadastrados');
+            const selectVenda = document.getElementById('venda-select-produto');
+            
+            corpoTabela.innerHTML = "";
+            selectVenda.innerHTML = '<option value="">Selecione...</option>';
+
+            snapshot.forEach((item) => {
+                const p = item.val();
+                // Adiciona na tabela
+                corpoTabela.innerHTML += `<tr>
+                    <td>${p.nome}</td>
+                    <td>R$ ${p.venda}</td>
+                    <td><button onclick="remover('${item.key}')" style="background:red; color:white; width:40px; padding:5px;">X</button></td>
+                </tr>`;
+                
+                // Adiciona no select de vendas com o preço como valor
+                selectVenda.innerHTML += `<option value="${p.venda}">${p.nome}</option>`;
+            });
         });
-    });
 
-    function remover(path, id) { if(confirm("Excluir?"))
+        function remover(id) { if(confirm("Deseja excluir?")) db.ref('produtos').child(id).remove(); }
+
+        // 3. LÓGICA DE VENDAS
+        function autoPreencherPreco() {
+            const select = document.getElementById('venda-select-produto');
+            document.getElementById('venda-preco').value = select.value;
+            calcularTotalVenda();
+        }
+
+        function calcularTotalVenda() {
+            const preco = parseFloat(document.getElementById('venda-preco').value) || 0;
+            const qtd = parseFloat(document.getElementById('venda-qtd').value) || 1;
+            const desc = parseFloat(document.getElementById('venda-desconto').value) || 0;
+            const total = (preco * qtd) - desc;
+            document.getElementById('venda-total-display').innerText = `Total: R$ ${total.toFixed(2)}`;
+        }
+
+        // 4. GERAÇÃO DE PDF
+        function finalizarVenda() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const prod = document.getElementById('venda-select-produto').options[document.getElementById('venda-select-produto').selectedIndex].text;
+            const total = document.getElementById('venda-total-display').innerText;
+
+            doc.setFontSize(18);
+            doc.text("HORTINUTRI+ - COMPROVANTE", 10, 20);
+            doc.setFontSize(12);
+            doc.text(`Data: ${new Date().toLocaleString()}`, 10, 30);
+            doc.text("------------------------------------------", 10, 35);
+            doc.text(`Produto: ${prod}`, 10, 45);
+            doc.text(`Quantidade: ${document.getElementById('venda-qtd').value}`, 10, 52);
+            doc.text(`Desconto: R$ ${document.getElementById('venda-desconto').value}`, 10, 59);
+            doc.text(`VALOR FINAL: ${total}`, 10, 70);
+            
+            doc.save(`Venda_${Date.now()}.pdf`);
+            alert("Venda finalizada e PDF gerado!");
+        }
+    </script>
+</body>
+</html>
