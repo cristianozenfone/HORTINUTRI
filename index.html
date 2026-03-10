@@ -33,6 +33,7 @@
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
         .badge-venda { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .action-btn { background: #eee; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -84,8 +85,8 @@
             <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
         <div class="card">
-            <h3>📋 Produtos/Mix Cadastrados</h3>
-            <div id="tabela-produtos">Nenhum produto cadastrado.</div>
+            <h3>📋 Produtos Cadastrados</h3>
+            <div id="tabela-produtos-catalogo"></div>
         </div>
     </div>
 
@@ -176,9 +177,16 @@
     function salvarGeral() {
         let obj = { nome: document.getElementById('f-1').value.toUpperCase() };
         if(!obj.nome) return alert("Digite o nome!");
-        if(subAtual==='insumos') { obj.fc = document.getElementById('f-2').value; obj.preco = document.getElementById('f-3').value; }
-        else if(subAtual==='clientes') { obj.tipo = document.getElementById('f-2').value; }
-        else { obj.custo = document.getElementById('f-2').value; }
+        if(subAtual==='insumos') { 
+            obj.fc = document.getElementById('f-2').value; 
+            obj.preco = document.getElementById('f-3').value; 
+            if(!obj.fc || !obj.preco) return alert("Preencha todos os campos!");
+        } else if(subAtual==='clientes') { 
+            obj.tipo = document.getElementById('f-2').value; 
+        } else { 
+            obj.custo = document.getElementById('f-2').value; 
+            if(!obj.custo) return alert("Preencha o custo!");
+        }
         db.ref('erp_v2/' + subAtual).push(obj).then(() => alert("Salvo!"));
     }
 
@@ -192,23 +200,40 @@
             } else {
                 info = lista[id].tipo || "R$ " + lista[id].custo;
             }
-            html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="db.ref('erp_v2/${subAtual}/${id}').remove()">🗑️</button></td></tr>`;
+            html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button class="action-btn" onclick="excluirItem('erp_v2/${subAtual}/${id}')">🗑️</button></td></tr>`;
         }
         document.getElementById('tabela-registros').innerHTML = html + '</table>';
     }
 
     function carregarTabelaProdutos() {
         let lista = dadosGlobal.produtos;
-        let html = '<table><tr><th>Produto</th><th>Custo</th><th>Venda</th><th>Ação</th></tr>';
+        let html = '<table><tr><th>Nome</th><th>Custo/Venda</th><th>Ação</th></tr>';
         for(let id in lista) {
             html += `<tr>
                 <td>${lista[id].nome}</td>
-                <td>R$ ${lista[id].custoProducao}</td>
-                <td>R$ ${lista[id].precoSugerido}</td>
-                <td><button onclick="db.ref('erp_v2/produtos_final/${id}').remove()">🗑️</button></td>
+                <td>R$ ${lista[id].custoProducao} / R$ ${lista[id].precoSugerido}</td>
+                <td>
+                    <button class="action-btn" onclick="editarProduto('${id}')">✏️</button>
+                    <button class="action-btn" onclick="excluirItem('erp_v2/produtos_final/${id}')">🗑️</button>
+                </td>
             </tr>`;
         }
-        document.getElementById('tabela-produtos').innerHTML = html + '</table>';
+        document.getElementById('tabela-produtos-catalogo').innerHTML = html + '</table>';
+    }
+
+    function excluirItem(path) {
+        if (confirm("Tem certeza que deseja excluir este item?")) {
+            if (confirm("Esta ação é definitiva. Confirma a exclusão?")) {
+                db.ref(path).remove();
+            }
+        }
+    }
+
+    function editarProduto(id) {
+        const prod = dadosGlobal.produtos[id];
+        document.getElementById('kit-nome').value = prod.nome;
+        document.getElementById('kit-venda-final').value = prod.precoSugerido;
+        alert("Produto carregado no formulário para correção.");
     }
 
     function atualizarSelects() {
@@ -229,7 +254,7 @@
     function adicionarIngrediente() {
         const id = document.getElementById('sel-insumo').value;
         const peso = parseFloat(document.getElementById('kit-peso-liq').value);
-        if(!id || !peso) return;
+        if(!id || !peso) return alert("Selecione insumo e peso!");
         const ins = dadosGlobal.insumos[id];
         const custoItem = (peso / 1000) * parseFloat(ins.fc) * parseFloat(ins.preco);
         receitaNoMomento.push({ nome: ins.nome, peso: peso, custo: custoItem });
@@ -255,12 +280,12 @@
     function salvarKitNoCatalogo() {
         const nome = document.getElementById('kit-nome').value.toUpperCase();
         const preco = document.getElementById('kit-venda-final').value;
-        if(!nome || !preco) return alert("Preencha nome e preço!");
+        if(!nome || !preco || receitaNoMomento.length === 0) return alert("Preencha Nome, Preço e adicione ingredientes!");
         db.ref('erp_v2/produtos_final').push({
             nome: nome,
             custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""),
             precoSugerido: preco
-        }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); });
+        }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); document.getElementById('kit-nome').value = ""; });
     }
 
     function atualizarSelectsFin() {
@@ -313,7 +338,7 @@
                 <td>${v.cliente}</td>
                 <td><span class="badge-venda">${v.qtd} un</span></td>
                 <td>R$ ${v.total}</td>
-                <td><button onclick="db.ref('erp_v2/vendas/${v.id}').remove()">🗑️</button></td>
+                <td><button class="action-btn" onclick="excluirItem('erp_v2/vendas/${v.id}')">🗑️</button></td>
             </tr>`;
         });
         document.getElementById('tabela-vendas-historico').innerHTML = html + '</table>';
