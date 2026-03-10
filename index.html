@@ -1,61 +1,46 @@
-<style>
-    /* Adicione/Substitua estas regras no seu <style> */
-    .grid-menu { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-        gap: 10px; 
-        margin-bottom: 20px; 
-    }
-    .btn-cadastro {
-        background: #f1f8e9;
-        border: 2px solid #a5d6a7;
-        color: #2e7d32;
-        padding: 15px 10px;
-        border-radius: 10px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        transition: 0.3s;
-    }
-    .btn-cadastro:hover { background: #c8e6c9; }
-    .btn-cadastro i { font-size: 1.2rem; }
-</style>
-
-<div id="tab-cadastros" class="tab-content">
-    <div class="card">
-        <h2>📂 Gerenciar Cadastros</h2>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HortiNutri ERP v6.5</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        :root { --primary: #2e7d32; --bg: #f5f7f6; --accent: #1565c0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        .navbar { background: var(--primary); padding: 10px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
+        .nav-btn { background: none; border: none; color: white; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 8px; }
+        .nav-btn.active { background: rgba(255,255,255,0.2); }
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
         
-        <div class="grid-menu">
-            <button class="btn-cadastro" onclick="showSubTab('insumo')">
-                <span>🥦</span> Insumos
-            </button>
-            <button class="btn-cadastro" onclick="showSubTab('embalagem')">
-                <span>📦</span> Embalagens
-            </button>
-            <button class="btn-cadastro" onclick="showSubTab('cliente')">
-                <span>🤝</span> Clientes
-            </button>
-            <button class="btn-cadastro" onclick="showSubTab('fornecedor')">
-                <span>🚚</span> Fornecedores
-            </button>
-        </div>
-
-        <div id="sub-insumo" class="sub-tab" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
-             <h3>🥦 Novo Insumo</h3>
-             <input type="text" id="ins-nome" placeholder="Nome do Legume (Ex: Abóbora)">
-             <input type="number" id="ins-fator" step="0.01" placeholder="Fator de Perda (Ex: 1.65)">
-             <button class="btn-green" onclick="salvarGenerico('insumos', 'ins-nome', 'ins-fator')">Cadastrar Legume</button>
-        </div>
-
-        <div id="sub-embalagem" class="sub-tab" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
-             <h3>📦 Nova Embalagem/Etiqueta</h3>
-             <input type="text" id="emb-nome" placeholder="Ex: Saco 14x25 + Etiqueta">
-             <input type="number" id="emb-custo" step="0.01" placeholder="Custo Unitário R$">
-             <button class="btn-green" onclick="salvarGenerico('embalagens', 'emb-nome', 'emb-custo')">Salvar Embalagem</button>
-        </div>
+        /* Grid de Botões de Cadastro */
+        .grid-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .btn-cadastro { background: #f1f8e9; border: 2px solid #a5d6a7; color: #2e7d32; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         
-        </div>
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .btn-green { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
+        .status-sync { font-size: 0.7rem; text-align: right; color: var(--primary); padding: 5px; font-weight: bold; }
+        .cost-box { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
+        .cost-val { font-size: 1.4rem; color: #e65100; font-weight: bold; }
+    </style>
+</head>
+<body onload="iniciarApp()">
+
+<div class="navbar">
+    <button class="nav-btn active" onclick="showTab('cadastros')">📂 Cadastros</button>
+    <button class="nav-btn" onclick="showTab('kits')">🛠️ Montar Kits</button>
+    <button class="nav-btn" onclick="showTab('producao')">🏭 Produção</button>
 </div>
+
+<div class="container">
+    <div id="sync-status" class="status-sync">☁️ Conectando...</div>
+
+    <div id="tab-cadastros" class="tab-content">
+        <div class="card">
+            <h2>Gerenciar Cadastros</h2>
+            <div class="grid-menu">
+                <button class="btn-cadastro" onclick="openSub('insumo')"><span>🥦</span>Insumos</button>
