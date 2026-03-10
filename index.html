@@ -3,44 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP v6.5</title>
+    <title>HortiNutri ERP - SISTEMA INTEGRADO</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #2e7d32; --bg: #f5f7f6; --accent: #1565c0; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .navbar { background: var(--primary); padding: 10px; display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: white; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 8px; }
-        .nav-btn.active { background: rgba(255,255,255,0.2); }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
-        /* Grid de Botões de Cadastro */
-        .grid-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .btn-cadastro { background: #f1f8e9; border: 2px solid #a5d6a7; color: #2e7d32; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        /* Menu Principal Superior */
+        .navbar { background: var(--primary); display: flex; overflow-x: auto; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .nav-item { color: white; padding: 15px 20px; text-decoration: none; font-weight: bold; white-space: nowrap; cursor: pointer; border-bottom: 4px solid transparent; }
+        .nav-item.active { border-bottom: 4px solid #fff; background: rgba(255,255,255,0.1); }
+
+        .container { padding: 20px; max-width: 1000px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        .btn-green { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
-        .status-sync { font-size: 0.7rem; text-align: right; color: var(--primary); padding: 5px; font-weight: bold; }
-        .cost-box { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; border: 1px solid #ffe0b2; }
-        .cost-val { font-size: 1.4rem; color: #e65100; font-weight: bold; }
+        /* Formulários e Inputs */
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        input, select, btn { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
+        
+        .btn { border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-save:hover { background: #1b5e20; }
+        
+        /* Submenus de Cadastro */
+        .submenu { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; }
+        .sub-item { background: #eee; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .sub-item.active { background: var(--primary); color: white; }
+
+        .status-sync { text-align: right; font-size: 11px; color: var(--primary); margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body onload="iniciarApp()">
 
 <div class="navbar">
-    <button class="nav-btn active" onclick="showTab('cadastros')">📂 Cadastros</button>
-    <button class="nav-btn" onclick="showTab('kits')">🛠️ Montar Kits</button>
-    <button class="nav-btn" onclick="showTab('producao')">🏭 Produção</button>
+    <div class="nav-item active" onclick="changeTab('cadastros', this)">📂 CADASTROS</div>
+    <div class="nav-item" onclick="changeTab('vendas', this)">💰 VENDAS</div>
+    <div class="nav-item" onclick="changeTab('financeiro', this)">🏦 FINANCEIRO</div>
+    <div class="nav-item" onclick="changeTab('relatorios', this)">📊 RELATÓRIOS</div>
 </div>
 
 <div class="container">
-    <div id="sync-status" class="status-sync">☁️ Conectando...</div>
+    <div id="sync-status" class="status-sync">☁️ Conectando ao Firebase...</div>
 
-    <div id="tab-cadastros" class="tab-content">
-        <div class="card">
-            <h2>Gerenciar Cadastros</h2>
-            <div class="grid-menu">
-                <button class="btn-cadastro" onclick="openSub('insumo')"><span>🥦</span>Insumos</button>
+    <div id="tab-cadastros" class="tab-pane">
+        <div class="submenu">
+            <div class="sub-item active" onclick="changeSub('insumos', this)">🥦 Insumos</div>
+            <div class="sub-item" onclick="changeSub('fornecedores', this)">🚚 Fornecedores</div>
+            <div class="sub-item" onclick="changeSub('clientes', this)">🤝 Clientes</div>
+            <div class="sub-item" onclick="changeSub('embalagens', this)">📦 Embalagens</div>
+        </div>
+
+        <div id="sub-insumos" class="card">
+            <h3>Cadastro de Insumo (Matéria-Prima)</h3>
+            <div class="grid-form">
+                <div>
+                    <label>Nome do Legume</label>
+                    <input type="text" id="insumo-nome" placeholder="Ex: Batata Doce">
+                </div>
+                <div>
+                    <label>Fator de Correção (FC)</label>
+                    <input type="number" id="insumo-fc" step="0.01" placeholder="Ex: 1.20">
+                    <small style="color: #888;">Peso Bruto ÷ Peso Líquido</small>
+                </div>
+                <div>
+                    <label>Preço Pago p/ KG (R$)</label>
+                    <input type="number" id="insumo-preco" step="0.01" placeholder="R$ 0,00">
+                </div>
+            </div>
+            <button class="btn btn-save" style="margin-top: 20px;" onclick="salvarInsumo()">CADASTRAR INSUMO</button>
+        </div>
+    </div>
+
+    <div id="tab-vendas" class="tab-pane" style="display:none;"><div class="card"><h3>Em breve: Módulo de Vendas</h3></div></div>
+    <div id="tab-financeiro" class="tab-pane" style="display:none;"><div class="card"><h3>Em breve: Módulo Financeiro</h3></div></div>
+    <div id="tab-relatorios" class="tab-pane" style="display:none;"><div class="card"><h3>Em breve: Relatórios</h3></div></div>
+</div>
+
+<script>
+    // Configuração do seu Firebase (Mantendo o que já estava funcionando)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
+        authDomain: "hortinutri-3f2ea.firebaseapp.com",
+        databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
+        projectId: "hortinutri-3f2ea",
+        storageBucket: "hortinutri-3f2ea.appspot.com",
+        messagingSenderId: "596792658513",
+        appId: "1:596792658513:web:92bb97b0d835efc5510670"
+    };
+
+    let db;
+
+    function iniciarApp() {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        document.getElementById('sync-status').innerText = "✅ SISTEMA ONLINE";
+    }
+
+    function changeTab(tab, element) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('tab-' + tab).style.display = 'block';
+        element.classList.add('active');
+    }
+
+    function changeSub(sub, element) {
+        // Lógica para alternar formulários de cadastro
+        alert("Acessando formulário de: " + sub);
+        document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    function salvarInsumo() {
+        const nome = document.getElementById('insumo-nome').value;
+        const fc = document.getElementById('insumo-fc').value;
+        const preco = document.getElementById('insumo-preco').value;
+        
+        if(nome && fc) {
+            db.ref('erp/insumos').push({ nome, fc: parseFloat(fc), preco: parseFloat(preco) });
+            alert("Insumo salvo! Próximo passo: Vincular ao fornecedor.");
+        }
+    }
+</script>
+</body>
+</html>
