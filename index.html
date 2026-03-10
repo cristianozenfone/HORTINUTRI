@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v2.2</title>
+    <title>HortiNutri ERP - v3.0 Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --text: #333; --orange: #ef6c00; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --text: #333; --orange: #ef6c00; --red: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: var(--text); }
         .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .nav-item { color: white; padding: 15px 20px; text-decoration: none; font-weight: bold; cursor: pointer; flex: 1; text-align: center; border-bottom: 4px solid transparent; }
@@ -15,11 +15,12 @@
         .container { padding: 20px; max-width: 1100px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; }
         .btn-save { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
         .btn-add { background: var(--orange); color: white; }
+        .btn-venda { background: var(--secondary); color: white; width: 100%; font-size: 16px; margin-top: 15px; }
         .submenu { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding: 5px 0; }
         .sub-item { background: #e0e0e0; padding: 10px 20px; border-radius: 25px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         .sub-item.active { background: var(--primary); color: white; }
@@ -27,6 +28,8 @@
         th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid #eee; font-size: 13px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         .receita-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 5px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-venda { background: #e8f5e9; color: #2e7d32; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -58,7 +61,7 @@
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
-            <h2>🛠️ Montar Ficha Técnica</h2>
+            <h2>🛠️ Montar Ficha Técnica (Mix ou Simples)</h2>
             <div class="grid-form">
                 <div><label>Nome do Mix/Produto</label><input type="text" id="kit-nome" placeholder="Ex: Kit Maionese"></div>
             </div>
@@ -83,13 +86,45 @@
             <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
         <div class="card">
-            <h3>📋 Catálogo de Mix</h3>
+            <h3>📋 Catálogo de Produtos Cadastrados</h3>
             <div id="tabela-catalogo"></div>
         </div>
     </div>
 
     <div id="tab-financeiro" class="tab-pane" style="display:none;">
-        <div class="card"><h3>🏦 Financeiro</h3><p>Módulo em desenvolvimento...</p></div>
+        <div class="card">
+            <h2>🏦 Lançar Nova Venda / Entrega</h2>
+            <div class="grid-form">
+                <div>
+                    <label>Selecione o Cliente</label>
+                    <select id="venda-cliente"></select>
+                </div>
+                <div>
+                    <label>Produto (do Catálogo)</label>
+                    <select id="venda-produto" onchange="preencherPrecoVenda()"></select>
+                </div>
+            </div>
+            <div class="grid-form">
+                <div>
+                    <label>Quantidade</label>
+                    <input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()">
+                </div>
+                <div>
+                    <label>Preço Unitário (R$)</label>
+                    <input type="number" id="venda-preco-un" step="0.01" oninput="calcularTotalVenda()">
+                </div>
+                <div>
+                    <label>Total da Venda</label>
+                    <input type="text" id="venda-total-final" readonly style="background:#eee; font-weight:bold; color:var(--primary)">
+                </div>
+            </div>
+            <button class="btn btn-venda" onclick="confirmarVenda()">✅ CONFIRMAR E REGISTRAR VENDA</button>
+        </div>
+
+        <div class="card">
+            <h3>📊 Histórico de Vendas Recentes</h3>
+            <div id="tabela-historico-vendas"></div>
+        </div>
     </div>
 </div>
 
@@ -99,134 +134,4 @@
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
         databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
         projectId: "hortinutri-3f2ea",
-        storageBucket: "hortinutri-3f2ea.appspot.com",
-        messagingSenderId: "596792658513",
-        appId: "1:596792658513:web:92bb97b0d835efc5510670"
-    };
-
-    let db, subAtual = 'insumos', receitaNoMomento = [];
-    let dadosGlobal = { insumos: {}, embalagens: {} };
-
-    function iniciarApp() {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-        changeTab('cadastros');
-        escutarDados();
-    }
-
-    function escutarDados() {
-        db.ref('erp_v2/insumos').on('value', s => { dadosGlobal.insumos = s.val() || {}; atualizarSelects(); });
-        db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; atualizarSelects(); });
-        db.ref('erp_v2/produtos_final').on('value', s => carregarCatalogo(s.val()));
-    }
-
-    function changeTab(tab) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('tab-' + tab).style.display = 'block';
-        document.getElementById('btn-tab-' + tab).classList.add('active');
-        if(tab === 'cadastros') changeSub(subAtual);
-    }
-
-    function changeSub(sub) {
-        subAtual = sub;
-        document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('sub-' + sub).classList.add('active');
-        
-        const form = document.getElementById('form-dinamico');
-        const titulos = {insumos: '🥦 Cadastro de Insumos', fornecedores: '🚚 Cadastro de Fornecedores', clientes: '🤝 Cadastro de Clientes', embalagens: '📦 Cadastro de Embalagens'};
-        document.getElementById('titulo-form').innerText = titulos[sub];
-
-        if(sub==='insumos') form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>FC</label><input id="f-2" type="number" step="0.01"></div><div><label>Preço KG</label><input id="f-3" type="number" step="0.01"></div></div>`;
-        else if(sub==='fornecedores') form.innerHTML = `<div class="grid-form"><div><label>Razão Social</label><input id="f-1"></div><div><label>WhatsApp</label><input id="f-2"></div></div>`;
-        else if(sub==='clientes') form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>Tipo</label><select id="f-2"><option>Atacado</option><option>Varejo</option></select></div></div>`;
-        else form.innerHTML = `<div class="grid-form"><div><label>Item</label><input id="f-1"></div><div><label>Custo R$</label><input id="f-2" type="number" step="0.01"></div></div>`;
-        
-        carregarTabela();
-    }
-
-    function salvarGeral() {
-        let obj = { nome: document.getElementById('f-1').value };
-        if(subAtual==='insumos') { obj.fc = document.getElementById('f-2').value; obj.preco = document.getElementById('f-3').value; }
-        else if(subAtual==='fornecedores') { obj.contato = document.getElementById('f-2').value; }
-        else if(subAtual==='clientes') { obj.tipo = document.getElementById('f-2').value; }
-        else { obj.custo = document.getElementById('f-2').value; }
-
-        if(!obj.nome) return alert("Preencha o nome!");
-        db.ref('erp_v2/' + subAtual).push(obj).then(() => { alert("Salvo!"); changeSub(subAtual); });
-    }
-
-    function carregarTabela() {
-        db.ref('erp_v2/' + subAtual).once('value', snap => {
-            const lista = snap.val();
-            let html = '<table><tr><th>Nome</th><th>Info</th><th>Ação</th></tr>';
-            for(let id in lista) {
-                let info = subAtual==='insumos' ? "FC: "+lista[id].fc : (lista[id].contato || lista[id].tipo || "R$ "+lista[id].custo);
-                html += `<tr><td>${lista[id].nome.toUpperCase()}</td><td>${info}</td><td><button onclick="db.ref('erp_v2/${subAtual}/${id}').remove(); changeSub('${subAtual}')">🗑️</button></td></tr>`;
-            }
-            document.getElementById('tabela-registros').innerHTML = html + '</table>';
-        });
-    }
-
-    function atualizarSelects() {
-        let hI = '<option value="">Selecione...</option>';
-        for(let id in dadosGlobal.insumos) hI += `<option value="${id}">${dadosGlobal.insumos[id].nome.toUpperCase()}</option>`;
-        if(document.getElementById('sel-insumo')) document.getElementById('sel-insumo').innerHTML = hI;
-
-        let hEmb = '<option value="0">Sem Embalagem</option>', hEtq = '<option value="0">Sem Etiqueta</option>';
-        for(let id in dadosGlobal.embalagens) {
-            let item = dadosGlobal.embalagens[id];
-            if(item.nome.toUpperCase().includes("ETIQUETA")) hEtq += `<option value="${item.custo}">${item.nome}</option>`;
-            else hEmb += `<option value="${item.custo}">${item.nome}</option>`;
-        }
-        if(document.getElementById('sel-emb')) document.getElementById('sel-emb').innerHTML = hEmb;
-        if(document.getElementById('sel-etq')) document.getElementById('sel-etq').innerHTML = hEtq;
-    }
-
-    function adicionarIngrediente() {
-        const id = document.getElementById('sel-insumo').value;
-        const peso = parseFloat(document.getElementById('kit-peso-liq').value);
-        if(!id || !peso) return;
-        const ins = dadosGlobal.insumos[id];
-        const custo = (peso / 1000) * parseFloat(ins.fc) * parseFloat(ins.preco);
-        receitaNoMomento.push({ nome: ins.nome, peso: peso, custo: custo });
-        desenharReceita();
-    }
-
-    function desenharReceita() {
-        let html = '';
-        receitaNoMomento.forEach((it, i) => {
-            html += `<div class="receita-item"><span>${it.nome.toUpperCase()} (${it.peso}g)</span><span>R$ ${it.custo.toFixed(2)} <button onclick="receitaNoMomento.splice(${i},1); desenharReceita()">❌</button></span></div>`;
-        });
-        document.getElementById('lista-ingredientes').innerHTML = html || "Nenhum item.";
-        calcularTotalKit();
-    }
-
-    function calcularTotalKit() {
-        let soma = receitaNoMomento.reduce((acc, cur) => acc + cur.custo, 0);
-        soma += parseFloat(document.getElementById('sel-emb').value || 0);
-        soma += parseFloat(document.getElementById('sel-etq').value || 0);
-        document.getElementById('res-custo-total').innerText = "R$ " + soma.toFixed(2);
-    }
-
-    function salvarKitNoCatalogo() {
-        const nome = document.getElementById('kit-nome').value;
-        if(!nome || receitaNoMomento.length === 0) return alert("Dados incompletos!");
-        db.ref('erp_v2/produtos_final').push({
-            nome: nome,
-            ingredientes: receitaNoMomento,
-            preco: document.getElementById('kit-venda-final').value,
-            custoTotal: document.getElementById('res-custo-total').innerText
-        }).then(() => { alert("Mix Salvo!"); receitaNoMomento = []; desenharReceita(); });
-    }
-
-    function carregarCatalogo(produtos) {
-        let html = '<table><tr><th>Mix</th><th>Custo</th><th>Venda</th><th>Ação</th></tr>';
-        for(let id in produtos) {
-            html += `<tr><td>${produtos[id].nome.toUpperCase()}</td><td>${produtos[id].custoTotal}</td><td>R$ ${produtos[id].preco}</td><td><button onclick="db.ref('erp_v2/produtos_final/${id}').remove()">🗑️</button></td></tr>`;
-        }
-        document.getElementById('tabela-catalogo').innerHTML = html + '</table>';
-    }
-</script>
-</body>
-</html>
+        storageBucket: "hortinutri-3f2
