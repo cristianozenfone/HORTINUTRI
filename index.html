@@ -3,87 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v12.0 Estabilizada</title>
+    <title>HortiNutri ERP - Sistema de Gestão</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
     <style>
-        :root { --primary: #2e7d32; --secondary: #1976d2; --danger: #d32f2f; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
         .navbar { background: var(--primary); display: flex; sticky: top; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .nav-item { color: white; padding: 15px; cursor: pointer; font-weight: bold; flex: 1; text-align: center; }
+        .nav-item { color: white; padding: 15px; cursor: pointer; font-weight: bold; flex: 1; text-align: center; text-transform: uppercase; font-size: 13px; }
         .nav-item.active { background: rgba(255,255,255,0.2); border-bottom: 4px solid white; }
-        .container { padding: 15px; max-width: 1100px; margin: auto; }
+        .container { padding: 15px; max-width: 1000px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; color: white; width: 100%; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center; }
-        .stat-card { padding: 15px; border-radius: 10px; color: white; }
+        h3 { margin-top: 0; color: #333; border-left: 5px solid var(--primary); padding-left: 10px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
+        .delete-btn { background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-item active" id="btn-cadastros" onclick="showTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" id="btn-vendas" onclick="showTab('vendas')">💰 VENDAS</div>
-    <div class="nav-item" id="btn-relatorios" onclick="showTab('relatorios')">📊 FINANCEIRO</div>
+    <div class="nav-item active" id="btn-cadastros" onclick="showTab('cadastros')">📂 Cadastros</div>
+    <div class="nav-item" id="btn-vendas" onclick="showTab('vendas')">💰 Vendas</div>
+    <div class="nav-item" id="btn-financeiro" onclick="showTab('financeiro')">📊 Financeiro</div>
 </div>
 
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="card">
-            <h3>Novo Registro</h3>
+            <h3>Gerenciar Cadastros</h3>
             <div class="grid-form">
                 <select id="cad-tipo" onchange="renderizarTudo()">
-                    <option value="insumos">🥦 Insumos</option>
+                    <option value="insumos">🥦 Insumos / Legumes</option>
                     <option value="clientes">🤝 Clientes</option>
                     <option value="embalagens">📦 Embalagens</option>
                 </select>
-                <input type="text" id="cad-nome" placeholder="Nome">
-                <input type="number" id="cad-v1" placeholder="Valor 1">
-                <input type="number" id="cad-v2" placeholder="Valor 2">
+                <input type="text" id="cad-nome" placeholder="Nome/Descrição">
+                <input type="number" id="cad-v1" placeholder="Preço/Custo">
             </div>
-            <button class="btn" style="background:var(--primary)" onclick="salvarCadastro()">SALVAR</button>
+            <button class="btn" style="background:var(--primary)" onclick="salvarCadastro()">SALVAR REGISTRO</button>
         </div>
         <div class="card">
-            <div id="tabela-cadastros">Carregando dados do banco...</div>
+            <h3>Registros Salvos</h3>
+            <div id="tabela-cadastros">Carregando dados...</div>
         </div>
     </div>
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
-            <h3>Lançar Venda</h3>
+            <h3>Registrar Venda</h3>
             <div class="grid-form">
-                <input type="text" id="v-cliente" placeholder="Cliente">
-                <input type="text" id="v-produto" placeholder="Produto">
-                <input type="number" id="v-qtd" value="1">
-                <input type="number" id="v-preco" placeholder="Preço">
-                <input type="number" id="v-custo" placeholder="Custo">
+                <input type="text" id="v-cliente" placeholder="Nome do Cliente">
+                <input type="text" id="v-produto" placeholder="Produto/Kit">
+                <input type="number" id="v-qtd" value="1" placeholder="Qtd">
+                <input type="number" id="v-preco" placeholder="Preço Venda (R$)">
+                <input type="number" id="v-custo" placeholder="Custo Prod. (R$)">
             </div>
-            <button class="btn" style="background:var(--secondary)" onclick="lancarVenda()">CONFIRMAR VENDA</button>
+            <button class="btn" style="background:var(--secondary)" onclick="lancarVenda()">✅ CONFIRMAR VENDA</button>
         </div>
         <div class="card">
-            <div id="lista-vendas-html"></div>
+            <h3>Histórico de Vendas</h3>
+            <div id="lista-vendas-html">Nenhuma venda encontrada.</div>
         </div>
     </div>
 
-    <div id="tab-relatorios" class="tab-pane" style="display:none;">
+    <div id="tab-financeiro" class="tab-pane" style="display:none;">
         <div class="stats-grid">
             <div class="stat-card" style="background: var(--secondary);">Vendas<br><strong id="rel-fat">R$ 0,00</strong></div>
-            <div class="stat-card" style="background: var(--danger);">Custos<br><strong id="rel-custo">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: #ef4444;">Custos<br><strong id="rel-custo">R$ 0,00</strong></div>
             <div class="stat-card" style="background: var(--primary);">Lucro<br><strong id="rel-lucro">R$ 0,00</strong></div>
         </div>
-        <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="exportarPDF()">GERAR PDF</button>
+        <div class="card" style="margin-top:20px; text-align:center;">
+            <p>Os dados acima são baseados em todas as vendas lançadas.</p>
+        </div>
     </div>
 </div>
 
 <script>
-    // 1. CONFIGURAÇÃO (Não altere estas chaves)
+    // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -94,59 +99,72 @@
         appId: "1:596792658513:web:92bb97b0d835efc5510670"
     };
 
+    // Inicialização
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let dadosApp = {};
 
-    // 2. FUNÇÕES DE RENDERIZAÇÃO (Definidas antes do uso para evitar o erro do print)
-    function renderizarTudo() {
-        // Renderizar Cadastros
-        const tipo = document.getElementById('cad-tipo').value;
-        const listaCad = dadosApp[tipo] || {};
-        let htmlCad = `<table><tr><th>Nome</th><th>Excluir</th></tr>`;
-        for(let id in listaCad) {
-            htmlCad += `<tr><td>${listaCad[id].nome}</td><td><button onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
-        }
-        document.getElementById('tabela-cadastros').innerHTML = htmlCad + "</table>";
-
-        // Renderizar Vendas
-        const vendas = dadosApp.vendas || {};
-        let htmlVen = `<table><tr><th>Data</th><th>Produto</th><th>Total</th></tr>`;
-        let arrVendas = Object.keys(vendas).map(id => ({id, ...vendas[id]})).reverse();
-        arrVendas.forEach(v => {
-            htmlVen += `<tr><td>${v.data || ''}</td><td>${v.produto || ''}</td><td>R$ ${(v.qtd * v.preco || 0).toFixed(2)}</td></tr>`;
-        });
-        document.getElementById('lista-vendas-html').innerHTML = htmlVen + "</table>";
-
-        // Atualizar Financeiro (Proteção contra NaN)
-        let fat = 0, custo = 0;
-        for(let id in vendas) {
-            fat += (vendas[id].qtd * vendas[id].preco) || 0;
-            custo += (vendas[id].qtd * vendas[id].custo) || 0;
-        }
-        document.getElementById('rel-fat').innerText = "R$ " + fat.toFixed(2);
-        document.getElementById('rel-custo').innerText = "R$ " + custo.toFixed(2);
-        document.getElementById('rel-lucro').innerText = "R$ " + (fat - custo).toFixed(2);
-    }
-
-    // 3. ESCUTA DO BANCO DE DADOS
+    // Escuta do Banco de Dados em Tempo Real
     db.ref('/').on('value', snapshot => {
         dadosApp = snapshot.val() || {};
-        console.log("Dados recebidos:", dadosApp);
+        console.log("Dados sincronizados!");
         renderizarTudo();
     });
 
-    // 4. AÇÕES
+    function renderizarTudo() {
+        // 1. Renderizar Tabela de Cadastros
+        const tipo = document.getElementById('cad-tipo').value;
+        const listaCad = dadosApp[tipo] || {};
+        let htmlCad = `<table><tr><th>Nome</th><th style="text-align:right">Ação</th></tr>`;
+        
+        Object.keys(listaCad).forEach(id => {
+            htmlCad += `<tr>
+                <td>${listaCad[id].nome}</td>
+                <td style="text-align:right"><button class="delete-btn" onclick="remover('${tipo}/${id}')">🗑️</button></td>
+            </tr>`;
+        });
+        document.getElementById('tabela-cadastros').innerHTML = htmlCad + "</table>";
+
+        // 2. Renderizar Tabela de Vendas
+        const vendas = dadosApp.vendas || {};
+        let htmlVen = `<table><tr><th>Data</th><th>Produto</th><th>Total</th><th style="text-align:right">Ação</th></tr>`;
+        
+        // Transformar em array e inverter para ver as mais recentes primeiro
+        const listaVendas = Object.keys(vendas).map(id => ({id, ...vendas[id]})).reverse();
+        
+        listaVendas.forEach(v => {
+            const total = (v.qtd || 0) * (v.preco || 0);
+            htmlVen += `<tr>
+                <td style="font-size:11px">${v.data || ''}</td>
+                <td><b>${v.produto || ''}</b><br><small>${v.cliente || ''}</small></td>
+                <td>R$ ${total.toFixed(2)}</td>
+                <td style="text-align:right"><button class="delete-btn" onclick="remover('vendas/${v.id}')">🗑️</button></td>
+            </tr>`;
+        });
+        document.getElementById('lista-vendas-html').innerHTML = htmlVen + "</table>";
+
+        // 3. Atualizar Financeiro (Proteção contra NaN)
+        let fat = 0, custoTotal = 0;
+        Object.values(vendas).forEach(v => {
+            fat += (parseFloat(v.qtd) * parseFloat(v.preco)) || 0;
+            custoTotal += (parseFloat(v.qtd) * parseFloat(v.custo)) || 0;
+        });
+
+        document.getElementById('rel-fat').innerText = "R$ " + fat.toFixed(2);
+        document.getElementById('rel-custo').innerText = "R$ " + custoTotal.toFixed(2);
+        document.getElementById('rel-lucro').innerText = "R$ " + (fat - custoTotal).toFixed(2);
+    }
+
     function salvarCadastro() {
         const tipo = document.getElementById('cad-tipo').value;
         const nome = document.getElementById('cad-nome').value.toUpperCase();
-        if(!nome) return alert("Nome vazio!");
-        db.ref(tipo).push({
-            nome: nome,
-            v1: parseFloat(document.getElementById('cad-v1').value) || 0,
-            v2: parseFloat(document.getElementById('cad-v2').value) || 0
-        });
+        const valor = parseFloat(document.getElementById('cad-v1').value) || 0;
+
+        if(!nome) return alert("Por favor, digite um nome.");
+        
+        db.ref(tipo).push({ nome, valor });
         document.getElementById('cad-nome').value = "";
+        document.getElementById('cad-v1').value = "";
     }
 
     function lancarVenda() {
@@ -158,33 +176,30 @@
             preco: parseFloat(document.getElementById('v-preco').value) || 0,
             custo: parseFloat(document.getElementById('v-custo').value) || 0
         };
-        if(!venda.produto) return alert("Produto vazio!");
+
+        if(!venda.produto || venda.preco <= 0) return alert("Preencha o produto e o preço!");
+
         db.ref('vendas').push(venda);
+        
+        // Limpar campos
+        ['v-cliente', 'v-produto', 'v-preco', 'v-custo'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('v-qtd').value = "1";
     }
 
     function remover(caminho) {
-        if(confirm("Excluir?")) db.ref(caminho).remove();
+        if(confirm("Deseja realmente excluir este registro?")) {
+            db.ref(caminho).remove();
+        }
     }
 
     function showTab(tab) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        
         document.getElementById('tab-' + tab).style.display = 'block';
         document.getElementById('btn-' + tab).classList.add('active');
     }
-
-    function exportarPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("Relatório HortiNutri", 10, 10);
-        const rows = [];
-        for(let id in (dadosApp.vendas || {})) {
-            const v = dadosApp.vendas[id];
-            rows.push([v.data, v.produto, v.qtd, (v.qtd*v.preco).toFixed(2)]);
-        }
-        doc.autoTable({ head: [['Data', 'Prod', 'Qtd', 'Total']], body: rows });
-        doc.save('financeiro.pdf');
-    }
 </script>
+
 </body>
 </html>
