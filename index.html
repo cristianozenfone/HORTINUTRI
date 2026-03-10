@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v9.0</title>
+    <title>HortiNutri ERP - v8.1 Completo</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,9 +19,9 @@
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
-        .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; margin-top: 5px; }
+        .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; }
         .btn-save { background: var(--primary); color: white; width: 100%; }
-        .btn-add { background: var(--orange); color: white; width: 100%; }
+        .btn-add { background: var(--orange); color: white; }
         .btn-venda { background: var(--secondary); color: white; width: 100%; font-size: 16px; margin-top: 15px; }
         .btn-pdf { background: var(--red); color: white; width: 100%; font-size: 16px; margin-top: 10px; }
         .submenu { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding: 5px 0; }
@@ -30,6 +30,8 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; padding: 10px; background: #f8f9fa; border-bottom: 2px solid #eee; font-size: 12px; }
         td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
         .badge-venda { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
     </style>
 </head>
@@ -37,8 +39,8 @@
 
 <div class="navbar">
     <div class="nav-item active" id="btn-tab-cadastros" onclick="changeTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" id="btn-tab-mix" onclick="changeTab('mix')">🛠️ MIX/KITS</div>
-    <div class="nav-item" id="btn-tab-financeiro" onclick="changeTab('financeiro')">💰 VENDA</div>
+    <div class="nav-item" id="btn-tab-vendas" onclick="changeTab('vendas')">🛠️ MIX/KITS</div>
+    <div class="nav-item" id="btn-tab-financeiro" onclick="changeTab('financeiro')">💰 FINANCEIRO</div>
     <div class="nav-item" id="btn-tab-relatorios" onclick="changeTab('relatorios')">📊 RELATÓRIOS</div>
 </div>
 
@@ -47,47 +49,45 @@
         <div class="submenu">
             <div class="sub-item active" id="sub-insumos" onclick="changeSub('insumos')">🥦 Insumos</div>
             <div class="sub-item" id="sub-clientes" onclick="changeSub('clientes')">🤝 Clientes</div>
-            <div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens</div>
+            <div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens/Etq</div>
         </div>
         <div class="card">
-            <h3 id="titulo-form">Carregando...</h3>
+            <h3 id="titulo-form">Carregando formulário...</h3>
             <div id="form-dinamico"></div>
-            <button class="btn btn-save" onclick="salvarGeral()">SALVAR</button>
+            <button class="btn btn-save" id="btn-salvar-geral" onclick="salvarGeral()">SALVAR REGISTRO</button>
+            <input type="hidden" id="edit-id">
         </div>
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>Registros Salvos</h3>
-                <button class="btn" style="background: var(--red);" onclick="exportarTabelaPDF()">PDF</button>
+                <button class="btn" style="background:#d32f2f; color:white; font-size:10px;" onclick="imprimirTabelaGeral()">🖨️ PDF</button>
             </div>
-            <div id="tabela-registros"></div>
+            <div id="tabela-registros">Aguardando dados...</div>
         </div>
     </div>
 
-    <div id="tab-mix" class="tab-pane" style="display:none;">
+    <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
-            <h3>🛠️ Ficha Técnica</h3>
+            <h3>🛠️ Montar Ficha Técnica</h3>
             <div class="grid-form">
-                <div><label>Nome</label><input type="text" id="kit-nome"></div>
-                <div><label>Tamanho</label><input type="text" id="kit-tamanho"></div>
+                <div><label>Nome do Produto</label><input type="text" id="kit-nome"></div>
                 <div><label>Insumo</label><select id="sel-insumo"></select></div>
-                <div><label>Peso (g)</label><input type="number" id="kit-peso-liq" value="100"></div>
-                <div><button class="btn btn-add" onclick="adicionarIngrediente()">+ ADD INGREDIENTE</button></div>
+                <div><label>Peso Líquido (g)</label><input type="number" id="kit-peso-liq" value="100"></div>
+                <div><label>&nbsp;</label><button class="btn btn-add" onclick="adicionarIngrediente()">+ ADICIONAR</button></div>
             </div>
-            <div id="lista-ingredientes"></div>
+            <div id="lista-ingredientes" style="margin: 15px 0; padding: 10px; background: #f9f9f9; border-radius: 8px;"></div>
             <div class="grid-form">
                 <div><label>Embalagem</label><select id="sel-emb" onchange="calcularTotalKit()"></select></div>
                 <div><label>Etiqueta</label><select id="sel-etq" onchange="calcularTotalKit()"></select></div>
             </div>
             <div class="card" style="background: #e8f5e9;">
-                <h3 style="margin:0;">Custo: <span id="res-custo-total">R$ 0,00</span></h3>
-                <label>Preço Sugerido (R$)</label>
+                <h3 style="margin:0;">Custo Total: <span id="res-custo-total">R$ 0,00</span></h3>
+                <label>Preço Sugerido de Venda (R$)</label>
                 <input type="number" id="kit-venda-final" step="0.01">
+                <label>Tamanho (ex: 300g)</label>
+                <input type="text" id="kit-tamanho">
             </div>
-            <button class="btn btn-save" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
-        </div>
-        <div class="card">
-            <h3>📋 Registros Salvos</h3>
-            <div id="tabela-kits"></div>
+            <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
     </div>
 
@@ -96,32 +96,35 @@
             <h2>💰 Registrar Venda</h2>
             <div class="grid-form">
                 <div><label>Cliente</label><select id="venda-cliente"></select></div>
-                <div><label>Produto</label><select id="venda-produto"></select></div>
-                <div><label>Qtd</label><input type="number" id="venda-qtd" value="1"></div>
-                <div><label>Preço Un.</label><input type="number" id="venda-preco-un" step="0.01"></div>
-                <div><label>Desconto</label><input type="number" id="venda-desc" value="0"></div>
-                <button class="btn btn-add" onclick="addItemCarrinho()">+ ADD ITEM</button>
+                <div><label>Produto</label><select id="venda-produto" onchange="preencherPrecoVenda()"></select></div>
+                <div><label>Qtd</label><input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()"></div>
+                <div><label>Preço Un.</label><input type="number" id="venda-preco-un" step="0.01" oninput="calcularTotalVenda()"></div>
+                <div><label>Desconto (R$)</label><input type="number" id="venda-desconto" step="0.01" value="0" oninput="calcularTotalVenda()"></div>
             </div>
-            <div id="tabela-carrinho"></div>
-            <h3 id="venda-total-geral">Total Geral: R$ 0,00</h3>
-            <button class="btn btn-venda" onclick="finalizarVenda()">✅ FINALIZAR VENDA</button>
+            <h3 id="venda-total-final">Total: R$ 0,00</h3>
+            <button class="btn btn-venda" onclick="confirmarVenda()">✅ LANÇAR VENDA</button>
+            <button class="btn btn-pdf" onclick="imprimirComprovante()">🖨️ IMPRIMIR COMPROVANTE</button>
         </div>
         <div class="card">
-            <h3>📋 Últimas Vendas</h3>
-            <div id="tabela-vendas-historico"></div>
+            <h3>📋 Últimas Vendas Lançadas</h3>
+            <div id="tabela-vendas-historico">Nenhuma venda registrada ainda.</div>
         </div>
     </div>
 
     <div id="tab-relatorios" class="tab-pane" style="display:none;">
+        <div class="stats-grid">
+            <div class="stat-card" style="background: var(--secondary);">Vendas: <br><strong id="rel-faturamento">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: var(--red);">Custos: <br><strong id="rel-custo">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: var(--primary);">Lucro: <br><strong id="rel-lucro">R$ 0,00</strong></div>
+        </div>
         <div class="card">
-            <h2>📊 Relatórios</h2>
-            <select onchange="gerarRelatorioAnalitico(this.value)">
-                <option value="">Selecione o tipo...</option>
-                <option value="cliente">Por Cliente</option>
-                <option value="produto">Por Produto</option>
-                <option value="tipo">Por Tipo de Venda</option>
-            </select>
-            <div id="display-relatorio" style="margin-top: 20px;"></div>
+            <h3>📈 Relatórios Analíticos</h3>
+            <div class="grid-form">
+                <button class="btn btn-add" onclick="gerarRelatorio('cliente')">📄 Por Cliente</button>
+                <button class="btn btn-add" onclick="gerarRelatorio('produto')">📄 Por Produto</button>
+                <button class="btn btn-add" onclick="gerarRelatorio('tipo')">📄 Por Tipo (Atac/Var)</button>
+            </div>
+            <div id="display-relatorio"></div>
         </div>
     </div>
 </div>
@@ -137,21 +140,30 @@
         appId: "1:596792658513:web:92bb97b0d835efc5510670"
     };
 
-    let db, subAtual = 'insumos', receitaNoMomento = [], carrinho = [];
+    let db, subAtual = 'insumos', receitaNoMomento = [], editingId = null;
     let dadosGlobal = { insumos: {}, embalagens: {}, clientes: {}, produtos: {}, vendas: {} };
 
     function iniciarApp() {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
         escutarDados();
+        changeTab('cadastros');
+    }
+
+    function doubleConfirm(msg, callback) {
+        if(confirm(msg)) {
+            if(confirm("Tem certeza que deseja excluir? Esta ação não poderá ser desfeita.")) {
+                callback();
+            }
+        }
     }
 
     function escutarDados() {
-        db.ref('erp_v2/insumos').on('value', s => { dadosGlobal.insumos = s.val() || {}; carregarTabelaGeral(); atualizarSelects(); });
-        db.ref('erp_v2/clientes').on('value', s => { dadosGlobal.clientes = s.val() || {}; carregarTabelaGeral(); atualizarSelects(); });
-        db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; carregarTabelaGeral(); atualizarSelects(); });
-        db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; renderTabelaKits(); atualizarSelects(); });
-        db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; carregarTabelaVendas(); });
+        db.ref('erp_v2/insumos').on('value', s => { dadosGlobal.insumos = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
+        db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
+        db.ref('erp_v2/clientes').on('value', s => { dadosGlobal.clientes = s.val() || {}; atualizarSelectsFin(); carregarTabelaGeral(); });
+        db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; atualizarSelectsFin(); });
+        db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; carregarTabelaVendas(); calcularRelatorios(); });
     }
 
     function changeTab(tab) {
@@ -159,129 +171,229 @@
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById('tab-' + tab).style.display = 'block';
         document.getElementById('btn-tab-' + tab).classList.add('active');
+        if(tab === 'cadastros') changeSub(subAtual);
     }
 
     function changeSub(sub) {
         subAtual = sub;
+        editingId = null;
         document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
         document.getElementById('sub-' + sub).classList.add('active');
         const form = document.getElementById('form-dinamico');
-        if(sub==='insumos') form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>FC</label><input id="f-2" type="number" step="0.01"></div><div><label>Preço KG</label><input id="f-3" type="number" step="0.01"></div></div>`;
-        else if(sub==='clientes') form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>Tipo</label><select id="f-2"><option>Atacado</option><option>Varejo</option></select></div></div>`;
-        else form.innerHTML = `<div class="grid-form"><div><label>Desc</label><input id="f-1"></div><div><label>Custo</label><input id="f-2" type="number" step="0.01"></div></div>`;
+        if(sub==='insumos') {
+            document.getElementById('titulo-form').innerText = "🥦 Cadastro de Insumo";
+            form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>FC</label><input id="f-2" type="number" step="0.01"></div><div><label>Preço KG</label><input id="f-3" type="number" step="0.01"></div></div>`;
+        } else if(sub==='clientes') {
+            document.getElementById('titulo-form').innerText = "🤝 Cadastro de Cliente";
+            form.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>Tipo</label><select id="f-2"><option>Atacado</option><option>Varejo</option></select></div></div>`;
+        } else {
+            document.getElementById('titulo-form').innerText = "📦 Embalagens e Etiquetas";
+            form.innerHTML = `<div class="grid-form"><div><label>Descrição</label><input id="f-1"></div><div><label>Custo Un.</label><input id="f-2" type="number" step="0.01"></div></div>`;
+        }
         carregarTabelaGeral();
+    }
+
+    function prepararEdicao(id) {
+        editingId = id;
+        const item = dadosGlobal[subAtual][id];
+        document.getElementById('f-1').value = item.nome;
+        if(subAtual === 'insumos') { document.getElementById('f-2').value = item.fc; document.getElementById('f-3').value = item.preco; }
+        else if(subAtual === 'clientes') { document.getElementById('f-2').value = item.tipo; }
+        else { document.getElementById('f-2').value = item.custo; }
+        document.getElementById('btn-salvar-geral').innerText = "ATUALIZAR REGISTRO";
     }
 
     function salvarGeral() {
         let obj = { nome: document.getElementById('f-1').value.toUpperCase() };
+        if(!obj.nome) return alert("Digite o nome!");
         if(subAtual==='insumos') { obj.fc = document.getElementById('f-2').value; obj.preco = document.getElementById('f-3').value; }
         else if(subAtual==='clientes') { obj.tipo = document.getElementById('f-2').value; }
         else { obj.custo = document.getElementById('f-2').value; }
-        db.ref('erp_v2/' + subAtual).push(obj).then(() => alert("Salvo!"));
+        
+        if(editingId) {
+            db.ref('erp_v2/' + subAtual + '/' + editingId).update(obj).then(() => { alert("Atualizado!"); editingId = null; document.getElementById('btn-salvar-geral').innerText = "SALVAR REGISTRO"; });
+        } else {
+            db.ref('erp_v2/' + subAtual).push(obj).then(() => alert("Salvo!"));
+        }
     }
 
     function carregarTabelaGeral() {
-        let lista = dadosGlobal[subAtual], html = '<table><tr><th>Nome</th><th>Ações</th></tr>';
-        for(let id in lista) html += `<tr><td>${lista[id].nome}</td><td><button onclick="excluir('erp_v2/${subAtual}/${id}')">🗑️</button></td></tr>`;
+        let lista = dadosGlobal[subAtual];
+        let html = '<table><tr><th>Nome</th><th>Detalhes</th><th>Ação</th></tr>';
+        for(let id in lista) {
+            let info = subAtual==='insumos' ? `FC: ${lista[id].fc} | R$ ${lista[id].preco}` : (lista[id].tipo || "R$ "+lista[id].custo);
+            html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="prepararEdicao('${id}')">✏️</button><button onclick="doubleConfirm('Deseja realmente excluir este item?', () => db.ref('erp_v2/${subAtual}/${id}').remove())">🗑️</button></td></tr>`;
+        }
         document.getElementById('tabela-registros').innerHTML = html + '</table>';
     }
 
-    function excluir(ref) {
-        if(confirm("Deseja realmente excluir?") && confirm("Tem certeza? Esta ação não pode ser desfeita.")) db.ref(ref).remove();
-    }
-
-    function adicionarIngrediente() {
-        const id = document.getElementById('sel-insumo').value, peso = parseFloat(document.getElementById('kit-peso-liq').value);
-        if(!id || !peso) return;
-        const ins = dadosGlobal.insumos[id];
-        receitaNoMomento.push({ nome: ins.nome, custo: (peso/1000) * ins.fc * ins.preco });
-        renderReceita();
-    }
-
-    function renderReceita() {
-        let h = ''; receitaNoMomento.forEach((it, i) => h += `<div>${it.nome} - R$ ${it.custo.toFixed(2)}</div>`);
-        document.getElementById('lista-ingredientes').innerHTML = h; calcularTotalKit();
-    }
-
-    function calcularTotalKit() {
-        let s = receitaNoMomento.reduce((a,c) => a + c.custo, 0) + parseFloat(document.getElementById('sel-emb').value || 0) + parseFloat(document.getElementById('sel-etq').value || 0);
-        document.getElementById('res-custo-total').innerText = "R$ " + s.toFixed(2);
-    }
-
-    function salvarKitNoCatalogo() {
-        const nome = document.getElementById('kit-nome').value, preco = document.getElementById('kit-venda-final').value, tam = document.getElementById('kit-tamanho').value;
-        if(!nome || !preco || !tam) return alert("Todos os campos são obrigatórios.");
-        db.ref('erp_v2/produtos_final').push({ nome, tamanho: tam, custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""), precoSugerido: preco }).then(() => { alert("Gravado!"); receitaNoMomento=[]; renderReceita(); });
-    }
-
-    function renderTabelaKits() {
-        let h = '<table><tr><th>Produto</th><th>Custo</th><th>Preço</th><th>Ação</th></tr>';
-        for(let id in dadosGlobal.produtos) {
-            let p = dadosGlobal.produtos[id];
-            h += `<tr><td>${p.nome} (${p.tamanho})</td><td>R$ ${p.custoProducao}</td><td>R$ ${p.precoSugerido}</td><td><button onclick="excluir('erp_v2/produtos_final/${id}')">🗑️</button></td></tr>`;
-        }
-        document.getElementById('tabela-kits').innerHTML = h + '</table>';
-    }
-
-    function addItemCarrinho() {
-        const prodId = document.getElementById('venda-produto').value, qtd = parseFloat(document.getElementById('venda-qtd').value), preco = parseFloat(document.getElementById('venda-preco-un').value), desc = parseFloat(document.getElementById('venda-desc').value);
-        if(!prodId) return;
-        carrinho.push({ id: prodId, nome: dadosGlobal.produtos[prodId].nome, qtd, preco, desc, subtotal: (qtd * preco) - desc });
-        renderCarrinho();
-    }
-
-    function renderCarrinho() {
-        let h = '<table><tr><th>Item</th><th>Total</th></tr>';
-        let totalGeral = 0;
-        carrinho.forEach(item => { h += `<tr><td>${item.nome} x ${item.qtd}</td><td>R$ ${item.subtotal.toFixed(2)}</td></tr>`; totalGeral += item.subtotal; });
-        document.getElementById('tabela-carrinho').innerHTML = h + '</table>';
-        document.getElementById('venda-total-geral').innerText = "Total Geral: R$ " + totalGeral.toFixed(2);
-    }
-
-    function finalizarVenda() {
-        if(carrinho.length === 0) return;
-        db.ref('erp_v2/vendas').push({ cliente: document.getElementById('venda-cliente').value, items: carrinho, data: new Date().toLocaleString() }).then(() => { carrinho=[]; renderCarrinho(); alert("Venda Lançada!"); });
-    }
-
-    function carregarTabelaVendas() {
-        let h = '<table><tr><th>Cliente</th><th>Total</th></tr>';
-        for(let id in dadosGlobal.vendas) {
-            let v = dadosGlobal.vendas[id];
-            h += `<tr><td>${v.cliente}</td><td><button onclick="gerarPDFVenda('${id}')">📄 PDF</button></td></tr>`;
-        }
-        document.getElementById('tabela-vendas-historico').innerHTML = h + '</table>';
+    function imprimirTabelaGeral() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Relatório de " + subAtual.toUpperCase(), 14, 15);
+        doc.autoTable({ html: '#tabela-registros table', startY: 20 });
+        doc.save("Relatorio_" + subAtual + ".pdf");
     }
 
     function atualizarSelects() {
-        let sInsumo = document.getElementById('sel-insumo'), sProd = document.getElementById('venda-produto'), sCli = document.getElementById('venda-cliente');
-        sInsumo.innerHTML = '<option value="">Sel...</option>';
-        for(let id in dadosGlobal.insumos) sInsumo.innerHTML += `<option value="${id}">${dadosGlobal.insumos[id].nome}</option>`;
-        sProd.innerHTML = '<option value="">Sel...</option>';
-        for(let id in dadosGlobal.produtos) sProd.innerHTML += `<option value="${id}">${dadosGlobal.produtos[id].nome}</option>`;
-        sCli.innerHTML = '<option value="">Sel...</option>';
-        for(let id in dadosGlobal.clientes) sCli.innerHTML += `<option value="${id}">${dadosGlobal.clientes[id].nome}</option>`;
+        let hI = '<option value="">Escolha...</option>';
+        for(let id in dadosGlobal.insumos) hI += `<option value="${id}">${dadosGlobal.insumos[id].nome}</option>`;
+        if(document.getElementById('sel-insumo')) document.getElementById('sel-insumo').innerHTML = hI;
+        
+        let hEmb = '<option value="0">Sem Embalagem</option>', hEtq = '<option value="0">Sem Etiqueta</option>';
+        for(let id in dadosGlobal.embalagens) {
+            let item = dadosGlobal.embalagens[id];
+            if(item.nome.includes("ETIQUETA")) hEtq += `<option value="${item.custo}">${item.nome}</option>`;
+            else hEmb += `<option value="${item.custo}">${item.nome}</option>`;
+        }
+        if(document.getElementById('sel-emb')) document.getElementById('sel-emb').innerHTML = hEmb;
+        if(document.getElementById('sel-etq')) document.getElementById('sel-etq').innerHTML = hEtq;
     }
 
-    function gerarRelatorioAnalitico(tipo) {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.text("Relatório " + tipo, 10, 10);
-        let dados = [], headers = ["Info"];
-        if(tipo === 'cliente') { headers = ["Cliente", "Total"]; Object.values(dadosGlobal.vendas).forEach(v => dados.push([v.cliente, "R$ ..."])); }
-        doc.autoTable({ head: [headers], body: dados });
-        doc.save("Relatorio_" + tipo + ".pdf");
+    function adicionarIngrediente() {
+        const id = document.getElementById('sel-insumo').value;
+        const peso = parseFloat(document.getElementById('kit-peso-liq').value);
+        if(!id || !peso) return;
+        const ins = dadosGlobal.insumos[id];
+        const custoItem = (peso / 1000) * parseFloat(ins.fc) * parseFloat(ins.preco);
+        receitaNoMomento.push({ nome: ins.nome, peso: peso, custo: custoItem });
+        desenharReceita();
     }
 
-    function gerarPDFVenda(id) {
-        const v = dadosGlobal.vendas[id]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.text("Comprovante Venda", 10, 10);
-        doc.autoTable({ head: [["Produto", "Qtd", "Total"]], body: v.items.map(i => [i.nome, i.qtd, i.subtotal]) });
-        doc.save("Venda_" + id + ".pdf");
+    function desenharReceita() {
+        let html = '';
+        receitaNoMomento.forEach((it, i) => {
+            html += `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #ddd;"><span>${it.nome} (${it.peso}g)</span><span>R$ ${it.custo.toFixed(2)} <button onclick="receitaNoMomento.splice(${i},1); desenharReceita()">❌</button></span></div>`;
+        });
+        document.getElementById('lista-ingredientes').innerHTML = html || "Adicione itens...";
+        calcularTotalKit();
     }
 
-    function exportarTabelaPDF() {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.autoTable({ html: 'table' });
-        doc.save("Tabela.pdf");
+    function calcularTotalKit() {
+        let soma = receitaNoMomento.reduce((acc, cur) => acc + cur.custo, 0);
+        soma += parseFloat(document.getElementById('sel-emb').value || 0);
+        soma += parseFloat(document.getElementById('sel-etq').value || 0);
+        document.getElementById('res-custo-total').innerText = "R$ " + soma.toFixed(2);
+    }
+
+    function salvarKitNoCatalogo() {
+        const nome = document.getElementById('kit-nome').value.toUpperCase();
+        const preco = document.getElementById('kit-venda-final').value;
+        const tam = document.getElementById('kit-tamanho').value;
+        if(!nome || !preco || !tam) return alert("Todos os campos são obrigatórios (Nome, Peso, Tamanho e Preço).");
+        db.ref('erp_v2/produtos_final').push({
+            nome: nome,
+            tamanho: tam,
+            custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""),
+            precoSugerido: preco
+        }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); });
+    }
+
+    function atualizarSelectsFin() {
+        let hC = '<option value="">Escolha Cliente...</option>';
+        for(let id in dadosGlobal.clientes) hC += `<option value="${dadosGlobal.clientes[id].nome}">${dadosGlobal.clientes[id].nome}</option>`;
+        document.getElementById('venda-cliente').innerHTML = hC;
+
+        let hP = '<option value="">Escolha Produto...</option>';
+        for(let id in dadosGlobal.produtos) hP += `<option value="${id}">${dadosGlobal.produtos[id].nome}</option>`;
+        document.getElementById('venda-produto').innerHTML = hP;
+    }
+
+    function preencherPrecoVenda() {
+        const id = document.getElementById('venda-produto').value;
+        if(id) document.getElementById('venda-preco-un').value = dadosGlobal.produtos[id].precoSugerido;
+        calcularTotalVenda();
+    }
+
+    function calcularTotalVenda() {
+        const q = parseFloat(document.getElementById('venda-qtd').value || 0);
+        const p = parseFloat(document.getElementById('venda-preco-un').value || 0);
+        const d = parseFloat(document.getElementById('venda-desconto').value || 0);
+        document.getElementById('venda-total-final').innerText = "Total: R$ " + ((q * p) - d).toFixed(2);
+    }
+
+    function confirmarVenda() {
+        const idProd = document.getElementById('venda-produto').value;
+        const cli = document.getElementById('venda-cliente').value;
+        if(!idProd || !cli) return alert("Selecione tudo!");
+        db.ref('erp_v2/vendas').push({
+            cliente: cli,
+            produto: dadosGlobal.produtos[idProd].nome,
+            idProduto: idProd,
+            qtd: document.getElementById('venda-qtd').value,
+            desconto: document.getElementById('venda-desconto').value,
+            total: document.getElementById('venda-total-final').innerText.replace("Total: R$ ","")
+        }).then(() => { alert("Venda confirmada!"); });
+    }
+
+    function carregarTabelaVendas() {
+        let html = '<table><tr><th>Produto</th><th>Cliente</th><th>Qtd</th><th>Total</th><th>Ação</th></tr>';
+        let lista = dadosGlobal.vendas;
+        let vendasArray = [];
+        for(let id in lista) { vendasArray.push({id, ...lista[id]}); }
+        vendasArray.reverse().forEach(v => {
+            html += `<tr><td><b>${v.produto}</b></td><td>${v.cliente}</td><td><span class="badge-venda">${v.qtd} un</span></td><td>R$ ${v.total}</td><td><button onclick="doubleConfirm('Excluir venda?', () => db.ref('erp_v2/vendas/${v.id}').remove())">🗑️</button></td></tr>`;
+        });
+        document.getElementById('tabela-vendas-historico').innerHTML = html + '</table>';
+    }
+
+    function calcularRelatorios() {
+        let fat = 0, custoTotal = 0;
+        for(let id in dadosGlobal.vendas) {
+            const v = dadosGlobal.vendas[id];
+            fat += parseFloat(v.total);
+            const prodRef = dadosGlobal.produtos[v.idProduto];
+            if(prodRef) custoTotal += (parseFloat(prodRef.custoProducao) * parseFloat(v.qtd));
+        }
+        document.getElementById('rel-faturamento').innerText = "R$ " + fat.toFixed(2);
+        document.getElementById('rel-custo').innerText = "R$ " + custoTotal.toFixed(2);
+        document.getElementById('rel-lucro').innerText = "R$ " + (fat - custoTotal).toFixed(2);
+    }
+
+    function gerarRelatorio(tipo) {
+        let lista = dadosGlobal.vendas;
+        let html = '<table><tr><th>Item</th><th>Vendas</th><th>Total</th></tr>';
+        let agrp = {};
+
+        for(let id in lista) {
+            let v = lista[id];
+            let key = "";
+            if(tipo === 'cliente') key = v.cliente;
+            else if(tipo === 'produto') key = v.produto;
+            else {
+                let cli = Object.values(dadosGlobal.clientes).find(c => c.nome === v.cliente);
+                key = cli ? cli.tipo : "Desconhecido";
+            }
+            if(!agrp[key]) agrp[key] = { q: 0, t: 0 };
+            agrp[key].q += parseInt(v.qtd);
+            agrp[key].t += parseFloat(v.total);
+        }
+
+        for(let k in agrp) {
+            html += `<tr><td>${k}</td><td>${agrp[k].q}</td><td>R$ ${agrp[k].t.toFixed(2)}</td></tr>`;
+        }
+        document.getElementById('display-relatorio').innerHTML = html + '</table><button class="btn btn-pdf" onclick="imprimirRelatorioAnalitico()">🖨️ EXPORTAR PDF</button>';
+    }
+
+    function imprimirRelatorioAnalitico() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("RELATÓRIO ANALÍTICO HORTINUTRI", 14, 15);
+        doc.autoTable({ html: '#display-relatorio table', startY: 20 });
+        doc.save("Relatorio_Analitico.pdf");
+    }
+
+    function imprimirComprovante() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const produto = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
+        const cliente = document.getElementById('venda-cliente').value;
+        const total = document.getElementById('venda-total-final').innerText;
+        doc.text("HORTINUTRI+ - COMPROVANTE", 20, 20);
+        doc.text("Cliente: " + cliente, 20, 45);
+        doc.text("Produto: " + produto, 20, 52);
+        doc.text(total, 20, 70);
+        doc.save("Comprovante_Venda.pdf");
     }
 </script>
 </body>
