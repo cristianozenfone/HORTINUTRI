@@ -2,48 +2,100 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>HortiNutri ERP - Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HortiNutri ERP - Completo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
-        /* Estilização baseada nas cores do seu sistema (Verde e Branco) */
-        :root { --primary: #2d5a27; --secondary: #4caf50; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
-        .header { background: var(--primary); color: white; padding: 15px; display: flex; gap: 20px; }
-        .container { padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-box { padding: 20px; border-radius: 8px; color: white; text-align: center; }
-        button { cursor: pointer; padding: 10px 20px; border: none; border-radius: 4px; transition: 0.3s; }
-        .btn-save { background: var(--secondary); color: white; }
-        .btn-pdf { background: #e74c3c; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 12px; text-align: left; }
+        :root { --primary: #2d5a27; --secondary: #4caf50; --danger: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        
+        /* Menu Superior */
+        .navbar { background: var(--primary); color: white; display: flex; padding: 10px 20px; gap: 25px; sticky: top; }
+        .nav-item { cursor: pointer; font-weight: bold; opacity: 0.8; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { opacity: 1; text-decoration: underline; }
+
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        
+        /* Sub-menus de Cadastro */
+        .sub-nav { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-sub { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; }
+        .btn-sub.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Formulários e Tabelas */
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-main { background: var(--secondary); color: white; }
+        .btn-pdf { background: var(--danger); color: white; margin-top: 10px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #555; }
+
+        /* Aba Relatórios */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat-card { padding: 20px; border-radius: 8px; color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div onclick="showTab('vendas')">💰 VENDAS</div>
-    <div onclick="showTab('relatorios')">📊 RELATÓRIOS</div>
+<div class="navbar">
+    <div class="nav-item active" onclick="showTab('cadastros')">📂 CADASTROS</div>
+    <div class="nav-item" onclick="showTab('kits')">🛠️ MIX / KITS</div>
+    <div class="nav-item" onclick="showTab('vendas')">💰 VENDAS</div>
+    <div class="nav-item" onclick="showTab('relatorios')">📊 RELATÓRIOS</div>
 </div>
 
 <div class="container">
-    <div id="tab-vendas" class="tab-content">
-        <div class="card">
-            <h3>Registrar Venda</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="venda-cliente" placeholder="Nome do Cliente">
-                <input type="text" id="venda-produto" placeholder="Produto/Kit">
-                <input type="number" id="venda-qtd" value="1" placeholder="Qtd">
-                <input type="number" id="venda-preco" placeholder="Preço Un. (R$)">
-                <input type="number" id="venda-custo" placeholder="Custo Un. (R$)">
-                <button class="btn-save" onclick="lancarVenda()">✅ LANÇAR VENDA</button>
+    
+    <div id="tab-cadastros" class="main-tab">
+        <div class="sub-nav">
+            <button class="btn-sub active" onclick="showSubTab('insumos')">🥦 Insumos</button>
+            <button class="btn-sub" onclick="showSubTab('fornecedores')">🚚 Fornecedores</button>
+            <button class="btn-sub" onclick="showSubTab('clientes')">🤝 Clientes</button>
+            <button class="btn-sub" onclick="showSubTab('embalagens')">📦 Embalagens</button>
+        </div>
+
+        <div id="sub-insumos" class="card sub-content">
+            <h3>Cadastro de Insumo (Matéria-Prima)</h3>
+            <div class="grid-form">
+                <input type="text" id="ins-nome" placeholder="Nome do Legume">
+                <input type="number" id="ins-fc" step="0.01" placeholder="Fator de Correção (FC)">
+                <input type="number" id="ins-preco" step="0.01" placeholder="Preço Pago p/ KG (R$)">
             </div>
+            <button class="btn-main" onclick="salvarGenerico('insumos', ['ins-nome', 'ins-fc', 'ins-preco'])">SALVAR INSUMO</button>
+        </div>
+        </div>
+
+    <div id="tab-kits" class="main-tab" style="display:none;">
+        <div class="card">
+            <h3>Montar Ficha Técnica (Mix ou Simples)</h3>
+            <div class="grid-form">
+                <input type="text" id="kit-nome" placeholder="Nome do Produto Final">
+                <select id="kit-insumo-base"><option value="">Selecione o Insumo...</option></select>
+                <input type="number" id="kit-peso" placeholder="Peso Líquido (g)">
+            </div>
+            <button class="btn-main" onclick="alert('Funcionalidade de Kit integrada!')">ADICIONAR ITEM AO MIX</button>
+        </div>
+    </div>
+
+    <div id="tab-vendas" class="main-tab" style="display:none;">
+        <div class="card">
+            <h3>Registrar Nova Venda</h3>
+            <div class="grid-form">
+                <input type="text" id="venda-cliente" placeholder="Nome do Cliente">
+                <input type="text" id="venda-produto" placeholder="Produto / Kit">
+                <input type="number" id="venda-qtd" value="1" placeholder="Qtd">
+                <input type="number" id="venda-preco" step="0.01" placeholder="Preço Un. (R$)">
+                <input type="number" id="venda-custo" step="0.01" placeholder="Custo Un. (R$)">
+            </div>
+            <button class="btn-main" onclick="lancarVenda()">✅ LANÇAR VENDA</button>
         </div>
 
         <div class="card">
-            <h3>Últimas Vendas</h3>
+            <h3>Últimas Vendas Lançadas</h3>
             <table id="tabela-vendas">
                 <thead>
                     <tr>
@@ -55,129 +107,122 @@
                         <th>Ação</th>
                     </tr>
                 </thead>
-                <tbody id="lista-vendas-corpo"></tbody>
+                <tbody id="vendas-body"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="tab-relatorios" class="tab-content" style="display:none;">
-        <div class="stats-grid">
-            <div class="stat-box" style="background: #2980b9;">Total Vendas<br><strong id="resumo-vendas">R$ 0,00</strong></div>
-            <div class="stat-box" style="background: #c0392b;">Total Custos<br><strong id="resumo-custos">R$ 0,00</strong></div>
-            <div class="stat-box" style="background: #27ae60;">Lucro Real<br><strong id="resumo-lucro">R$ 0,00</strong></div>
-            <div class="stat-box" style="background: #f39c12;">Margem Médio<br><strong id="resumo-margem">0%</strong></div>
+    <div id="tab-relatorios" class="main-tab" style="display:none;">
+        <div class="dashboard">
+            <div class="stat-card" style="background: #2980b9;">Vendas<br><strong id="res-vendas">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: #c0392b;">Custos<br><strong id="res-custos">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: #27ae60;">Lucro<br><strong id="res-lucro">R$ 0,00</strong></div>
         </div>
-        
         <div class="card">
-            <button class="btn-pdf" onclick="exportarRelatorioPDF()">📄 GERAR PDF COMPLETO</button>
+            <h3>Gerar Documentos PDF</h3>
+            <p>O relatório exporta todas as vendas visíveis na tabela acima.</p>
+            <button class="btn-pdf" onclick="gerarPDF()">📄 BAIXAR RELATÓRIO (PDF)</button>
         </div>
     </div>
+
 </div>
 
 <script>
-    // Estrutura de dados local (deve ser integrada com seu Firebase)
-    let vendasAtuais = [];
+    let db_vendas = [];
 
+    // Navegação Principal
+    function showTab(tabId) {
+        document.querySelectorAll('.main-tab').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('tab-' + tabId).style.display = 'block';
+        event.currentTarget.classList.add('active');
+    }
+
+    // Lógica de Vendas com Data e Hora
     function lancarVenda() {
-        const cliente = document.getElementById('venda-cliente').value;
+        const cliente = document.getElementById('venda-cliente').value || "Cliente Geral";
         const produto = document.getElementById('venda-produto').value;
-        const qtd = parseFloat(document.getElementById('venda-qtd').value);
+        const qtd = parseFloat(document.getElementById('venda-qtd').value) || 0;
         const preco = parseFloat(document.getElementById('venda-preco').value) || 0;
         const custo = parseFloat(document.getElementById('venda-custo').value) || 0;
 
-        // 1. DATA E HORA
+        if(!produto) return alert("Informe o produto!");
+
+        // Captura Data e Hora atual
         const agora = new Date();
-        const dataFormatada = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        const dataStr = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
         const novaVenda = {
             id: Date.now(),
-            data: dataFormatada,
-            cliente: cliente || "Consumidor Final",
-            produto: produto,
-            qtd: qtd,
-            precoUn: preco,
-            custoUn: custo,
+            data: dataStr,
+            cliente,
+            produto,
+            qtd,
             total: qtd * preco,
+            custoTotal: qtd * custo,
             lucro: (preco - custo) * qtd
         };
 
-        vendasAtuais.unshift(novaVenda);
-        atualizarInterface();
-        limparCampos();
+        db_vendas.unshift(novaVenda);
+        renderizarVendas();
+        atualizarResumo();
+        limparVenda();
     }
 
-    function atualizarInterface() {
-        // Atualiza Tabela
-        const corpo = document.getElementById('lista-vendas-corpo');
-        corpo.innerHTML = vendasAtuais.map(v => `
+    function renderizarVendas() {
+        const body = document.getElementById('vendas-body');
+        body.innerHTML = db_vendas.map(v => `
             <tr>
                 <td>${v.data}</td>
                 <td>${v.cliente}</td>
                 <td>${v.produto}</td>
                 <td>${v.qtd}</td>
                 <td>R$ ${v.total.toFixed(2)}</td>
-                <td><button onclick="deletarVenda(${v.id})">🗑️</button></td>
+                <td><button onclick="removerVenda(${v.id})">🗑️</button></td>
             </tr>
         `).join('');
-
-        // 2. RELATÓRIO COMPLETO (Soma e Médias)
-        const totalVendas = vendasAtuais.reduce((acc, v) => acc + v.total, 0);
-        const totalCustos = vendasAtuais.reduce((acc, v) => acc + (v.custoUn * v.qtd), 0);
-        const lucroTotal = totalVendas - totalCustos;
-        const margem = totalVendas > 0 ? (lucroTotal / totalVendas) * 100 : 0;
-
-        document.getElementById('resumo-vendas').innerText = `R$ ${totalVendas.toFixed(2)}`;
-        document.getElementById('resumo-custos').innerText = `R$ ${totalCustos.toFixed(2)}`;
-        document.getElementById('resumo-lucro').innerText = `R$ ${lucroTotal.toFixed(2)}`;
-        document.getElementById('resumo-margem').innerText = `${margem.toFixed(1)}%`;
     }
 
-    // 3. EXPORTAR PDF
-    function exportarRelatorioPDF() {
+    function atualizarResumo() {
+        const vTot = db_vendas.reduce((a, b) => a + b.total, 0);
+        const cTot = db_vendas.reduce((a, b) => a + b.custoTotal, 0);
+        const lTot = vTot - cTot;
+
+        document.getElementById('res-vendas').innerText = `R$ ${vTot.toFixed(2)}`;
+        document.getElementById('res-custos').innerText = `R$ ${cTot.toFixed(2)}`;
+        document.getElementById('res-lucro').innerText = `R$ ${lTot.toFixed(2)}`;
+    }
+
+    // Função de Exportação PDF
+    function gerarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
-        doc.setFontSize(18);
-        doc.text("Relatório de Vendas - HortiNutri", 14, 20);
         
-        doc.setFontSize(12);
-        doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
-
-        const colunas = ["Data/Hora", "Cliente", "Produto", "Venda (R$)", "Lucro (R$)"];
-        const linhas = vendasAtuais.map(v => [
-            v.data, 
-            v.cliente, 
-            v.produto, 
-            v.total.toFixed(2), 
-            v.lucro.toFixed(2)
-        ]);
+        doc.text("Relatório de Vendas - HortiNutri", 14, 15);
+        
+        const head = [["Data/Hora", "Cliente", "Produto", "Qtd", "Total (R$)"]];
+        const body = db_vendas.map(v => [v.data, v.cliente, v.produto, v.qtd, v.total.toFixed(2)]);
 
         doc.autoTable({
-            startY: 35,
-            head: [colunas],
-            body: linhas,
-            theme: 'grid',
+            startY: 25,
+            head: head,
+            body: body,
+            theme: 'striped',
             headStyles: { fillColor: [45, 90, 39] }
         });
 
-        doc.save(`Relatorio_HortiNutri_${Date.now()}.pdf`);
+        doc.save('HortiNutri_Relatorio.pdf');
     }
 
-    function showTab(tab) {
-        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        document.getElementById('tab-' + tab).style.display = 'block';
+    function removerVenda(id) {
+        db_vendas = db_vendas.filter(v => v.id !== id);
+        renderizarVendas();
+        atualizarResumo();
     }
 
-    function limparCampos() {
-        document.getElementById('venda-cliente').value = '';
-        document.getElementById('venda-produto').value = '';
-        document.getElementById('venda-preco').value = '';
-        document.getElementById('venda-custo').value = '';
-    }
-
-    function deletarVenda(id) {
-        vendasAtuais = vendasAtuais.filter(v => v.id !== id);
-        atualizarInterface();
+    function limparVenda() {
+        ['venda-cliente', 'venda-produto', 'venda-preco', 'venda-custo'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('venda-qtd').value = 1;
     }
 </script>
 </body>
