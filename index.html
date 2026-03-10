@@ -3,59 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri Cloud - Solução Final</title>
+    <title>HortiNutri Cloud - Oficial</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        .navbar { background: var(--primary); display: flex; sticky: top; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .nav-item { color: white; padding: 15px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        .navbar { background: var(--primary); display: flex; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 1000; }
+        .nav-item { color: white; padding: 15px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase; }
         .nav-item.active { background: rgba(255,255,255,0.2); border-bottom: 4px solid white; }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .container { padding: 15px; max-width: 900px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #333; border-left: 5px solid var(--primary); padding-left: 10px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-        .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; background: var(--primary); }
+        .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; transition: 0.3s; }
+        .btn-save { background: var(--primary); }
+        .btn-venda { background: var(--secondary); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        .stat-box { padding: 15px; border-radius: 10px; color: white; text-align: center; font-weight: bold; margin-bottom: 10px; flex: 1; }
-        .flex-stats { display: flex; gap: 10px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .delete-btn { color: #d32f2f; cursor: pointer; font-weight: bold; background: none; border: none; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-item active" onclick="showTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" onclick="showTab('vendas')">💰 VENDAS</div>
+    <div class="nav-item active" id="n-cad" onclick="showTab('cadastros')">📂 Cadastros</div>
+    <div class="nav-item" id="n-ven" onclick="showTab('vendas')">💰 Vendas</div>
+    <div class="nav-item" id="n-rel" onclick="showTab('relatorios')">📊 Relatórios</div>
 </div>
 
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="card">
             <h3>Novo Cadastro</h3>
-            <select id="cad-tipo">
+            <select id="cad-tipo" onchange="renderizarTudo()">
                 <option value="insumos">🥦 Insumos / Legumes</option>
                 <option value="clientes">🤝 Clientes</option>
                 <option value="embalagens">📦 Embalagens</option>
             </select>
             <input type="text" id="cad-nome" placeholder="Nome do Item">
-            <input type="number" id="cad-valor" placeholder="Valor (R$)">
-            <button class="btn" onclick="salvarCadastro()">SALVAR NO FIREBASE</button>
+            <input type="number" id="cad-valor" placeholder="Valor/Preço (R$)">
+            <button class="btn btn-save" onclick="salvarCadastro()">SALVAR REGISTRO</button>
         </div>
         <div class="card">
-            <h3>Registros Encontrados</h3>
-            <div id="tabela-cadastros">Sincronizando com a Nuvem...</div>
+            <div id="tabela-cadastros">Sincronizando...</div>
         </div>
     </div>
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
-            <h3>Histórico e Financeiro</h3>
-            <div class="flex-stats">
-                <div class="stat-box" style="background:var(--secondary)">Vendas: <br><span id="res-v">R$ 0,00</span></div>
-                <div class="stat-box" style="background:#ef4444">Custos: <br><span id="res-c">R$ 0,00</span></div>
-            </div>
-            <div id="lista-vendas-html"></div>
+            <h3>Lançar Venda</h3>
+            <input type="text" id="v-produto" placeholder="Produto/Kit">
+            <input type="number" id="v-preco" placeholder="Preço de Venda">
+            <button class="btn btn-venda" onclick="lancarVenda()">CONFIRMAR VENDA</button>
+        </div>
+        <div class="card" id="lista-vendas-html"></div>
+    </div>
+
+    <div id="tab-relatorios" class="tab-pane" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <h3>Resumo Financeiro</h3>
+            <h1 id="res-v" style="color:var(--secondary)">R$ 0,00</h1>
+            <p>Total em Vendas</p>
         </div>
     </div>
 </div>
@@ -73,38 +83,41 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    let dadosLocais = {};
 
-    // ESCUTA GLOBAL - FORÇA A LEITURA DE QUALQUER DADO
+    // Sincronização Inteligente
     db.ref('/').on('value', snapshot => {
-        const dados = snapshot.val() || {};
-        console.log("DADOS RECEBIDOS:", dados);
-        
-        // Renderiza Cadastros (Insumos/Clientes)
+        dadosLocais = snapshot.val() || {};
+        renderizarTudo();
+    });
+
+    function renderizarTudo() {
         const tipo = document.getElementById('cad-tipo').value;
-        const lista = dados[tipo] || {};
-        let html = `<table><tr><th>Nome</th><th>Valor</th></tr>`;
+        // Tenta buscar por 'insumos' ou o nome antigo 'legumes'
+        const lista = dadosLocais[tipo] || dadosLocais['legumes'] || {};
         
+        let html = `<table><tr><th>Item</th><th>Valor</th><th>Ações</th></tr>`;
         Object.keys(lista).forEach(id => {
             const item = lista[id];
-            html += `<tr><td>${item.nome || 'Sem Nome'}</td><td>R$ ${parseFloat(item.valor || 0).toFixed(2)}</td></tr>`;
+            const nome = item.nome || item; // Suporta formatos antigos e novos
+            const valor = item.valor || item.v1 || 0;
+            html += `<tr><td>${nome}</td><td>R$ ${parseFloat(valor).toFixed(2)}</td>
+            <td><button class="delete-btn" onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
         });
         document.getElementById('tabela-cadastros').innerHTML = html + "</table>";
 
-        // Renderiza Vendas e Financeiro
-        const vendas = dados.vendas || {};
-        let htmlV = `<table><tr><th>Produto</th><th>Total</th></tr>`;
-        let totalV = 0, totalC = 0;
-
+        // Vendas
+        const vendas = dadosLocais.vendas || {};
+        let total = 0;
+        let htmlV = `<table><tr><th>Data</th><th>Produto</th><th>Valor</th></tr>`;
         Object.keys(vendas).forEach(id => {
             const v = vendas[id];
-            totalV += parseFloat(v.preco || 0);
-            totalC += parseFloat(v.custo || 0);
-            htmlV += `<tr><td>${v.produto}</td><td>R$ ${parseFloat(v.preco || 0).toFixed(2)}</td></tr>`;
+            total += parseFloat(v.preco || 0);
+            htmlV += `<tr><td><small>${v.data || ''}</small></td><td>${v.produto}</td><td>R$ ${parseFloat(v.preco).toFixed(2)}</td></tr>`;
         });
         document.getElementById('lista-vendas-html').innerHTML = htmlV + "</table>";
-        document.getElementById('res-v').innerText = "R$ " + totalV.toFixed(2);
-        document.getElementById('res-c').innerText = "R$ " + totalC.toFixed(2);
-    });
+        document.getElementById('res-v').innerText = "R$ " + total.toFixed(2);
+    }
 
     function salvarCadastro() {
         const tipo = document.getElementById('cad-tipo').value;
@@ -115,11 +128,21 @@
         document.getElementById('cad-valor').value = "";
     }
 
+    function lancarVenda() {
+        const produto = document.getElementById('v-produto').value.toUpperCase();
+        const preco = document.getElementById('v-preco').value;
+        if(produto && preco) db.ref('vendas').push({ produto, preco, data: new Date().toLocaleDateString() });
+    }
+
+    function remover(path) { if(confirm("Remover?")) db.ref(path).remove(); }
+
     function showTab(tab) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.getElementById('tab-' + tab).style.display = 'block';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        document.getElementById('tab-' + tab).style.display = 'block';
+        if(tab === 'cadastros') document.getElementById('n-cad').classList.add('active');
+        if(tab === 'vendas') document.getElementById('n-ven').classList.add('active');
+        if(tab === 'relatorios') document.getElementById('n-rel').classList.add('active');
     }
 </script>
 </body>
