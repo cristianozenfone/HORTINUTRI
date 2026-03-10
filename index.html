@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v8.0</title>
+    <title>HortiNutri ERP - v8.1</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
@@ -29,6 +29,7 @@
         td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
+        .badge-venda { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -93,6 +94,10 @@
             <h3 id="venda-total-final">Total: R$ 0,00</h3>
             <button class="btn btn-venda" onclick="confirmarVenda()">✅ LANÇAR VENDA</button>
         </div>
+        <div class="card">
+            <h3>📋 Últimas Vendas Lançadas</h3>
+            <div id="tabela-vendas-historico">Nenhuma venda registrada ainda.</div>
+        </div>
     </div>
 
     <div id="tab-relatorios" class="tab-pane" style="display:none;">
@@ -130,9 +135,10 @@
         db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
         db.ref('erp_v2/clientes').on('value', s => { dadosGlobal.clientes = s.val() || {}; atualizarSelectsFin(); carregarTabelaGeral(); });
         db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; atualizarSelectsFin(); });
-        db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; calcularRelatorios(); });
+        db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; carregarTabelaVendas(); calcularRelatorios(); });
     }
 
+    // ... (Funções de Tab e Cadastro permanecem iguais)
     function changeTab(tab) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -262,7 +268,27 @@
             idProduto: idProd,
             qtd: document.getElementById('venda-qtd').value,
             total: document.getElementById('venda-total-final').innerText.replace("Total: R$ ","")
-        }).then(() => alert("Venda confirmada!"));
+        }).then(() => { alert("Venda confirmada!"); });
+    }
+
+    // NOVA FUNÇÃO: Carrega a lista de vendas na aba FINANCEIRO
+    function carregarTabelaVendas() {
+        let html = '<table><tr><th>Produto</th><th>Cliente</th><th>Qtd</th><th>Total</th><th>Ação</th></tr>';
+        let lista = dadosGlobal.vendas;
+        let vendasArray = [];
+        for(let id in lista) {
+            vendasArray.push({id, ...lista[id]});
+        }
+        vendasArray.reverse().forEach(v => {
+            html += `<tr>
+                <td><b>${v.produto}</b></td>
+                <td>${v.cliente}</td>
+                <td><span class="badge-venda">${v.qtd} un</span></td>
+                <td>R$ ${v.total}</td>
+                <td><button onclick="db.ref('erp_v2/vendas/${v.id}').remove()">🗑️</button></td>
+            </tr>`;
+        });
+        document.getElementById('tabela-vendas-historico').innerHTML = html + '</table>';
     }
 
     function calcularRelatorios() {
