@@ -83,6 +83,10 @@
             </div>
             <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
+        <div class="card">
+            <h3>📋 Produtos/Mix Cadastrados</h3>
+            <div id="tabela-produtos">Nenhum produto cadastrado.</div>
+        </div>
     </div>
 
     <div id="tab-financeiro" class="tab-pane" style="display:none;">
@@ -139,7 +143,7 @@
         db.ref('erp_v2/insumos').on('value', s => { dadosGlobal.insumos = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
         db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
         db.ref('erp_v2/clientes').on('value', s => { dadosGlobal.clientes = s.val() || {}; atualizarSelectsFin(); carregarTabelaGeral(); });
-        db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; atualizarSelectsFin(); });
+        db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; atualizarSelectsFin(); carregarTabelaProdutos(); });
         db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; carregarTabelaVendas(); calcularRelatorios(); });
     }
 
@@ -191,6 +195,20 @@
             html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="db.ref('erp_v2/${subAtual}/${id}').remove()">🗑️</button></td></tr>`;
         }
         document.getElementById('tabela-registros').innerHTML = html + '</table>';
+    }
+
+    function carregarTabelaProdutos() {
+        let lista = dadosGlobal.produtos;
+        let html = '<table><tr><th>Produto</th><th>Custo</th><th>Venda</th><th>Ação</th></tr>';
+        for(let id in lista) {
+            html += `<tr>
+                <td>${lista[id].nome}</td>
+                <td>R$ ${lista[id].custoProducao}</td>
+                <td>R$ ${lista[id].precoSugerido}</td>
+                <td><button onclick="db.ref('erp_v2/produtos_final/${id}').remove()">🗑️</button></td>
+            </tr>`;
+        }
+        document.getElementById('tabela-produtos').innerHTML = html + '</table>';
     }
 
     function atualizarSelects() {
