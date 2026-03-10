@@ -3,36 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - SISTEMA INTEGRADO</title>
+    <title>HortiNutri ERP - v1.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        
-        /* Menu Principal Superior */
-        .navbar { background: var(--primary); display: flex; overflow-x: auto; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .nav-item { color: white; padding: 15px 20px; text-decoration: none; font-weight: bold; white-space: nowrap; cursor: pointer; border-bottom: 4px solid transparent; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .nav-item { color: white; padding: 15px 20px; text-decoration: none; font-weight: bold; cursor: pointer; border-bottom: 4px solid transparent; display: flex; align-items: center; gap: 8px; }
         .nav-item.active { border-bottom: 4px solid #fff; background: rgba(255,255,255,0.1); }
-
-        .container { padding: 20px; max-width: 1000px; margin: auto; }
+        .container { padding: 20px; max-width: 1100px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
-        /* Formulários e Inputs */
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        input, select, btn { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
-        
-        .btn { border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-save { background: var(--primary); color: white; }
-        .btn-save:hover { background: #1b5e20; }
-        
-        /* Submenus de Cadastro */
-        .submenu { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; }
-        .sub-item { background: #eee; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; }
+        .btn-save { background: var(--primary); color: white; width: 200px; margin-top: 15px; }
+        .submenu { display: flex; gap: 10px; margin-bottom: 20px; }
+        .sub-item { background: #e0e0e0; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .sub-item.active { background: var(--primary); color: white; }
-
-        .status-sync { text-align: right; font-size: 11px; color: var(--primary); margin-bottom: 10px; font-weight: bold; }
+        .status-sync { text-align: right; font-size: 11px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th { text-align: left; padding: 10px; border-bottom: 2px solid #eee; color: #666; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -45,7 +38,7 @@
 </div>
 
 <div class="container">
-    <div id="sync-status" class="status-sync">☁️ Conectando ao Firebase...</div>
+    <div id="sync-status" class="status-sync">☁️ Sincronizando...</div>
 
     <div id="tab-cadastros" class="tab-pane">
         <div class="submenu">
@@ -55,24 +48,19 @@
             <div class="sub-item" onclick="changeSub('embalagens', this)">📦 Embalagens</div>
         </div>
 
-        <div id="sub-insumos" class="card">
-            <h3>Cadastro de Insumo (Matéria-Prima)</h3>
-            <div class="grid-form">
-                <div>
-                    <label>Nome do Legume</label>
-                    <input type="text" id="insumo-nome" placeholder="Ex: Batata Doce">
+        <div class="card">
+            <h3 id="form-titulo">Cadastro de Insumo</h3>
+            
+            <div id="form-content">
                 </div>
-                <div>
-                    <label>Fator de Correção (FC)</label>
-                    <input type="number" id="insumo-fc" step="0.01" placeholder="Ex: 1.20">
-                    <small style="color: #888;">Peso Bruto ÷ Peso Líquido</small>
+            
+            <button class="btn btn-save" onclick="salvarGeral()">SALVAR REGISTRO</button>
+        </div>
+
+        <div class="card">
+            <h3>Registros Salvos</h3>
+            <div id="tabela-registros">
                 </div>
-                <div>
-                    <label>Preço Pago p/ KG (R$)</label>
-                    <input type="number" id="insumo-preco" step="0.01" placeholder="R$ 0,00">
-                </div>
-            </div>
-            <button class="btn btn-save" style="margin-top: 20px;" onclick="salvarInsumo()">CADASTRAR INSUMO</button>
         </div>
     </div>
 
@@ -82,7 +70,6 @@
 </div>
 
 <script>
-    // Configuração do seu Firebase (Mantendo o que já estava funcionando)
     const firebaseConfig = {
         apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -94,36 +81,94 @@
     };
 
     let db;
+    let subAtual = 'insumos';
 
     function iniciarApp() {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
         document.getElementById('sync-status').innerText = "✅ SISTEMA ONLINE";
+        changeSub('insumos', document.querySelector('.sub-item'));
     }
 
-    function changeTab(tab, element) {
+    function changeTab(tab, el) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById('tab-' + tab).style.display = 'block';
-        element.classList.add('active');
+        el.classList.add('active');
     }
 
-    function changeSub(sub, element) {
-        // Lógica para alternar formulários de cadastro
-        alert("Acessando formulário de: " + sub);
+    function changeSub(sub, el) {
+        subAtual = sub;
         document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
-        element.classList.add('active');
+        el.classList.add('active');
+        
+        const form = document.getElementById('form-content');
+        if(sub === 'insumos') {
+            document.getElementById('form-titulo').innerText = "🥦 Cadastro de Insumo (Matéria-Prima)";
+            form.innerHTML = `
+                <div class="grid-form">
+                    <div><label>Nome do Legume</label><input type="text" id="ins-nome"></div>
+                    <div><label>Fator de Correção</label><input type="number" step="0.01" id="ins-fc"></div>
+                    <div><label>Preço p/ KG (R$)</label><input type="number" step="0.01" id="ins-preco"></div>
+                </div>`;
+        } else if(sub === 'fornecedores') {
+            document.getElementById('form-titulo').innerText = "🚚 Cadastro de Fornecedor";
+            form.innerHTML = `
+                <div class="grid-form">
+                    <div><label>Nome/Razão Social</label><input type="text" id="for-nome"></div>
+                    <div><label>Contato/WhatsApp</label><input type="text" id="for-contato"></div>
+                </div>`;
+        } else if(sub === 'clientes') {
+            document.getElementById('form-titulo').innerText = "🤝 Cadastro de Cliente";
+            form.innerHTML = `
+                <div class="grid-form">
+                    <div><label>Nome do Cliente</label><input type="text" id="cli-nome"></div>
+                    <div><label>Tipo de Cliente</label>
+                        <select id="cli-tipo">
+                            <option value="Atacado">Atacado (Parceiro)</option>
+                            <option value="Varejo">Varejo (Consumidor Final)</option>
+                        </select>
+                    </div>
+                </div>`;
+        } else if(sub === 'embalagens') {
+            document.getElementById('form-titulo').innerText = "📦 Cadastro de Embalagens e Etiquetas";
+            form.innerHTML = `
+                <div class="grid-form">
+                    <div><label>Descrição do Item</label><input type="text" id="emb-nome"></div>
+                    <div><label>Custo Unitário (R$)</label><input type="number" step="0.01" id="emb-custo"></div>
+                </div>`;
+        }
+        carregarTabela();
     }
 
-    function salvarInsumo() {
-        const nome = document.getElementById('insumo-nome').value;
-        const fc = document.getElementById('insumo-fc').value;
-        const preco = document.getElementById('insumo-preco').value;
+    function salvarGeral() {
+        let dados = {};
+        let path = subAtual;
         
-        if(nome && fc) {
-            db.ref('erp/insumos').push({ nome, fc: parseFloat(fc), preco: parseFloat(preco) });
-            alert("Insumo salvo! Próximo passo: Vincular ao fornecedor.");
+        if(subAtual === 'insumos') {
+            dados = { nome: document.getElementById('ins-nome').value, fc: document.getElementById('ins-fc').value, preco: document.getElementById('ins-preco').value };
+        } else if(subAtual === 'fornecedores') {
+            dados = { nome: document.getElementById('for-nome').value, contato: document.getElementById('for-contato').value };
+        } else if(subAtual === 'clientes') {
+            dados = { nome: document.getElementById('cli-nome').value, tipo: document.getElementById('cli-tipo').value };
+        } else if(subAtual === 'embalagens') {
+            dados = { nome: document.getElementById('emb-nome').value, custo: document.getElementById('emb-custo').value };
         }
+
+        db.ref('erp_v2/' + path).push(dados).then(() => alert("Salvo com sucesso!"));
+    }
+
+    function carregarTabela() {
+        db.ref('erp_v2/' + subAtual).on('value', snap => {
+            const lista = snap.val();
+            let html = '<table><tr><th>Descrição/Nome</th><th>Detalhes</th><th>Ação</th></tr>';
+            for(let id in lista) {
+                let detalhe = lista[id].fc ? "FC: "+lista[id].fc : (lista[id].tipo || lista[id].contato || "R$ "+lista[id].custo);
+                html += `<tr><td>${lista[id].nome}</td><td>${detalhe}</td><td><button onclick="db.ref('erp_v2/${subAtual}/${id}').remove()">🗑️</button></td></tr>`;
+            }
+            html += '</table>';
+            document.getElementById('tabela-registros').innerHTML = html;
+        });
     }
 </script>
 </body>
