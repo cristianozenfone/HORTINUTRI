@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v8.1 Completo</title>
+    <title>HortiNutri ERP - v8.2</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -97,13 +97,18 @@
             <div class="grid-form">
                 <div><label>Cliente</label><select id="venda-cliente"></select></div>
                 <div><label>Produto</label><select id="venda-produto" onchange="preencherPrecoVenda()"></select></div>
-                <div><label>Qtd</label><input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()"></div>
-                <div><label>Preço Un.</label><input type="number" id="venda-preco-un" step="0.01" oninput="calcularTotalVenda()"></div>
-                <div><label>Desconto (R$)</label><input type="number" id="venda-desconto" step="0.01" value="0" oninput="calcularTotalVenda()"></div>
+                <div><label>Qtd</label><input type="number" id="venda-qtd" value="1"></div>
+                <div><label>Preço Un.</label><input type="number" id="venda-preco-un" step="0.01"></div>
+                <div><label>Desconto (R$)</label><input type="number" id="venda-desconto" step="0.01" value="0"></div>
             </div>
-            <h3 id="venda-total-final">Total: R$ 0,00</h3>
-            <button class="btn btn-venda" onclick="confirmarVenda()">✅ LANÇAR VENDA</button>
-            <button class="btn btn-pdf" onclick="imprimirComprovante()">🖨️ IMPRIMIR COMPROVANTE</button>
+            <button class="btn btn-add" style="margin-top:10px; width:100%;" onclick="adicionarAoCarrinho()">🛒 ADICIONAR AO CARRINHO</button>
+            
+            <div id="carrinho-display" style="margin-top:20px;">
+                <h3>🛒 Itens no Carrinho</h3>
+                <div id="tabela-carrinho">Nenhum item.</div>
+                <h3 id="carrinho-total-final">Total Geral: R$ 0,00</h3>
+                <button class="btn btn-venda" onclick="finalizarVenda()">✅ FINALIZAR VENDA</button>
+            </div>
         </div>
         <div class="card">
             <h3>📋 Últimas Vendas Lançadas</h3>
@@ -141,6 +146,7 @@
     };
 
     let db, subAtual = 'insumos', receitaNoMomento = [], editingId = null;
+    let carrinhoVenda = [];
     let dadosGlobal = { insumos: {}, embalagens: {}, clientes: {}, produtos: {}, vendas: {} };
 
     function iniciarApp() {
@@ -152,9 +158,7 @@
 
     function doubleConfirm(msg, callback) {
         if(confirm(msg)) {
-            if(confirm("Tem certeza que deseja excluir? Esta ação não poderá ser desfeita.")) {
-                callback();
-            }
+            if(confirm("Tem certeza que deseja excluir? Esta ação não poderá ser desfeita.")) callback();
         }
     }
 
@@ -175,8 +179,7 @@
     }
 
     function changeSub(sub) {
-        subAtual = sub;
-        editingId = null;
+        subAtual = sub; editingId = null;
         document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
         document.getElementById('sub-' + sub).classList.add('active');
         const form = document.getElementById('form-dinamico');
@@ -222,7 +225,7 @@
         let html = '<table><tr><th>Nome</th><th>Detalhes</th><th>Ação</th></tr>';
         for(let id in lista) {
             let info = subAtual==='insumos' ? `FC: ${lista[id].fc} | R$ ${lista[id].preco}` : (lista[id].tipo || "R$ "+lista[id].custo);
-            html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="prepararEdicao('${id}')">✏️</button><button onclick="doubleConfirm('Deseja realmente excluir este item?', () => db.ref('erp_v2/${subAtual}/${id}').remove())">🗑️</button></td></tr>`;
+            html += `<tr><td>${lista[id].nome}</td><td>${info}</td><td><button onclick="prepararEdicao('${id}')">✏️</button><button onclick="doubleConfirm('Deseja realmente excluir?', () => db.ref('erp_v2/${subAtual}/${id}').remove())">🗑️</button></td></tr>`;
         }
         document.getElementById('tabela-registros').innerHTML = html + '</table>';
     }
@@ -282,8 +285,7 @@
         const tam = document.getElementById('kit-tamanho').value;
         if(!nome || !preco || !tam) return alert("Todos os campos são obrigatórios (Nome, Peso, Tamanho e Preço).");
         db.ref('erp_v2/produtos_final').push({
-            nome: nome,
-            tamanho: tam,
+            nome: nome, tamanho: tam,
             custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""),
             precoSugerido: preco
         }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); });
@@ -293,7 +295,6 @@
         let hC = '<option value="">Escolha Cliente...</option>';
         for(let id in dadosGlobal.clientes) hC += `<option value="${dadosGlobal.clientes[id].nome}">${dadosGlobal.clientes[id].nome}</option>`;
         document.getElementById('venda-cliente').innerHTML = hC;
-
         let hP = '<option value="">Escolha Produto...</option>';
         for(let id in dadosGlobal.produtos) hP += `<option value="${id}">${dadosGlobal.produtos[id].nome}</option>`;
         document.getElementById('venda-produto').innerHTML = hP;
@@ -302,28 +303,48 @@
     function preencherPrecoVenda() {
         const id = document.getElementById('venda-produto').value;
         if(id) document.getElementById('venda-preco-un').value = dadosGlobal.produtos[id].precoSugerido;
-        calcularTotalVenda();
     }
 
-    function calcularTotalVenda() {
+    function adicionarAoCarrinho() {
+        const cli = document.getElementById('venda-cliente').value;
+        const idProd = document.getElementById('venda-produto').value;
         const q = parseFloat(document.getElementById('venda-qtd').value || 0);
         const p = parseFloat(document.getElementById('venda-preco-un').value || 0);
         const d = parseFloat(document.getElementById('venda-desconto').value || 0);
-        document.getElementById('venda-total-final').innerText = "Total: R$ " + ((q * p) - d).toFixed(2);
+        if(!cli || !idProd) return alert("Selecione cliente e produto!");
+        
+        carrinhoVenda.push({
+            cliente: cli,
+            idProduto: idProd,
+            produto: dadosGlobal.produtos[idProd].nome,
+            qtd: q,
+            total: (q * p) - d
+        });
+        document.getElementById('venda-cliente').disabled = true; // Bloqueia troca de cliente durante a venda
+        renderizarCarrinho();
     }
 
-    function confirmarVenda() {
-        const idProd = document.getElementById('venda-produto').value;
-        const cli = document.getElementById('venda-cliente').value;
-        if(!idProd || !cli) return alert("Selecione tudo!");
-        db.ref('erp_v2/vendas').push({
-            cliente: cli,
-            produto: dadosGlobal.produtos[idProd].nome,
-            idProduto: idProd,
-            qtd: document.getElementById('venda-qtd').value,
-            desconto: document.getElementById('venda-desconto').value,
-            total: document.getElementById('venda-total-final').innerText.replace("Total: R$ ","")
-        }).then(() => { alert("Venda confirmada!"); });
+    function renderizarCarrinho() {
+        let html = '<table><tr><th>Prod</th><th>Qtd</th><th>Total</th><th></th></tr>';
+        let totalGeral = 0;
+        carrinhoVenda.forEach((item, i) => {
+            totalGeral += item.total;
+            html += `<tr><td>${item.produto}</td><td>${item.qtd}</td><td>R$ ${item.total.toFixed(2)}</td>
+            <td><button onclick="carrinhoVenda.splice(${i},1); renderizarCarrinho()">❌</button></td></tr>`;
+        });
+        document.getElementById('tabela-carrinho').innerHTML = html + '</table>';
+        document.getElementById('carrinho-total-final').innerText = "Total Geral: R$ " + totalGeral.toFixed(2);
+    }
+
+    function finalizarVenda() {
+        if(carrinhoVenda.length === 0) return alert("Carrinho vazio!");
+        carrinhoVenda.forEach(item => {
+            db.ref('erp_v2/vendas').push(item);
+        });
+        alert("Venda finalizada com sucesso!");
+        carrinhoVenda = [];
+        document.getElementById('venda-cliente').disabled = false;
+        renderizarCarrinho();
     }
 
     function carregarTabelaVendas() {
@@ -331,8 +352,8 @@
         let lista = dadosGlobal.vendas;
         let vendasArray = [];
         for(let id in lista) { vendasArray.push({id, ...lista[id]}); }
-        vendasArray.reverse().forEach(v => {
-            html += `<tr><td><b>${v.produto}</b></td><td>${v.cliente}</td><td><span class="badge-venda">${v.qtd} un</span></td><td>R$ ${v.total}</td><td><button onclick="doubleConfirm('Excluir venda?', () => db.ref('erp_v2/vendas/${v.id}').remove())">🗑️</button></td></tr>`;
+        vendasArray.reverse().slice(0,10).forEach(v => {
+            html += `<tr><td><b>${v.produto}</b></td><td>${v.cliente}</td><td><span class="badge-venda">${v.qtd} un</span></td><td>R$ ${parseFloat(v.total).toFixed(2)}</td><td><button onclick="doubleConfirm('Excluir?', () => db.ref('erp_v2/vendas/${v.id}').remove())">🗑️</button></td></tr>`;
         });
         document.getElementById('tabela-vendas-historico').innerHTML = html + '</table>';
     }
@@ -354,7 +375,6 @@
         let lista = dadosGlobal.vendas;
         let html = '<table><tr><th>Item</th><th>Vendas</th><th>Total</th></tr>';
         let agrp = {};
-
         for(let id in lista) {
             let v = lista[id];
             let key = "";
@@ -368,7 +388,6 @@
             agrp[key].q += parseInt(v.qtd);
             agrp[key].t += parseFloat(v.total);
         }
-
         for(let k in agrp) {
             html += `<tr><td>${k}</td><td>${agrp[k].q}</td><td>R$ ${agrp[k].t.toFixed(2)}</td></tr>`;
         }
@@ -381,19 +400,6 @@
         doc.text("RELATÓRIO ANALÍTICO HORTINUTRI", 14, 15);
         doc.autoTable({ html: '#display-relatorio table', startY: 20 });
         doc.save("Relatorio_Analitico.pdf");
-    }
-
-    function imprimirComprovante() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const produto = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
-        const cliente = document.getElementById('venda-cliente').value;
-        const total = document.getElementById('venda-total-final').innerText;
-        doc.text("HORTINUTRI+ - COMPROVANTE", 20, 20);
-        doc.text("Cliente: " + cliente, 20, 45);
-        doc.text("Produto: " + produto, 20, 52);
-        doc.text(total, 20, 70);
-        doc.save("Comprovante_Venda.pdf");
     }
 </script>
 </body>
