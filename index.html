@@ -3,26 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri Cloud - Oficial</title>
+    <title>HortiNutri Cloud - Sistema de Gestão</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <style>
-        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
-        .navbar { background: var(--primary); display: flex; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 1000; }
-        .nav-item { color: white; padding: 15px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --danger: #d32f2f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; }
+        
+        /* Menu Superior */
+        .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-item { color: white; padding: 18px 10px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 13px; text-transform: uppercase; transition: 0.3s; }
         .nav-item.active { background: rgba(255,255,255,0.2); border-bottom: 4px solid white; }
+        
+        /* Conteúdo */
         .container { padding: 15px; max-width: 900px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h3 { margin-top: 0; color: #333; border-left: 5px solid var(--primary); padding-left: 10px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-        .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; transition: 0.3s; }
-        .btn-save { background: var(--primary); }
-        .btn-venda { background: var(--secondary); }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { margin: 0 0 15px 0; color: #333; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 18px; }
+        
+        /* Formulários */
+        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        /* Botões */
+        .btn { border: none; font-weight: bold; cursor: pointer; padding: 14px; border-radius: 10px; color: white; width: 100%; font-size: 14px; }
+        .btn-add { background: var(--primary); }
+        .btn-sale { background: var(--secondary); }
+        
+        /* Tabelas */
+        .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        .delete-btn { color: #d32f2f; cursor: pointer; font-weight: bold; background: none; border: none; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 12px; color: #666; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; color: #444; }
+        
+        /* Resumo Financeiro */
+        .fin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+        .fin-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
+        .fin-card span { display: block; font-size: 18px; font-weight: bold; margin-top: 5px; }
+
+        .btn-del { color: var(--danger); background: none; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -30,47 +50,60 @@
 <div class="navbar">
     <div class="nav-item active" id="n-cad" onclick="showTab('cadastros')">📂 Cadastros</div>
     <div class="nav-item" id="n-ven" onclick="showTab('vendas')">💰 Vendas</div>
-    <div class="nav-item" id="n-rel" onclick="showTab('relatorios')">📊 Relatórios</div>
+    <div class="nav-item" id="n-rel" onclick="showTab('relatorios')">📊 Financeiro</div>
 </div>
 
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="card">
-            <h3>Novo Cadastro</h3>
-            <select id="cad-tipo" onchange="renderizarTudo()">
-                <option value="insumos">🥦 Insumos / Legumes</option>
-                <option value="clientes">🤝 Clientes</option>
-                <option value="embalagens">📦 Embalagens</option>
-            </select>
-            <input type="text" id="cad-nome" placeholder="Nome do Item">
-            <input type="number" id="cad-valor" placeholder="Valor/Preço (R$)">
-            <button class="btn btn-save" onclick="salvarCadastro()">SALVAR REGISTRO</button>
+            <h3>Novo Registro</h3>
+            <div class="grid-input">
+                <select id="cad-tipo">
+                    <option value="insumos">🥦 Insumos / Legumes</option>
+                    <option value="clientes">🤝 Clientes</option>
+                    <option value="embalagens">📦 Embalagens</option>
+                </select>
+                <input type="text" id="cad-nome" placeholder="Nome/Descrição">
+                <input type="number" id="cad-valor" placeholder="Valor (R$)">
+            </div>
+            <button class="btn btn-add" onclick="salvarCadastro()">SALVAR REGISTRO</button>
         </div>
         <div class="card">
-            <div id="tabela-cadastros">Sincronizando...</div>
+            <h3>Itens Cadastrados</h3>
+            <div class="table-container" id="tabela-cadastros">Carregando dados...</div>
         </div>
     </div>
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
             <h3>Lançar Venda</h3>
-            <input type="text" id="v-produto" placeholder="Produto/Kit">
-            <input type="number" id="v-preco" placeholder="Preço de Venda">
-            <button class="btn btn-venda" onclick="lancarVenda()">CONFIRMAR VENDA</button>
+            <div class="grid-input">
+                <input type="text" id="v-produto" placeholder="Produto/Kit">
+                <input type="number" id="v-preco" placeholder="Preço Venda">
+                <input type="number" id="v-custo" placeholder="Custo Prod.">
+            </div>
+            <button class="btn btn-sale" onclick="lancarVenda()">CONFIRMAR VENDA</button>
         </div>
-        <div class="card" id="lista-vendas-html"></div>
+        <div class="card">
+            <h3>Histórico de Vendas</h3>
+            <div class="table-container" id="tabela-vendas">Nenhuma venda registrada.</div>
+        </div>
     </div>
 
     <div id="tab-relatorios" class="tab-pane" style="display:none;">
-        <div class="card" style="text-align:center;">
-            <h3>Resumo Financeiro</h3>
-            <h1 id="res-v" style="color:var(--secondary)">R$ 0,00</h1>
-            <p>Total em Vendas</p>
+        <div class="fin-grid">
+            <div class="fin-card" style="background: var(--secondary)">Vendas <span id="f-v">R$ 0,00</span></div>
+            <div class="fin-card" style="background: var(--danger)">Custos <span id="f-c">R$ 0,00</span></div>
+            <div class="fin-card" style="background: var(--primary)">Lucro <span id="f-l">R$ 0,00</span></div>
+        </div>
+        <div class="card" style="text-align:center; color:#666">
+            <p>Resumo geral de todas as operações salvas no banco de dados.</p>
         </div>
     </div>
 </div>
 
 <script>
+    // Configuração do Banco
     const firebaseConfig = {
         apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -81,49 +114,64 @@
         appId: "1:596792658513:web:92bb97b0d835efc5510670"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let dadosLocais = {};
+    // Inicialização Blindada
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+    let dadosApp = {};
 
-    // Sincronização Inteligente
-    db.ref('/').on('value', snapshot => {
-        dadosLocais = snapshot.val() || {};
+    // Sincronização em tempo real
+    database.ref('/').on('value', snapshot => {
+        dadosApp = snapshot.val() || {};
         renderizarTudo();
+    }, error => {
+        console.error("Erro de permissão:", error);
+        alert("Erro ao ler banco. Verifique as Regras no Firebase.");
     });
 
     function renderizarTudo() {
+        // 1. Renderizar Cadastros
         const tipo = document.getElementById('cad-tipo').value;
-        // Tenta buscar por 'insumos' ou o nome antigo 'legumes'
-        const lista = dadosLocais[tipo] || dadosLocais['legumes'] || {};
+        const lista = dadosApp[tipo] || {};
+        let htmlCad = `<table><tr><th>Nome</th><th>Valor</th><th>Ação</th></tr>`;
         
-        let html = `<table><tr><th>Item</th><th>Valor</th><th>Ações</th></tr>`;
         Object.keys(lista).forEach(id => {
             const item = lista[id];
-            const nome = item.nome || item; // Suporta formatos antigos e novos
-            const valor = item.valor || item.v1 || 0;
-            html += `<tr><td>${nome}</td><td>R$ ${parseFloat(valor).toFixed(2)}</td>
-            <td><button class="delete-btn" onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
+            htmlCad += `<tr>
+                <td>${item.nome || 'Sem nome'}</td>
+                <td>R$ ${parseFloat(item.valor || 0).toFixed(2)}</td>
+                <td><button class="btn-del" onclick="remover('${tipo}/${id}')">🗑️</button></td>
+            </tr>`;
         });
-        document.getElementById('tabela-cadastros').innerHTML = html + "</table>";
+        document.getElementById('tabela-cadastros').innerHTML = htmlCad + "</table>";
 
-        // Vendas
-        const vendas = dadosLocais.vendas || {};
-        let total = 0;
-        let htmlV = `<table><tr><th>Data</th><th>Produto</th><th>Valor</th></tr>`;
+        // 2. Renderizar Vendas e Financeiro
+        const vendas = dadosApp.vendas || {};
+        let htmlVen = `<table><tr><th>Data</th><th>Produto</th><th>Total</th></tr>`;
+        let tV = 0, tC = 0;
+
         Object.keys(vendas).forEach(id => {
             const v = vendas[id];
-            total += parseFloat(v.preco || 0);
-            htmlV += `<tr><td><small>${v.data || ''}</small></td><td>${v.produto}</td><td>R$ ${parseFloat(v.preco).toFixed(2)}</td></tr>`;
+            tV += parseFloat(v.preco || 0);
+            tC += parseFloat(v.custo || 0);
+            htmlVen += `<tr>
+                <td><small>${v.data || ''}</small></td>
+                <td>${v.produto || ''}</td>
+                <td>R$ ${parseFloat(v.preco || 0).toFixed(2)}</td>
+            </tr>`;
         });
-        document.getElementById('lista-vendas-html').innerHTML = htmlV + "</table>";
-        document.getElementById('res-v').innerText = "R$ " + total.toFixed(2);
+
+        document.getElementById('tabela-vendas').innerHTML = htmlVen + "</table>";
+        document.getElementById('f-v').innerText = "R$ " + tV.toFixed(2);
+        document.getElementById('f-c').innerText = "R$ " + tC.toFixed(2);
+        document.getElementById('f-l').innerText = "R$ " + (tV - tC).toFixed(2);
     }
 
     function salvarCadastro() {
         const tipo = document.getElementById('cad-tipo').value;
         const nome = document.getElementById('cad-nome').value.toUpperCase();
         const valor = document.getElementById('cad-valor').value;
-        if(nome) db.ref(tipo).push({ nome, valor: valor || 0 });
+        if(!nome) return alert("Digite um nome!");
+        database.ref(tipo).push({ nome, valor: valor || 0 });
         document.getElementById('cad-nome').value = "";
         document.getElementById('cad-valor').value = "";
     }
@@ -131,10 +179,23 @@
     function lancarVenda() {
         const produto = document.getElementById('v-produto').value.toUpperCase();
         const preco = document.getElementById('v-preco').value;
-        if(produto && preco) db.ref('vendas').push({ produto, preco, data: new Date().toLocaleDateString() });
+        const custo = document.getElementById('v-custo').value;
+        if(!produto || !preco) return alert("Preencha produto e preço!");
+        
+        database.ref('vendas').push({
+            produto,
+            preco: parseFloat(preco),
+            custo: parseFloat(custo || 0),
+            data: new Date().toLocaleDateString('pt-BR')
+        });
+        document.getElementById('v-produto').value = "";
+        document.getElementById('v-preco').value = "";
+        document.getElementById('v-custo').value = "";
     }
 
-    function remover(path) { if(confirm("Remover?")) db.ref(path).remove(); }
+    function remover(path) {
+        if(confirm("Deseja apagar este registro?")) database.ref(path).remove();
+    }
 
     function showTab(tab) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
