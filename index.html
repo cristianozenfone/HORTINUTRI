@@ -1,8 +1,8 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -71,9 +71,22 @@ background:#2e7d32;
 color:white;
 }
 
+.btn-edit{
+background:#ff9800;
+color:white;
+}
+
 .btn-del{
 background:#d32f2f;
 color:white;
+}
+
+.alerta{
+background:#ffebee;
+color:#c62828;
+font-weight:bold;
+padding:4px 8px;
+border-radius:6px;
 }
 
 table{
@@ -84,10 +97,10 @@ border-collapse:collapse;
 td,th{
 padding:10px;
 border-bottom:1px solid #eee;
+text-align:left;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -99,13 +112,11 @@ border-bottom:1px solid #eee;
 <h3>HORTINUTRI ERP</h3>
 
 <input id="user" placeholder="Usuário"><br><br>
-
 <input id="pass" type="password" placeholder="Senha"><br><br>
 
 <button onclick="logar()">Entrar</button>
 
 </div>
-
 </div>
 
 <div id="app" style="display:none">
@@ -129,13 +140,9 @@ border-bottom:1px solid #eee;
 <div class="grid">
 
 <input id="ins-nome" placeholder="Nome">
-
 <input id="ins-fc" placeholder="Fator Correção">
-
 <input id="ins-preco" placeholder="Preço Kg">
-
 <input id="ins-est" placeholder="Estoque Kg">
-
 <input id="ins-min" placeholder="Estoque mínimo">
 
 </div>
@@ -148,7 +155,7 @@ border-bottom:1px solid #eee;
 
 <div class="card">
 
-<h3>Lista</h3>
+<h3>Lista de Insumos</h3>
 
 <div id="tab-insumos"></div>
 
@@ -160,7 +167,7 @@ border-bottom:1px solid #eee;
 
 <div class="card">
 
-<h3>Estoque</h3>
+<h3>Controle de Estoque</h3>
 
 <div id="tab-est"></div>
 
@@ -169,22 +176,28 @@ border-bottom:1px solid #eee;
 </div>
 
 </div>
-
 </div>
 
 <script>
 
-/* CONFIG FIREBASE */
+/* FIREBASE */
 
-const firebaseConfig={
-apiKey:"SUA_API",
-authDomain:"SEU_DOMINIO",
-databaseURL:"SUA_DATABASE_URL",
-projectId:"SEU_PROJECT"
-}
+const firebaseConfig = {
+apiKey: "AIzaSyAtdGSt1_3VRIQDN0WX7UJsqPxSyV4wg",
+authDomain: "hortinutri-3f2ea.firebaseapp.com",
+databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
+projectId: "hortinutri-3f2ea",
+storageBucket: "hortinutri-3f2ea.firebasestorage.app",
+messagingSenderId: "596792658513",
+appId: "1:596792658513:web:92bb97b0d835efc5510670"
+};
 
-let db
+firebase.initializeApp(firebaseConfig)
+
+const db = firebase.database()
+
 let dados={}
+let editId=null
 
 /* LOGIN */
 
@@ -197,7 +210,7 @@ localStorage.setItem("logado","sim")
 login.style.display="none"
 app.style.display="block"
 
-startApp()
+escutar()
 
 }else{
 
@@ -207,8 +220,6 @@ alert("Login inválido")
 
 }
 
-/* AUTO LOGIN */
-
 window.onload=function(){
 
 if(localStorage.getItem("logado")==="sim"){
@@ -216,35 +227,20 @@ if(localStorage.getItem("logado")==="sim"){
 login.style.display="none"
 app.style.display="block"
 
-startApp()
-
-}
-
-}
-
-/* LOGOUT */
-
-function logout(){
-
-localStorage.removeItem("logado")
-
-location.reload()
-
-}
-
-/* INICIAR FIREBASE */
-
-function startApp(){
-
-firebase.initializeApp(firebaseConfig)
-
-db=firebase.database()
-
 escutar()
 
 }
 
-/* LISTENER */
+}
+
+function logout(){
+
+localStorage.removeItem("logado")
+location.reload()
+
+}
+
+/* FIREBASE LISTENER */
 
 function escutar(){
 
@@ -253,7 +249,6 @@ db.ref("erp_v2/insumos").on("value",s=>{
 dados=s.val()||{}
 
 tabInsumos()
-
 estoqueTela()
 
 })
@@ -271,77 +266,72 @@ document.getElementById(x).style.display="block"
 
 }
 
-/* SALVAR INSUMO */
+/* SALVAR */
 
 function salvarInsumo(){
 
-db.ref("erp_v2/insumos").push({
+let nome=ins_nome.value
+let fc=parseFloat(ins_fc.value)||0
+let preco=parseFloat(ins_preco.value)||0
+let est=parseFloat(ins_est.value)||0
+let min=parseFloat(ins_min.value)||0
 
-nome:document.getElementById("ins-nome").value,
+if(nome===""){
+alert("Digite o nome")
+return
+}
 
-fc:parseFloat(document.getElementById("ins-fc").value),
+let custoLiquido=(preco/fc).toFixed(2)
 
-preco:parseFloat(document.getElementById("ins-preco").value),
+let obj={
+nome:nome,
+fc:fc,
+preco:preco,
+custo:custoLiquido,
+estoque:est,
+min:min
+}
 
-estoque:parseFloat(document.getElementById("ins-est").value),
+if(editId){
 
-min:parseFloat(document.getElementById("ins-min").value)
+db.ref("erp_v2/insumos/"+editId).update(obj)
+editId=null
 
-})
+}else{
 
-document.getElementById("ins-nome").value=""
-document.getElementById("ins-fc").value=""
-document.getElementById("ins-preco").value=""
-document.getElementById("ins-est").value=""
-document.getElementById("ins-min").value=""
+db.ref("erp_v2/insumos").push(obj)
 
 }
 
-/* TABELA INSUMOS */
+limpar()
 
-function tabInsumos(){
+}
 
-let h="<table>"
+/* LIMPAR */
 
-for(let id in dados){
+function limpar(){
+
+ins_nome.value=""
+ins_fc.value=""
+ins_preco.value=""
+ins_est.value=""
+ins_min.value=""
+
+}
+
+/* EDITAR */
+
+function editar(id){
 
 let i=dados[id]
 
-h+=`<tr>
-<td>${i.nome}</td>
-<td>R$ ${i.preco}</td>
-<td>${i.estoque} kg</td>
-<td><button class="btn-del" onclick="del('${id}')">X</button></td>
-</tr>`
+ins_nome.value=i.nome
+ins_fc.value=i.fc
+ins_preco.value=i.preco
+ins_est.value=i.estoque
+ins_min.value=i.min
 
-}
-
-h+="</table>"
-
-tab_insumos.innerHTML=h
-
-}
-
-/* ESTOQUE */
-
-function estoqueTela(){
-
-let h="<table>"
-
-for(let id in dados){
-
-let i=dados[id]
-
-h+=`<tr>
-<td>${i.nome}</td>
-<td>${i.estoque} kg</td>
-</tr>`
-
-}
-
-h+="</table>"
-
-tab_est.innerHTML=h
+editId=id
 
 }
 
@@ -357,8 +347,70 @@ db.ref("erp_v2/insumos/"+id).remove()
 
 }
 
+/* TABELA INSUMOS */
+
+function tabInsumos(){
+
+let h="<table><tr><th>Nome</th><th>Preço</th><th>FC</th><th>Custo Líq</th><th>Estoque</th><th></th></tr>"
+
+for(let id in dados){
+
+let i=dados[id]
+
+h+=`<tr>
+<td>${i.nome}</td>
+<td>R$ ${i.preco}</td>
+<td>${i.fc}</td>
+<td>R$ ${i.custo}</td>
+<td>${i.estoque}kg</td>
+<td>
+<button class="btn-edit" onclick="editar('${id}')">Editar</button>
+<button class="btn-del" onclick="del('${id}')">X</button>
+</td>
+</tr>`
+
+}
+
+h+="</table>"
+
+tab_insumos.innerHTML=h
+
+}
+
+/* ESTOQUE */
+
+function estoqueTela(){
+
+let h="<table><tr><th>Produto</th><th>Estoque</th><th>Status</th></tr>"
+
+for(let id in dados){
+
+let i=dados[id]
+
+let status="OK"
+
+if(i.estoque<=i.min){
+
+status=`<span class="alerta">Estoque baixo</span>`
+
+}
+
+h+=`<tr>
+<td>${i.nome}</td>
+<td>${i.estoque} kg</td>
+<td>${status}</td>
+</tr>`
+
+}
+
+h+="</table>"
+
+tab_est.innerHTML=h
+
+}
+
 </script>
 
 </body>
 </html>
-
+```
