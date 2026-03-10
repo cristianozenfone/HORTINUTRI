@@ -3,53 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v3.0 Pro</title>
+    <title>HortiNutri ERP - v7.0 Full Control</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --text: #333; --orange: #ef6c00; --red: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: var(--text); }
-        .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .nav-item { color: white; padding: 15px 20px; text-decoration: none; font-weight: bold; cursor: pointer; flex: 1; text-align: center; border-bottom: 4px solid transparent; }
+        .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); overflow-x: auto; }
+        .nav-item { color: white; padding: 15px 15px; text-decoration: none; font-weight: bold; cursor: pointer; flex: 1; text-align: center; border-bottom: 4px solid transparent; white-space: nowrap; font-size: 13px; }
         .nav-item.active { border-bottom: 4px solid #fff; background: rgba(255,255,255,0.1); }
-        .container { padding: 20px; max-width: 1100px; margin: auto; }
+        .container { padding: 15px; max-width: 1100px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; }
-        .btn-save { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-save { background: var(--primary); color: white; width: 100%; }
         .btn-add { background: var(--orange); color: white; }
         .btn-venda { background: var(--secondary); color: white; width: 100%; font-size: 16px; margin-top: 15px; }
-        .submenu { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding: 5px 0; }
-        .sub-item { background: #e0e0e0; padding: 10px 20px; border-radius: 25px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .submenu { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding: 5px 0; }
+        .sub-item { background: #e0e0e0; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         .sub-item.active { background: var(--primary); color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid #eee; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .receita-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 5px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .badge-venda { background: #e8f5e9; color: #2e7d32; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 10px; background: #f8f9fa; border-bottom: 2px solid #eee; font-size: 12px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .receita-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 3px; border-radius: 5px; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .stat-card { padding: 15px; border-radius: 10px; color: white; text-align: center; }
     </style>
 </head>
 <body onload="iniciarApp()">
 
 <div class="navbar">
     <div class="nav-item active" id="btn-tab-cadastros" onclick="changeTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" id="btn-tab-vendas" onclick="changeTab('vendas')">💰 MONTAR MIX/KITS</div>
-    <div class="nav-item" id="btn-tab-financeiro" onclick="changeTab('financeiro')">🏦 FINANCEIRO</div>
+    <div class="nav-item" id="btn-tab-vendas" onclick="changeTab('vendas')">🛠️ MIX/KITS</div>
+    <div class="nav-item" id="btn-tab-financeiro" onclick="changeTab('financeiro')">💰 FINANCEIRO</div>
+    <div class="nav-item" id="btn-tab-relatorios" onclick="changeTab('relatorios')">📊 RELATÓRIOS</div>
 </div>
 
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="submenu">
             <div class="sub-item active" id="sub-insumos" onclick="changeSub('insumos')">🥦 Insumos</div>
-            <div class="sub-item" id="sub-fornecedores" onclick="changeSub('fornecedores')">🚚 Fornecedores</div>
             <div class="sub-item" id="sub-clientes" onclick="changeSub('clientes')">🤝 Clientes</div>
-            <div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens</div>
+            <div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens/Etq</div>
         </div>
         <div class="card">
-            <h3 id="titulo-form">Cadastro de Insumos</h3>
+            <h3 id="titulo-form">Carregando...</h3>
             <div id="form-dinamico"></div>
             <button class="btn btn-save" onclick="salvarGeral()">SALVAR REGISTRO</button>
         </div>
@@ -61,77 +61,62 @@
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card">
-            <h2>🛠️ Montar Ficha Técnica (Mix ou Simples)</h2>
+            <h3>🛠️ Montar Ficha Técnica do Produto</h3>
             <div class="grid-form">
-                <div><label>Nome do Mix/Produto</label><input type="text" id="kit-nome" placeholder="Ex: Kit Maionese"></div>
+                <div><label>Nome do Mix/Produto Final</label><input type="text" id="kit-nome" placeholder="Ex: Mix Legumes"></div>
             </div>
             <hr>
             <div class="grid-form">
-                <div><label>Legume</label><select id="sel-insumo"></select></div>
-                <div><label>Peso Líq. (g)</label><input type="number" id="kit-peso-liq" value="100"></div>
-                <div><label>&nbsp;</label><button class="btn btn-add" onclick="adicionarIngrediente()" style="width:100%">+ ADICIONAR ITEM</button></div>
+                <div><label>Insumo</label><select id="sel-insumo"></select></div>
+                <div><label>Peso Líquido (g)</label><input type="number" id="kit-peso-liq" value="100"></div>
+                <div><label>&nbsp;</label><button class="btn btn-add" onclick="adicionarIngrediente()">+ ADICIONAR ITEM</button></div>
             </div>
-            <div id="lista-ingredientes" style="margin: 15px 0; background: #f1f1f1; padding: 10px; border-radius: 8px;"></div>
+            <div id="lista-ingredientes" style="margin: 15px 0; background: #f9f9f9; padding: 10px; border-radius: 8px;"></div>
             <div class="grid-form">
                 <div><label>Embalagem</label><select id="sel-emb" onchange="calcularTotalKit()"></select></div>
                 <div><label>Etiqueta</label><select id="sel-etq" onchange="calcularTotalKit()"></select></div>
             </div>
-            <div class="card" style="background: #e3f2fd; border: 1px solid #90caf9;">
-                <h3 style="margin:0; color:#1976d2;">Custo Total: <span id="res-custo-total">R$ 0,00</span></h3>
+            <div class="card" style="background: #e8f5e9;">
+                <h3 style="margin:0; color:var(--primary);">Custo de Produção: <span id="res-custo-total">R$ 0,00</span></h3>
                 <div style="margin-top:10px;">
                     <label>Preço Sugerido de Venda (R$)</label>
-                    <input type="number" id="kit-venda-final" step="0.01" style="font-weight:bold; font-size:18px;">
+                    <input type="number" id="kit-venda-final" step="0.01" style="font-size:18px; font-weight:bold;">
                 </div>
             </div>
             <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
         <div class="card">
-            <h3>📋 Catálogo de Produtos Cadastrados</h3>
+            <h3>📋 Catálogo de Mixes Prontos</h3>
             <div id="tabela-catalogo"></div>
         </div>
     </div>
 
     <div id="tab-financeiro" class="tab-pane" style="display:none;">
         <div class="card">
-            <h2>🏦 Lançar Nova Venda / Entrega</h2>
+            <h2>🏦 Registrar Entrega (Venda)</h2>
             <div class="grid-form">
-                <div>
-                    <label>Selecione o Cliente</label>
-                    <select id="venda-cliente"></select>
-                </div>
-                <div>
-                    <label>Produto (do Catálogo)</label>
-                    <select id="venda-produto" onchange="preencherPrecoVenda()"></select>
-                </div>
+                <div><label>Cliente</label><select id="venda-cliente"></select></div>
+                <div><label>Produto</label><select id="venda-produto" onchange="preencherPrecoVenda()"></select></div>
             </div>
             <div class="grid-form">
-                <div>
-                    <label>Quantidade</label>
-                    <input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()">
-                </div>
-                <div>
-                    <label>Preço Unitário (R$)</label>
-                    <input type="number" id="venda-preco-un" step="0.01" oninput="calcularTotalVenda()">
-                </div>
-                <div>
-                    <label>Total da Venda</label>
-                    <input type="text" id="venda-total-final" readonly style="background:#eee; font-weight:bold; color:var(--primary)">
-                </div>
+                <div><label>Quantidade</label><input type="number" id="venda-qtd" value="1" oninput="calcularTotalVenda()"></div>
+                <div><label>Preço Unitário (R$)</label><input type="number" id="venda-preco-un" step="0.01" oninput="calcularTotalVenda()"></div>
+                <div><label>Total</label><input type="text" id="venda-total-final" readonly style="background:#eee; font-weight:bold;"></div>
             </div>
-            <button class="btn btn-venda" onclick="confirmarVenda()">✅ CONFIRMAR E REGISTRAR VENDA</button>
+            <button class="btn btn-venda" onclick="confirmarVenda()">✅ CONFIRMAR LANÇAMENTO</button>
         </div>
-
         <div class="card">
-            <h3>📊 Histórico de Vendas Recentes</h3>
+            <h3>📊 Últimas Vendas</h3>
             <div id="tabela-historico-vendas"></div>
         </div>
     </div>
-</div>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
-        authDomain: "hortinutri-3f2ea.firebaseapp.com",
-        databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
-        projectId: "hortinutri-3f2ea",
-        storageBucket: "hortinutri-3f2
+    <div id="tab-relatorios" class="tab-pane" style="display:none;">
+        <div class="stats-grid">
+            <div class="stat-card" style="background: var(--secondary);">Faturamento Total<br><strong id="rel-faturamento" style="font-size:20px;">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: var(--red);">Custo Estimado<br><strong id="rel-custo" style="font-size:20px;">R$ 0,00</strong></div>
+            <div class="stat-card" style="background: var(--primary);">Lucro Bruto<br><strong id="rel-lucro" style="font-size:20px;">R$ 0,00</strong></div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <h3>Dica do Sistema</h3>
+            <p style="font-size:14
