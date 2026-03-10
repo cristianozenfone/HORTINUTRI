@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v8.2</title>
+    <title>HortiNutri ERP - v8.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -89,6 +89,10 @@
             </div>
             <button class="btn btn-save" style="background:var(--secondary);" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button>
         </div>
+        <div class="card">
+            <h3>📋 Produtos Salvos (Mix/Kits)</h3>
+            <div id="tabela-kits">Carregando tabela...</div>
+        </div>
     </div>
 
     <div id="tab-financeiro" class="tab-pane" style="display:none;">
@@ -102,7 +106,6 @@
                 <div><label>Desconto (R$)</label><input type="number" id="venda-desconto" step="0.01" value="0"></div>
             </div>
             <button class="btn btn-add" style="margin-top:10px; width:100%;" onclick="adicionarAoCarrinho()">🛒 ADICIONAR AO CARRINHO</button>
-            
             <div id="carrinho-display" style="margin-top:20px;">
                 <h3>🛒 Itens no Carrinho</h3>
                 <div id="tabela-carrinho">Nenhum item.</div>
@@ -166,8 +169,23 @@
         db.ref('erp_v2/insumos').on('value', s => { dadosGlobal.insumos = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
         db.ref('erp_v2/embalagens').on('value', s => { dadosGlobal.embalagens = s.val() || {}; atualizarSelects(); carregarTabelaGeral(); });
         db.ref('erp_v2/clientes').on('value', s => { dadosGlobal.clientes = s.val() || {}; atualizarSelectsFin(); carregarTabelaGeral(); });
-        db.ref('erp_v2/produtos_final').on('value', s => { dadosGlobal.produtos = s.val() || {}; atualizarSelectsFin(); });
+        // --- ATUALIZAÇÃO: Monitorando produtos para a nova tabela ---
+        db.ref('erp_v2/produtos_final').on('value', s => { 
+            dadosGlobal.produtos = s.val() || {}; 
+            atualizarSelectsFin(); 
+            carregarTabelaKits(); 
+        });
         db.ref('erp_v2/vendas').on('value', s => { dadosGlobal.vendas = s.val() || {}; carregarTabelaVendas(); calcularRelatorios(); });
+    }
+
+    function carregarTabelaKits() {
+        let html = '<table><tr><th>Produto</th><th>Tamanho</th><th>Custo</th><th>Preço</th><th>Ação</th></tr>';
+        for(let id in dadosGlobal.produtos) {
+            let p = dadosGlobal.produtos[id];
+            html += `<tr><td>${p.nome}</td><td>${p.tamanho}</td><td>R$ ${p.custoProducao}</td><td>R$ ${p.precoSugerido}</td>
+            <td><button onclick="doubleConfirm('Excluir este Kit?', () => db.ref('erp_v2/produtos_final/${id}').remove())">🗑️</button></td></tr>`;
+        }
+        document.getElementById('tabela-kits').innerHTML = html + '</table>';
     }
 
     function changeTab(tab) {
@@ -288,7 +306,7 @@
             nome: nome, tamanho: tam,
             custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""),
             precoSugerido: preco
-        }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); });
+        }).then(() => { alert("Gravado!"); receitaNoMomento = []; desenharReceita(); document.getElementById('kit-nome').value=''; });
     }
 
     function atualizarSelectsFin() {
@@ -320,7 +338,7 @@
             qtd: q,
             total: (q * p) - d
         });
-        document.getElementById('venda-cliente').disabled = true; // Bloqueia troca de cliente durante a venda
+        document.getElementById('venda-cliente').disabled = true;
         renderizarCarrinho();
     }
 
