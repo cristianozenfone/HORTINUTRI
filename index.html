@@ -182,8 +182,6 @@ text-align:left;
 
 /* FIREBASE */
 
-/* CONFIG FIREBASE */
-
 const firebaseConfig = {
 apiKey: "AIzaSyAtdGSt1_3VRIQDN0WX7UJsqPxSyV4wg",
 authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -283,7 +281,9 @@ alert("Digite o nome")
 return
 }
 
-let custoLiquido=(preco/fc).toFixed(2)
+/* CORREÇÃO DO CUSTO */
+
+let custoLiquido = fc > 0 ? (preco/fc).toFixed(2) : preco
 
 let obj={
 nome:nome,
@@ -416,4 +416,3 @@ tab_est.innerHTML=h
 </body>
 </html>
 ```
-
