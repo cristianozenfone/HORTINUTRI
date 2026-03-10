@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v12.0 Estabilizada</title>
+    <title>HortiNutri ERP - v12.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,21 +15,19 @@
         .nav-item.active { background: rgba(255,255,255,0.2); border-bottom: 4px solid white; }
         .container { padding: 15px; max-width: 800px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid-venda { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; text-transform: uppercase; }
         .btn-salvar { background: var(--primary); }
-        .btn-venda { background: var(--secondary); margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-item active" id="btn-cad" onclick="showTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" id="btn-ven" onclick="showTab('vendas')">💰 VENDAS</div>
-    <div class="nav-item" id="btn-rel" onclick="showTab('relatorios')">📊 FINANCEIRO</div>
+    <div class="nav-item active" onclick="showTab('cadastros')">📂 CADASTROS</div>
+    <div class="nav-item" onclick="showTab('vendas')">💰 VENDAS</div>
+    <div class="nav-item" onclick="showTab('relatorios')">📊 FINANCEIRO</div>
 </div>
 
 <div class="container">
@@ -38,35 +36,18 @@
             <h3>Novo Registro</h3>
             <select id="cad-tipo"><option value="insumos">🥦 Insumos</option><option value="clientes">🤝 Clientes</option></select>
             <input type="text" id="cad-nome" placeholder="Nome">
-            <div class="grid-venda">
-                <input type="number" id="cad-v1" placeholder="Valor 1">
-                <input type="number" id="cad-v2" placeholder="Valor 2">
-            </div>
-            <button class="btn btn-salvar" onclick="salvar()">SALVAR</button>
+            <input type="number" id="cad-valor" placeholder="Valor (R$)">
+            <button class="btn btn-salvar" onclick="salvar()">SALVAR NO FIREBASE</button>
         </div>
-        <div class="card" id="lista-cadastros">Buscando dados...</div>
+        <div class="card" id="lista-cadastros">Buscando dados no banco...</div>
     </div>
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
-        <div class="card">
-            <h3>Lançar Venda</h3>
-            <input type="text" id="v-cli" placeholder="Cliente">
-            <input type="text" id="v-prod" placeholder="Produto">
-            <div class="grid-venda">
-                <input type="number" id="v-qtd" value="1">
-                <input type="number" id="v-pre" placeholder="Preço">
-                <input type="number" id="v-cus" placeholder="Custo">
-            </div>
-            <button class="btn btn-venda" onclick="lancarVenda()">CONFIRMAR VENDA</button>
-        </div>
-        <div class="card" id="lista-vendas"></div>
+        <div class="card"><h3>Histórico de Vendas</h3><div id="lista-vendas"></div></div>
     </div>
 
     <div id="tab-relatorios" class="tab-pane" style="display:none;">
-        <div class="card">
-            <button class="btn btn-venda" onclick="exportarPDF()">GERAR RELATÓRIO PDF</button>
-            <div id="resumo-fin" style="margin-top:20px; font-weight:bold;"></div>
-        </div>
+        <div class="card"><button class="btn" style="background:var(--secondary)" onclick="exportarPDF()">GERAR PDF</button></div>
     </div>
 </div>
 
@@ -82,60 +63,46 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let dadosApp = {};
+    let cache = {};
 
+    // BUSCA GLOBAL: Tenta encontrar dados em qualquer pasta do banco
     db.ref('/').on('value', snap => {
-        dadosApp = snap.val() || {};
+        cache = snap.val() || {};
         renderizar();
     });
 
     function renderizar() {
         const tipo = document.getElementById('cad-tipo').value;
-        const lista = dadosApp[tipo] || {};
-        let html = `<table><tr><th>Nome</th><th>Excluir</th></tr>`;
+        // Super busca: tenta a pasta selecionada OU nomes antigos comuns
+        const lista = cache[tipo] || cache['produtos'] || cache['legumes'] || {};
+        
+        let html = `<table><tr><th>Item</th><th>Valor</th><th>Ação</th></tr>`;
         Object.keys(lista).forEach(id => {
-            html += `<tr><td>${lista[id].nome}</td><td><button onclick="remover('${tipo}/${id}')">❌</button></td></tr>`;
+            const item = lista[id];
+            html += `<tr><td>${item.nome || item.item}</td><td>R$ ${item.valor || 0}</td>
+            <td><button onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
         });
         document.getElementById('lista-cadastros').innerHTML = html + "</table>";
-
-        const vendas = dadosApp.vendas || {};
-        let htmlV = `<table><tr><th>Data</th><th>Produto</th><th>Total</th></tr>`;
-        Object.keys(vendas).forEach(id => {
-            const v = vendas[id];
-            htmlV += `<tr><td><small>${v.data}</small></td><td>${v.produto}</td><td>R$ ${v.preco}</td></tr>`;
-        });
-        document.getElementById('lista-vendas').innerHTML = htmlV + "</table>";
     }
 
     function salvar() {
         const tipo = document.getElementById('cad-tipo').value;
         const nome = document.getElementById('cad-nome').value.toUpperCase();
-        if(nome) db.ref(tipo).push({ nome, v1: document.getElementById('cad-v1').value, v2: document.getElementById('cad-v2').value });
-    }
-
-    function lancarVenda() {
-        const venda = {
-            data: new Date().toLocaleDateString('pt-BR'),
-            cliente: document.getElementById('v-cli').value,
-            produto: document.getElementById('v-prod').value,
-            preco: document.getElementById('v-pre').value
-        };
-        db.ref('vendas').push(venda);
+        const valor = document.getElementById('cad-valor').value;
+        if(nome) db.ref(tipo).push({ nome, valor });
     }
 
     function remover(path) { if(confirm("Excluir?")) db.ref(path).remove(); }
 
     function showTab(tab) {
         document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById('tab-' + tab).style.display = 'block';
-        document.getElementById('btn-' + tab.substring(0,3)).classList.add('active');
     }
 
     function exportarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("Relatório HortiNutri", 10, 10);
+        doc.text("Relatorio HortiNutri", 10, 10);
         doc.save("financeiro.pdf");
     }
 </script>
