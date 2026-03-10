@@ -1,76 +1,61 @@
+<style>
+    /* Adicione/Substitua estas regras no seu <style> */
+    .grid-menu { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+        gap: 10px; 
+        margin-bottom: 20px; 
+    }
+    .btn-cadastro {
+        background: #f1f8e9;
+        border: 2px solid #a5d6a7;
+        color: #2e7d32;
+        padding: 15px 10px;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        transition: 0.3s;
+    }
+    .btn-cadastro:hover { background: #c8e6c9; }
+    .btn-cadastro i { font-size: 1.2rem; }
+</style>
+
 <div id="tab-cadastros" class="tab-content">
     <div class="card">
         <h2>📂 Gerenciar Cadastros</h2>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
-            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('insumo')">🥦 Insumos</button>
-            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('embalagem')">📦 Embalagens</button>
-            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('cliente')">🤝 Clientes</button>
-            <button class="nav-btn" style="background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9;" onclick="showSubTab('fornecedor')">🚚 Fornecedores</button>
+        <div class="grid-menu">
+            <button class="btn-cadastro" onclick="showSubTab('insumo')">
+                <span>🥦</span> Insumos
+            </button>
+            <button class="btn-cadastro" onclick="showSubTab('embalagem')">
+                <span>📦</span> Embalagens
+            </button>
+            <button class="btn-cadastro" onclick="showSubTab('cliente')">
+                <span>🤝</span> Clientes
+            </button>
+            <button class="btn-cadastro" onclick="showSubTab('fornecedor')">
+                <span>🚚</span> Fornecedores
+            </button>
         </div>
 
-        <div id="sub-insumo" class="sub-tab" style="display:none;">
-            <h3>🥦 Novo Insumo</h3>
-            <input type="text" id="ins-nome" placeholder="Nome do Legume (Ex: Abóbora)">
-            <input type="number" id="ins-fator" step="0.01" placeholder="Fator de Perda (Ex: 1.65)">
-            <button class="btn-green" onclick="salvarGenerico('insumos', 'ins-nome', 'ins-fator')">Cadastrar Legume</button>
+        <div id="sub-insumo" class="sub-tab" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
+             <h3>🥦 Novo Insumo</h3>
+             <input type="text" id="ins-nome" placeholder="Nome do Legume (Ex: Abóbora)">
+             <input type="number" id="ins-fator" step="0.01" placeholder="Fator de Perda (Ex: 1.65)">
+             <button class="btn-green" onclick="salvarGenerico('insumos', 'ins-nome', 'ins-fator')">Cadastrar Legume</button>
         </div>
 
-        <div id="sub-embalagem" class="sub-tab" style="display:none;">
-            <h3>📦 Nova Embalagem/Etiqueta</h3>
-            <input type="text" id="emb-nome" placeholder="Ex: Saco 14x25 + Etiqueta">
-            <input type="number" id="emb-custo" step="0.01" placeholder="Custo Unitário R$">
-            <button class="btn-green" onclick="salvarGenerico('embalagens', 'emb-nome', 'emb-custo')">Salvar Embalagem</button>
+        <div id="sub-embalagem" class="sub-tab" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
+             <h3>📦 Nova Embalagem/Etiqueta</h3>
+             <input type="text" id="emb-nome" placeholder="Ex: Saco 14x25 + Etiqueta">
+             <input type="number" id="emb-custo" step="0.01" placeholder="Custo Unitário R$">
+             <button class="btn-green" onclick="salvarGenerico('embalagens', 'emb-nome', 'emb-custo')">Salvar Embalagem</button>
         </div>
-
-        <div id="sub-cliente" class="sub-tab" style="display:none;">
-            <h3>🤝 Novo Cliente</h3>
-            <input type="text" id="cli-nome" placeholder="Nome do Supermercado">
-            <button class="btn-green" onclick="salvarGenerico('clientes', 'cli-nome')">Cadastrar Cliente</button>
-        </div>
-    </div>
-    
-    <div id="lista-cadastros-geral" class="card" style="margin-top:10px;">
-        <p style="color:#666; font-size:0.9rem;">Selecione uma categoria acima para ver os itens.</p>
-    </div>
-</div>
-
-<script>
-// ADICIONE ESTAS FUNÇÕES NO SEU <script> PARA TUDO FUNCIONAR:
-
-function showSubTab(categoria) {
-    document.querySelectorAll('.sub-tab').forEach(s => s.style.display = 'none');
-    document.getElementById('sub-' + categoria).style.display = 'block';
-    carregarListaCadastros(categoria);
-}
-
-function salvarGenerico(path, idNome, idValor) {
-    const nome = document.getElementById(idNome).value;
-    const dadoExtra = idValor ? document.getElementById(idValor).value : null;
-    
-    if(nome) {
-        const payload = { nome: nome };
-        if(dadoExtra) payload.valor = parseFloat(dadoExtra);
         
-        db.ref(path).push(payload).then(() => {
-            alert("Cadastrado com sucesso!");
-            document.getElementById(idNome).value = "";
-            if(idValor) document.getElementById(idValor).value = "";
-        });
-    }
-}
-
-function carregarListaCadastros(path) {
-    db.ref(path + 's').on('value', snap => {
-        const dados = snap.val();
-        let html = `<h4>Lista de ${path}s</h4>`;
-        for(let id in dados) {
-            html += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;">
-                <span>${dados[id].nome}</span>
-                <button onclick="db.ref('${path}s/${id}').remove()" style="border:none; background:none; cursor:pointer;">🗑️</button>
-            </div>`;
-        }
-        document.getElementById('lista-cadastros-geral').innerHTML = html;
-    });
-}
-</script>
+        </div>
+</div>
