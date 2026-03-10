@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v12.0</title>
+    <title>HortiNutri ERP - v12.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --danger: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
         .navbar { background: var(--primary); display: flex; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .nav-item { color: white; padding: 15px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; font-size: 12px; }
@@ -18,93 +18,39 @@
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 15px; border-radius: 8px; color: white; width: 100%; text-transform: uppercase; }
         .btn-salvar { background: var(--primary); }
-        table { width: 100%; border-collapse: collapse; }
+        .btn-rel { background: var(--secondary); margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        .btn-del { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-item active" onclick="showTab('cadastros')">📂 CADASTROS</div>
-    <div class="nav-item" onclick="showTab('vendas')">💰 VENDAS</div>
-    <div class="nav-item" onclick="showTab('relatorios')">📊 FINANCEIRO</div>
+    <div class="nav-item active" id="n-cad" onclick="showTab('cadastros')">📂 CADASTROS</div>
+    <div class="nav-item" id="n-ven" onclick="showTab('vendas')">💰 VENDAS</div>
+    <div class="nav-item" id="n-rel" onclick="showTab('financeiro')">📊 FINANCEIRO</div>
 </div>
 
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
         <div class="card">
             <h3>Novo Registro</h3>
-            <select id="cad-tipo"><option value="insumos">🥦 Insumos</option><option value="clientes">🤝 Clientes</option></select>
-            <input type="text" id="cad-nome" placeholder="Nome">
+            <select id="cad-tipo" onchange="renderizar()">
+                <option value="insumos">🥦 Insumos / Legumes</option>
+                <option value="clientes">🤝 Clientes</option>
+            </select>
+            <input type="text" id="cad-nome" placeholder="Nome do Item">
             <input type="number" id="cad-valor" placeholder="Valor (R$)">
-            <button class="btn btn-salvar" onclick="salvar()">SALVAR NO FIREBASE</button>
+            <button class="btn btn-salvar" onclick="salvar()">SALVAR NO BANCO</button>
         </div>
-        <div class="card" id="lista-cadastros">Buscando dados no banco...</div>
+        <div class="card">
+            <h3>Itens Salvos</h3>
+            <div id="lista-cadastros">Buscando dados...</div>
+        </div>
     </div>
 
     <div id="tab-vendas" class="tab-pane" style="display:none;">
-        <div class="card"><h3>Histórico de Vendas</h3><div id="lista-vendas"></div></div>
-    </div>
-
-    <div id="tab-relatorios" class="tab-pane" style="display:none;">
-        <div class="card"><button class="btn" style="background:var(--secondary)" onclick="exportarPDF()">GERAR PDF</button></div>
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAs-W_ZGYzNWMwZDktODkzYS00NWY2LTkyYjEtZDQwYWQwZGMzMGRm",
-        authDomain: "hortinutri-3f2ea.firebaseapp.com",
-        databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
-        projectId: "hortinutri-3f2ea",
-        storageBucket: "hortinutri-3f2ea.appspot.com",
-        appId: "1:596792658513:web:92bb97b0d835efc5510670"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let cache = {};
-
-    // BUSCA GLOBAL: Tenta encontrar dados em qualquer pasta do banco
-    db.ref('/').on('value', snap => {
-        cache = snap.val() || {};
-        renderizar();
-    });
-
-    function renderizar() {
-        const tipo = document.getElementById('cad-tipo').value;
-        // Super busca: tenta a pasta selecionada OU nomes antigos comuns
-        const lista = cache[tipo] || cache['produtos'] || cache['legumes'] || {};
-        
-        let html = `<table><tr><th>Item</th><th>Valor</th><th>Ação</th></tr>`;
-        Object.keys(lista).forEach(id => {
-            const item = lista[id];
-            html += `<tr><td>${item.nome || item.item}</td><td>R$ ${item.valor || 0}</td>
-            <td><button onclick="remover('${tipo}/${id}')">🗑️</button></td></tr>`;
-        });
-        document.getElementById('lista-cadastros').innerHTML = html + "</table>";
-    }
-
-    function salvar() {
-        const tipo = document.getElementById('cad-tipo').value;
-        const nome = document.getElementById('cad-nome').value.toUpperCase();
-        const valor = document.getElementById('cad-valor').value;
-        if(nome) db.ref(tipo).push({ nome, valor });
-    }
-
-    function remover(path) { if(confirm("Excluir?")) db.ref(path).remove(); }
-
-    function showTab(tab) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.getElementById('tab-' + tab).style.display = 'block';
-    }
-
-    function exportarPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("Relatorio HortiNutri", 10, 10);
-        doc.save("financeiro.pdf");
-    }
-</script>
-</body>
-</html>
+        <div class="card">
+            <h3>Lançar Venda</h3>
+            <input type="text" id="
