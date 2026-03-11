@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP - v10.0</title>
+    <title>HortiNutri ERP - v11.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,7 +16,7 @@
         .nav-item.active { border-bottom: 4px solid #fff; background: rgba(255,255,255,0.1); }
         .container { padding: 15px; max-width: 1100px; margin: auto; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         label { font-weight: bold; font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
         .btn { border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; transition: 0.3s; }
@@ -31,6 +31,7 @@
         td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
         .btn-edit { background: #ffc107; color: black; padding: 5px 8px; margin-right: 5px; border-radius: 4px; cursor: pointer; border: none; }
         .btn-del { background: #f44336; color: white; padding: 5px 8px; border-radius: 4px; cursor: pointer; border: none; }
+        .carrinho-area { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px dashed #fbc02d; margin: 15px 0; }
     </style>
 </head>
 <body onload="iniciarApp()">
@@ -39,32 +40,36 @@
     <div class="nav-item" id="btn-tab-vendas" onclick="changeTab('vendas')">🛠️ MIX/KITS</div>
     <div class="nav-item" id="btn-tab-financeiro" onclick="changeTab('financeiro')">💰 FINANCEIRO</div>
     <div class="nav-item" id="btn-tab-estoque" onclick="changeTab('estoque')">📦 ESTOQUE</div>
-    <div class="nav-item" id="btn-tab-relatorios" onclick="changeTab('relatorios')">📊 RELATÓRIOS</div>
 </div>
 <div class="container">
     <div id="tab-cadastros" class="tab-pane">
-        <div class="submenu"><div class="sub-item active" id="sub-insumos" onclick="changeSub('insumos')">🥦 Insumos</div><div class="sub-item" id="sub-clientes" onclick="changeSub('clientes')">🤝 Clientes</div><div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens/Etq</div></div>
-        <div class="card"><h3 id="titulo-form">Cadastro</h3><div id="form-dinamico"></div><button class="btn btn-save" onclick="salvarGeral()">SALVAR REGISTRO</button><input type="hidden" id="edit-id"></div>
-        <div class="card"><h3>Registros Salvos</h3><div id="tabela-registros"></div><button class="btn btn-pdf" onclick="imprimirPDF('tabela-registros', 'Cadastros')">🖨️ IMPRIMIR PDF</button></div>
+        <div class="submenu">
+            <div class="sub-item active" id="sub-insumos" onclick="changeSub('insumos')">🥦 Insumos</div>
+            <div class="sub-item" id="sub-clientes" onclick="changeSub('clientes')">🤝 Clientes</div>
+            <div class="sub-item" id="sub-embalagens" onclick="changeSub('embalagens')">📦 Embalagens/Etq</div>
+        </div>
+        <div class="card"><h3>Cadastro</h3><div id="form-dinamico"></div><button class="btn btn-save" onclick="salvarGeral()">SALVAR REGISTRO</button><input type="hidden" id="edit-id"></div>
+        <div class="card"><h3>Registros Salvos</h3><div id="tabela-registros"></div></div>
     </div>
     <div id="tab-vendas" class="tab-pane" style="display:none;">
         <div class="card"><h3>🛠️ Montar Ficha Técnica</h3>
             <div class="grid-form"><div><label>Produto</label><input type="text" id="kit-nome"></div><div><label>Insumo</label><select id="sel-insumo"></select></div><div><label>Peso (g)</label><input type="number" id="kit-peso-liq"></div><div><label>&nbsp;</label><button class="btn btn-add" onclick="adicionarIngrediente()">+ ADD</button></div></div>
-            <div id="lista-ingredientes" style="margin:10px 0; padding:10px; background:#f0f0f0; border-radius:8px;"></div>
-            <div class="grid-form"><div><label>Embalagem</label><select id="sel-emb" onchange="calcularTotalKit()"></select></div><div><label>Etiqueta</label><select id="sel-etq" onchange="calcularTotalKit()"></select></div><div><label>% Lucro Desejado</label><input type="number" id="kit-margem" value="100" oninput="calcularTotalKit()"></div></div>
+            <div id="lista-ingredientes" style="min-height:40px; margin:10px 0; padding:10px; background:#f0f0f0; border-radius:8px;">Adicione itens...</div>
+            <div class="grid-form"><div><label>Embalagem</label><select id="sel-emb" onchange="calcularTotalKit()"></select></div><div><label>Etiqueta</label><select id="sel-etq" onchange="calcularTotalKit()"></select></div><div><label>% Lucro</label><input type="number" id="kit-margem" value="100" oninput="calcularTotalKit()"></div></div>
             <div class="card" style="background: #e8f5e9;"><p>Custo: <strong id="res-custo-total">R$ 0,00</strong> | Sugerido: <strong id="res-venda-sugerida">R$ 0,00</strong></p>
             <div class="grid-form"><div><label>Preço Final</label><input type="number" id="kit-venda-final" step="0.01"></div><div><label>Tamanho</label><input type="text" id="kit-tamanho"></div></div></div>
             <button class="btn btn-save" onclick="salvarKitNoCatalogo()">GRAVAR NO CATÁLOGO</button><input type="hidden" id="edit-kit-id"></div>
-        <div class="card"><h3>📋 Catálogo de Produtos</h3><div id="tabela-kits"></div><button class="btn btn-pdf" onclick="imprimirPDF('tabela-kits', 'Catalogo')">🖨️ IMPRIMIR CATÁLOGO</button></div>
+        <div class="card"><h3>📋 Catálogo</h3><div id="tabela-kits"></div></div>
     </div>
     <div id="tab-financeiro" class="tab-pane" style="display:none;">
-        <div class="card"><h3>💰 Registrar Venda</h3>
+        <div class="card"><h3>🛒 Carrinho de Vendas</h3>
             <div class="grid-form"><div><label>Cliente</label><select id="venda-cliente"></select></div><div><label>Produto</label><select id="venda-produto" onchange="preencherPrecoVenda()"></select></div><div><label>Qtd</label><input type="number" id="venda-qtd" value="1"></div><div><label>Preço Un.</label><input type="number" id="venda-preco-un" step="0.01"></div></div>
-            <button class="btn btn-save" style="background:var(--secondary);" onclick="finalizarVenda()">✅ LANÇAR VENDA</button><input type="hidden" id="edit-venda-id"></div>
-        <div class="card"><h3>📋 Últimas Vendas Lançadas</h3><div id="tabela-vendas-historico"></div><button class="btn btn-pdf" onclick="imprimirPDF('tabela-vendas-historico', 'Vendas')">🖨️ IMPRIMIR VENDAS</button></div>
+            <button class="btn btn-add" style="width:100%; margin-bottom:10px;" onclick="adicionarAoCarrinho()">➕ ADICIONAR AO CARRINHO</button>
+            <div class="carrinho-area" id="area-carrinho"><strong>Itens:</strong><div id="display-carrinho">Carrinho vazio...</div><h4 id="total-venda-carrinho">Total: R$ 0,00</h4></div>
+            <button class="btn btn-save" style="background:var(--secondary);" onclick="finalizarVendaCompleta()">✅ FINALIZAR E LANÇAR VENDA</button></div>
+        <div class="card"><h3>📋 Histórico de Vendas</h3><div id="tabela-vendas-historico"></div><button class="btn btn-pdf" onclick="imprimirPDF('tabela-vendas-historico', 'Vendas')">🖨️ GERAR PDF VENDAS</button></div>
     </div>
-    <div id="tab-estoque" class="tab-pane" style="display:none;"><div class="card"><h3>📦 Estoque de Insumos</h3><div id="tabela-estoque"></div><button class="btn btn-pdf" onclick="imprimirPDF('tabela-estoque', 'Estoque')">🖨️ IMPRIMIR ESTOQUE</button></div></div>
-    <div id="tab-relatorios" class="tab-pane" style="display:none;"><div class="card"><h3>📊 Resumo Geral</h3><div id="display-relatorio"></div><button class="btn btn-pdf" onclick="imprimirPDF('display-relatorio', 'Relatorio')">🖨️ IMPRIMIR RELATÓRIO</button></div></div>
+    <div id="tab-estoque" class="tab-pane" style="display:none;"><div class="card"><h3>📦 Estoque Atual</h3><div id="tabela-estoque"></div></div></div>
 </div>
 <script>
     const firebaseConfig = {
@@ -77,7 +82,7 @@
         appId: "1:596792658513:web:92bb97b0d835efc5510670"
     };
 
-    let db, subAtual = 'insumos', receitaNoMomento = [], editingId = null;
+    let db, subAtual = 'insumos', receitaNoMomento = [], carrinhoVendas = [], editingId = null;
     let dadosGlobal = { insumos: {}, embalagens: {}, clientes: {}, produtos: {}, vendas: {} };
 
     function iniciarApp() { firebase.initializeApp(firebaseConfig); db = firebase.database(); escutarDados(); changeTab('cadastros'); }
@@ -88,7 +93,7 @@
             dadosGlobal.insumos = d.insumos || {}; dadosGlobal.embalagens = d.embalagens || {};
             dadosGlobal.clientes = d.clientes || {}; dadosGlobal.produtos = d.produtos_final || {};
             dadosGlobal.vendas = d.vendas || {};
-            atualizarSelects(); carregarTabelaGeral(); carregarTabelaKits(); carregarTabelaVendas(); carregarEstoque(); gerarRelatorioRapido();
+            atualizarSelects(); carregarTabelaGeral(); carregarTabelaKits(); carregarTabelaVendas(); carregarEstoque();
         });
     }
 
@@ -108,6 +113,20 @@
         if(s==='insumos') f.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>FC</label><input id="f-2" type="number"></div><div><label>Preço KG</label><input id="f-3" type="number"></div></div>`;
         else if(s==='clientes') f.innerHTML = `<div class="grid-form"><div><label>Nome</label><input id="f-1"></div><div><label>Tipo</label><select id="f-2"><option>Atacado</option><option>Varejo</option></select></div></div>`;
         else f.innerHTML = `<div class="grid-form"><div><label>Descrição</label><input id="f-1"></div><div><label>Custo Un.</label><input id="f-2" type="number"></div></div>`;
+        carregarTabelaGeral();
+    }
+
+    function carregarTabelaGeral() {
+        const div = document.getElementById('tabela-registros');
+        div.innerHTML = "";
+        let lista = dadosGlobal[subAtual];
+        let h = '<table><tr><th>Nome</th><th>Info</th><th>Ações</th></tr>';
+        for(let id in lista) {
+            let item = lista[id];
+            let info = subAtual==='insumos' ? `R$ ${item.preco}` : (item.tipo || `R$ ${item.custo}`);
+            h += `<tr><td>${item.nome}</td><td>${info}</td><td><button class="btn-edit" onclick="prepararEdicao('${id}')">✏️</button><button class="btn-del" onclick="removerItem('${subAtual}','${id}')">🗑️</button></td></tr>`;
+        }
+        div.innerHTML = h + '</table>';
     }
 
     function salvarGeral() {
@@ -118,12 +137,6 @@
         if(editingId) db.ref('erp_v2/'+subAtual+'/'+editingId).update(obj);
         else db.ref('erp_v2/'+subAtual).push(obj);
         document.getElementById('f-1').value = ""; editingId = null;
-    }
-
-    function carregarTabelaGeral() {
-        let l = dadosGlobal[subAtual], h = '<table><tr><th>Nome</th><th>Info</th><th>Ações</th></tr>';
-        for(let id in l) h += `<tr><td>${l[id].nome}</td><td>${subAtual==='insumos'?'R$ '+l[id].preco:l[id].tipo||'R$ '+l[id].custo}</td><td><button class="btn-edit" onclick="prepararEdicao('${id}')">✏️</button><button class="btn-del" onclick="removerItem('${subAtual}','${id}')">🗑️</button></td></tr>`;
-        document.getElementById('tabela-registros').innerHTML = h + '</table>';
     }
 
     function prepararEdicao(id) {
@@ -159,33 +172,44 @@
 
     function salvarKitNoCatalogo() {
         const p = { nome: document.getElementById('kit-nome').value.toUpperCase(), tamanho: document.getElementById('kit-tamanho').value, custoProducao: document.getElementById('res-custo-total').innerText.replace("R$ ",""), precoSugerido: document.getElementById('kit-venda-final').value };
-        const id = document.getElementById('edit-kit-id').value;
-        if(id) db.ref('erp_v2/produtos_final/'+id).update(p); else db.ref('erp_v2/produtos_final').push(p);
-        receitaNoMomento = []; desenharReceita(); document.getElementById('kit-nome').value=""; document.getElementById('edit-kit-id').value="";
+        db.ref('erp_v2/produtos_final').push(p);
+        receitaNoMomento = []; desenharReceita(); document.getElementById('kit-nome').value="";
     }
 
     function carregarTabelaKits() {
-        let h = '<table><tr><th>Produto</th><th>Tamanho</th><th>Preço</th><th>Ações</th></tr>';
-        for(let id in dadosGlobal.produtos) { const p = dadosGlobal.produtos[id]; h += `<tr><td>${p.nome}</td><td>${p.tamanho}</td><td>R$ ${p.precoSugerido}</td><td><button class="btn-edit" onclick="editarKit('${id}')">✏️</button><button class="btn-del" onclick="removerItem('produtos_final','${id}')">🗑️</button></td></tr>`; }
+        let h = '<table><tr><th>Produto</th><th>Preço</th><th>Ação</th></tr>';
+        for(let id in dadosGlobal.produtos) { const p = dadosGlobal.produtos[id]; h += `<tr><td>${p.nome}</td><td>R$ ${p.precoSugerido}</td><td><button class="btn-del" onclick="removerItem('produtos_final','${id}')">🗑️</button></td></tr>`; }
         document.getElementById('tabela-kits').innerHTML = h + '</table>';
     }
 
-    function editarKit(id) { const p = dadosGlobal.produtos[id]; document.getElementById('kit-nome').value = p.nome; document.getElementById('kit-tamanho').value = p.tamanho; document.getElementById('kit-venda-final').value = p.precoSugerido; document.getElementById('edit-kit-id').value = id; window.scrollTo(0,0); }
+    function adicionarAoCarrinho() {
+        const pSel = document.getElementById('venda-produto');
+        const q = parseFloat(document.getElementById('venda-qtd').value);
+        const pr = parseFloat(document.getElementById('venda-preco-un').value);
+        if(!pSel.value || q <= 0) return;
+        carrinhoVendas.push({ produto: pSel.options[pSel.selectedIndex].text, qtd: q, preco: pr, total: (q*pr) });
+        atualizarCarrinhoUI();
+    }
 
-    function finalizarVenda() {
-        const v = { cliente: document.getElementById('venda-cliente').value, produto: document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text, idProduto: document.getElementById('venda-produto').value, qtd: document.getElementById('venda-qtd').value, total: (document.getElementById('venda-qtd').value * document.getElementById('venda-preco-un').value).toFixed(2) };
-        const id = document.getElementById('edit-venda-id').value;
-        if(id) db.ref('erp_v2/vendas/'+id).update(v); else db.ref('erp_v2/vendas').push(v);
-        document.getElementById('edit-venda-id').value = "";
+    function atualizarCarrinhoUI() {
+        let h = '', t = 0;
+        carrinhoVendas.forEach((it, i) => { h += `<div>${it.qtd}x ${it.produto} - R$ ${it.total.toFixed(2)} <button onclick="carrinhoVendas.splice(${i},1); atualizarCarrinhoUI()">❌</button></div>`; t += it.total; });
+        document.getElementById('display-carrinho').innerHTML = h || "Carrinho vazio...";
+        document.getElementById('total-venda-carrinho').innerText = `Total: R$ ${t.toFixed(2)}`;
+    }
+
+    function finalizarVendaCompleta() {
+        const cli = document.getElementById('venda-cliente').value;
+        if(!cli || carrinhoVendas.length === 0) return alert("Dados incompletos!");
+        carrinhoVendas.forEach(it => { db.ref('erp_v2/vendas').push({ cliente: cli, produto: it.produto, total: it.total.toFixed(2), qtd: it.qtd }); });
+        carrinhoVendas = []; atualizarCarrinhoUI(); alert("Venda Lançada!");
     }
 
     function carregarTabelaVendas() {
         let h = '<table><tr><th>CLIENTE</th><th>Produto</th><th>Total</th><th>Ação</th></tr>';
-        for(let id in dadosGlobal.vendas) { const v = dadosGlobal.vendas[id]; h += `<tr><td><strong>${v.cliente}</strong></td><td>${v.produto}</td><td>R$ ${v.total}</td><td><button class="btn-edit" onclick="editarVenda('${id}')">✏️</button><button class="btn-del" onclick="removerItem('vendas','${id}')">🗑️</button></td></tr>`; }
+        for(let id in dadosGlobal.vendas) { const v = dadosGlobal.vendas[id]; h += `<tr><td><strong>${v.cliente}</strong></td><td>${v.produto}</td><td>R$ ${v.total}</td><td><button class="btn-del" onclick="removerItem('vendas','${id}')">🗑️</button></td></tr>`; }
         document.getElementById('tabela-vendas-historico').innerHTML = h + '</table>';
     }
-
-    function editarVenda(id) { const v = dadosGlobal.vendas[id]; document.getElementById('venda-cliente').value = v.cliente; document.getElementById('venda-produto').value = v.idProduto; document.getElementById('venda-qtd').value = v.qtd; document.getElementById('venda-preco-un').value = (v.total/v.qtd).toFixed(2); document.getElementById('edit-venda-id').value = id; window.scrollTo(0,0); }
 
     function carregarEstoque() { let h = '<table><tr><th>Item</th><th>Custo</th></tr>'; for(let id in dadosGlobal.insumos) h += `<tr><td>${dadosGlobal.insumos[id].nome}</td><td>R$ ${dadosGlobal.insumos[id].preco}</td></tr>`; document.getElementById('tabela-estoque').innerHTML = h + '</table>'; }
 
@@ -201,7 +225,6 @@
     function preencherPrecoVenda() { const id = document.getElementById('venda-produto').value; if(id) document.getElementById('venda-preco-un').value = dadosGlobal.produtos[id].precoSugerido; }
     function removerItem(p, id) { if(confirm("Excluir?")) db.ref('erp_v2/'+p+'/'+id).remove(); }
     function imprimirPDF(id, t) { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.text("HORTINUTRI - " + t.toUpperCase(), 14, 15); doc.autoTable({ html: '#'+id+' table', startY: 20 }); doc.save(t + ".pdf"); }
-    function gerarRelatorioRapido() { let t = 0; for(let id in dadosGlobal.vendas) t += parseFloat(dadosGlobal.vendas[id].total); document.getElementById('display-relatorio').innerHTML = `<h4>Total: R$ ${t.toFixed(2)}</h4>`; }
 </script>
 </body>
 </html>
