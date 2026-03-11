@@ -45,7 +45,12 @@ nav ul li:hover, nav ul li.active { background: var(--primary-color); }
 .menu-title-single { font-weight: bold; border-top: 1px solid #444; margin-top: 5px; }
 
 /* Conteúdo Principal */
-.main-content { margin-left: 260px; width: calc(100% - 260px); }
+.main-content { 
+    margin-left: 260px; 
+    width: calc(100% - 260px); 
+    display: flex;
+    flex-direction: column;
+}
 
 .top-header {
     background: white;
@@ -54,6 +59,9 @@ nav ul li:hover, nav ul li.active { background: var(--primary-color); }
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky; /* Isso mantém a barra no topo */
+    top: 0;
+    z-index: 900; /* Fica abaixo do menu lateral */
 }
 
 #content-area { padding: 25px; }
@@ -75,9 +83,9 @@ input:focus { border-color: var(--primary-color); }
 
 /* Ajustes para Celular */
 @media (max-width: 768px) {
-    .sidebar { width: 70px; }
+    .sidebar { width: 60px; }
     .sidebar span, .sidebar .menu-title, .logo h2 { display: none; }
-    .main-content { margin-left: 70px; width: calc(100% - 70px); }
-    .top-header { padding: 15px; }
-                  }
+    .main-content { margin-left: 60px; width: calc(100% - 60px); }
+    .top-header h1 { font-size: 16px; } /* Diminui o texto para não encavalar */
+}
 
