@@ -1,80 +1,63 @@
-// Controle de Abas (Navegação)
+// Função para trocar de abas (Tabs)
 function showTab(tabId) {
-    // 1. Esconde todas as telas
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-    });
-    
-    // 2. Mostra a tela selecionada
-    const targetTab = document.getElementById('tab-' + tabId);
-    if (targetTab) {
-        targetTab.style.display = 'block';
-    } else {
-        // Caso a aba ainda não exista no HTML, mostra um aviso simples
-        console.warn("Aba não encontrada: " + tabId);
+    // Esconde todas as telas
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.style.display = 'none');
+
+    // Remove a classe 'active' de todos os itens do menu
+    const menuItems = document.querySelectorAll('.sidebar li');
+    menuItems.forEach(item => item.classList.remove('active'));
+
+    // Mostra a tela selecionada
+    const selectedTab = document.getElementById('tab-' + tabId);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
     }
 
-    // 3. Atualiza o título no topo
-    const tabTitles = {
+    // Atualiza o título no topo
+    const titles = {
         'dashboard': 'DASHBOARD',
         'clientes': 'CADASTRO DE CLIENTES',
         'insumos': 'GESTÃO DE INSUMOS',
-        'embalagens': 'EMBALAGENS',
-        'mix-kits': 'MIX E KITS',
         'ficha-tecnica': 'FICHA TÉCNICA',
-        'producao': 'PRODUÇÃO',
-        'estoque-insumos': 'ESTOQUE DE INSUMOS',
-        'estoque-produtos': 'ESTOQUE DE PRODUTOS',
-        'vendas': 'SISTEMA DE VENDAS',
-        'relatorios': 'RELATÓRIOS',
-        'financeiro': 'FINANCEIRO'
+        'vendas': 'CENTRAL DE VENDAS',
+        'financeiro': 'RESUMO FINANCEIRO'
     };
-    
-    document.getElementById('current-tab-title').innerText = tabTitles[tabId] || tabId.toUpperCase();
-    
-    // 4. Marca o item ativo no menu (Correção do 'event')
-    document.querySelectorAll('nav ul li').forEach(li => li.classList.remove('active'));
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
-    }
+    document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
+
+    // Adiciona classe ativa no menu (opcional, busca pelo texto se necessário)
 }
 
-// Inicialização
+// --- FUNÇÕES DE BANCO DE DATA (FIREBASE) ---
+
+function salvarCliente() {
+    const nome = document.getElementById('cli-nome').value;
+    const fone = document.getElementById('cli-fone').value;
+
+    if (nome === "" || fone === "") {
+        alert("Por favor, preencha o nome e o WhatsApp do cliente!");
+        return;
+    }
+
+    // Criando uma "pasta" no Firebase chamada 'clientes'
+    const novoClienteRef = firebase.database().ref('clientes').push();
+    
+    novoClienteRef.set({
+        nome: nome,
+        telefone: fone,
+        dataCadastro: new Date().toLocaleDateString('pt-BR')
+    }).then(() => {
+        alert("Cliente " + nome + " salvo com sucesso!");
+        // Limpa os campos após salvar
+        document.getElementById('cli-nome').value = "";
+        document.getElementById('cli-fone').value = "";
+    }).catch((error) => {
+        console.error("Erro ao salvar:", error);
+        alert("Erro ao salvar no banco de dados.");
+    });
+}
+
+// Inicializa na Dashboard
 window.onload = () => {
-    console.log("HortiNutri ERP v11.0 Pronto!");
-    // Garante que comece na Dashboard
-    const dashboardTab = document.getElementById('tab-dashboard');
-    if(dashboardTab) dashboardTab.style.display = 'block';
+    showTab('dashboard');
 };
-
-// Funções de Venda (Base)
-let carrinho = [];
-function adicionarItemVenda() {
-    const prod = document.getElementById('venda-produto').value;
-    const qtd = document.getElementById('venda-qtd').value;
-    if(prod && qtd) {
-        carrinho.push({ prod, qtd });
-        renderCarrinho();
-        // Limpa os campos após adicionar
-        document.getElementById('venda-qtd').value = '';
-    } else {
-        alert("Selecione um produto e a quantidade!");
-    }
-}
-
-function renderCarrinho() {
-    const lista = document.getElementById('carrinho-venda');
-    if (lista) {
-        lista.innerHTML = carrinho.map((i, index) => `
-            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
-                <span>${i.qtd}x ${i.prod}</span>
-                <button onclick="removerItem(${index})" style="color:red; border:none; background:none; cursor:pointer;">X</button>
-            </div>
-        `).join('');
-    }
-}
-
-function removerItem(index) {
-    carrinho.splice(index, 1);
-    renderCarrinho();
-}
