@@ -3,67 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP+</title>
+    <title>HortiNutri ERP</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; display: flex; margin: 0; background: #f4f4f4; }
-        .sidebar { width: 200px; background: #2c3e50; color: white; min-height: 100vh; padding: 10px; }
-        .sidebar div { padding: 10px; cursor: pointer; border-bottom: 1px solid #34495e; }
-        .sidebar div:hover { background: #34495e; }
-        .main { flex: 1; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #219150; }
+        :root { --primary: #2e7d32; --sidebar: #263238; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: sans-serif; }
+        body { display: flex; background: #f4f7f6; min-height: 100vh; }
+        
+        .sidebar { width: 220px; background: var(--sidebar); color: white; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar h2 { padding: 20px; color: #4caf50; text-align: center; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { padding: 15px; border-bottom: 1px solid #37474f; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+        .sidebar li:hover { background: var(--primary); }
+        .menu-setor { background: #1a2327; padding: 5px 15px; font-size: 10px; color: #78909c; text-transform: uppercase; }
+
+        .main { margin-left: 220px; flex: 1; }
+        header { background: white; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; }
+        .container { padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .item-lista { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
+        .item-lista button { width: auto; background: #c62828; padding: 5px 10px; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar span, .sidebar h2, .menu-setor { display: none; }
+            .main { margin-left: 60px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h3 style="text-align:center;">HortiNutri+</h3>
-        <div onclick="showTab('dashboard')">Dashboard</div>
-        <div onclick="showTab('insumos')">Insumos</div>
-        <div onclick="showTab('mix-kits')">Mix / Kits</div>
-        <div onclick="showTab('vendas')">Vendas</div>
-        <div onclick="showTab('relatorios')">Relatórios</div>
-    </div>
+    <aside class="sidebar">
+        <h2>HortiNutri</h2>
+        <ul>
+            <li onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> <span>DASHBOARD</span></li>
+            <div class="menu-setor">Cadastros</div>
+            <li onclick="showTab('clientes')"><i class="fas fa-users"></i> <span>CLIENTES</span></li>
+            <li onclick="showTab('insumos')"><i class="fas fa-seedling"></i> <span>INSUMOS</span></li>
+            <li onclick="showTab('embalagens')"><i class="fas fa-box"></i> <span>EMBALAGENS</span></li>
+            <div class="menu-setor">Produtos</div>
+            <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> <span>MIX / KITS</span></li>
+            <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> <span>FICHA TÉCNICA</span></li>
+            <div class="menu-setor">Produção</div>
+            <li onclick="showTab('producao-insumos')"><i class="fas fa-dollar-sign"></i> <span>GESTÃO DE CUSTOS</span></li>
+            <li onclick="showTab('vendas')"><i class="fas fa-cart-shopping"></i> <span>VENDAS</span></li>
+            <li onclick="showTab('relatorios')"><i class="fas fa-file-lines"></i> <span>RELATÓRIOS</span></li>
+            <li onclick="showTab('financeiro')"><i class="fas fa-wallet"></i> <span>FINANCEIRO</span></li>
+        </ul>
+    </aside>
 
-    <div class="main">
-        <div id="tab-dashboard" class="tab-content">
-            <div class="card"><h1>Bem-vindo, Cristiano</h1><p>Selecione uma opção no menu lateral.</p></div>
-        </div>
-
-        <div id="tab-insumos" class="tab-content" style="display:none;">
-            <div class="card">
-                <h3>Cadastro de Insumos</h3>
-                <input type="text" id="ins-nome" placeholder="Nome do Insumo">
-                <select id="ins-unidade"><option value="Kg">Quilo (Kg)</option><option value="Un">Unidade (Un)</option></select>
-                <button onclick="btnCadastrarInsumo()">Cadastrar</button>
+    <main class="main">
+        <header><h3 id="current-tab-title">DASHBOARD</h3> <span><i class="fas fa-user-circle"></i> Admin</span></header>
+        
+        <div class="container">
+            <div id="tab-dashboard" class="tab-content">
+                <div class="card"><h3>Vendas (Últimos Dias)</h3><canvas id="graficoVendas"></canvas></div>
             </div>
-            <div class="card"><h4>Itens Cadastrados</h4><div id="lista-insumos-cadastrados"></div></div>
-        </div>
 
-        <div id="tab-mix-kits" class="tab-content" style="display:none;">
-            <div class="card">
-                <h3>Cadastro de Produtos (Mix)</h3>
-                <input type="text" id="mix-nome" placeholder="Nome do Mix">
-                <input type="number" id="mix-varejo" placeholder="Preço Varejo">
-                <input type="number" id="mix-atacado" placeholder="Preço Atacado">
-                <button onclick="btnSalvarProduto()">Salvar Produto</button>
+            <div id="tab-insumos" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Cadastro de Insumos</h3>
+                    <input type="text" id="ins-nome" placeholder="Ex: Alface, Tomate">
+                    <select id="ins-unidade"><option value="Kg">Quilo (Kg)</option><option value="Un">Unidade (Un)</option></select>
+                    <button onclick="salvarInsumo()">Cadastrar</button>
+                </div>
+                <div class="card"><h4>Lista de Insumos</h4><div id="lista-insumos-cadastrados"></div></div>
             </div>
-            <div class="card"><h4>Produtos Cadastrados</h4><div id="lista-produtos-cadastrados"></div></div>
-        </div>
 
-        <div id="tab-vendas" class="tab-content" style="display:none;">
-            <div class="card">
-                <h3>Registrar Venda</h3>
-                <select id="venda-produto-select"></select>
-                <input type="number" id="venda-valor-input" placeholder="Valor R$">
-                <button onclick="btnConfirmarVenda()">Confirmar Venda</button>
+            <div id="tab-mix-kits" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Produtos Finais</h3>
+                    <input type="text" id="mix-nome" placeholder="Nome do Mix">
+                    <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
+                    <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
+                    <button onclick="salvarProduto()">Salvar Produto</button>
+                </div>
+                <div class="card"><h4>Lista de Produtos</h4><div id="lista-produtos-cadastrados"></div></div>
+            </div>
+
+            <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Montagem de Ficha Técnica</h3>
+                    <select id="ft-produto"></select>
+                    <div style="display:flex; gap:10px;">
+                        <select id="ft-insumo-item"></select>
+                        <input type="number" id="ft-qtd" placeholder="Qtd">
+                    </div>
+                    <button>Adicionar à Lista</button>
+                </div>
+            </div>
+
+            <div id="tab-vendas" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Registrar Venda</h3>
+                    <select id="venda-produto"></select>
+                    <input type="number" id="venda-valor" placeholder="Valor Cobrado (R$)">
+                    <button onclick="finalizarVenda()">Confirmar Venda</button>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
         const firebaseConfig = {
