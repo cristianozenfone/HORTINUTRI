@@ -10,16 +10,17 @@
     <style>
         :root { --primary-color: #2e7d32; --sidebar-color: #263238; --bg-color: #f8f9fa; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; background-color: var(--bg-color); min-height: 100vh; }
-        .sidebar { width: 170px; height: 100vh; background-color: var(--sidebar-color); color: white; position: fixed; z-index: 1000; overflow-y: auto; }
-        .logo { padding: 15px; text-align: center; background: rgba(0,0,0,0.2); }
+        body { display: flex; background-color: var(--bg-color); min-height: 100vh; overflow-x: hidden; }
+        .sidebar { width: 170px; height: 100vh; background-color: var(--sidebar-color); color: white; position: fixed; z-index: 1000; overflow-y: auto; scrollbar-width: none; }
+        .sidebar::-webkit-scrollbar { display: none; }
+        .logo { padding: 15px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
         .logo h2 { color: var(--primary-color); font-size: 16px; }
         nav ul { list-style: none; padding: 10px 0; }
         nav ul li { padding: 10px 12px; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         nav ul li:hover, nav ul li.active { background: var(--primary-color); }
         .menu-title { padding: 12px 12px 4px; font-size: 9px; color: #888; font-weight: bold; }
         .main-content { margin-left: 170px; width: calc(100% - 170px); display: flex; flex-direction: column; }
-        .top-header { background: white; padding: 10px 15px; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .top-header { background: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .top-header h1 { font-size: 14px; }
         #content-area { padding: 15px; }
         .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
@@ -36,16 +37,18 @@
         <div class="logo"><h2>HortiNutri</h2></div>
         <nav>
             <ul>
-                <li onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> DASHBOARD</li>
+                <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> DASHBOARD</li>
                 <li class="menu-title">CADASTROS</li>
                 <li onclick="showTab('clientes')"><i class="fas fa-users"></i> CLIENTES</li>
                 <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> INSUMOS</li>
+                <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> EMBALAGENS</li>
                 <li class="menu-title">PRODUTOS</li>
                 <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> MIX / KITS</li>
                 <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> FICHA TÉCNICA</li>
                 <li class="menu-title">PRODUÇÃO</li>
                 <li onclick="showTab('producao-insumos')"><i class="fas fa-money-bill-wave"></i> GESTÃO DE CUSTOS</li>
-                <li onclick="showTab('vendas')" class="menu-title" style="color:white; cursor:pointer;"><i class="fas fa-cart-shopping"></i> VENDAS</li>
+                <li onclick="showTab('vendas')" class="menu-title" style="color:white; cursor:pointer; padding-top:10px;"><i class="fas fa-cart-shopping"></i> VENDAS</li>
+                <li onclick="showTab('financeiro')" class="menu-title" style="color:white; cursor:pointer;"><i class="fas fa-money-bill-trend-up"></i> FINANCEIRO</li>
             </ul>
         </nav>
     </aside>
@@ -57,7 +60,7 @@
 
         <section id="content-area">
             <div id="tab-dashboard" class="tab-content">
-                <div class="card"><h3>Bem-vindo ao HortiNutri!</h3></div>
+                <div class="card"><h3>Bem-vindo, Cristiano!</h3><p style="font-size:12px;">Selecione uma opção no menu lateral.</p></div>
             </div>
 
             <div id="tab-clientes" class="tab-content" style="display:none;">
@@ -75,21 +78,26 @@
                 <div class="card">
                     <h3>Cadastro de Insumos</h3><br>
                     <div class="form-group">
-                        <input type="text" id="ins-nome" placeholder="Nome do Insumo">
+                        <input type="text" id="ins-nome" placeholder="Ex: Cenoura">
                         <select id="ins-unidade"><option value="Kg">Quilo (Kg)</option><option value="Un">Unidade (Un)</option></select>
                         <button class="btn-save" onclick="salvarInsumo()">Cadastrar</button>
                     </div>
                 </div>
             </div>
 
+            <div id="tab-embalagens" class="tab-content" style="display:none;">
+                <div class="card"><h3>Embalagens</h3><p>Em breve...</p></div>
+            </div>
+
             <div id="tab-mix-kits" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Novo Mix / Kit</h3><br>
                     <div class="form-group">
-                        <input type="text" id="mix-nome" placeholder="Nome do Mix">
+                        <input type="text" id="mix-nome" placeholder="Ex: Mix Sopão">
+                        <input type="text" id="mix-categoria" placeholder="Categoria">
                         <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
                         <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
-                        <button class="btn-save" onclick="salvarProdutoMix()">Cadastrar Produto</button>
+                        <button class="btn-save" onclick="salvarProdutoMix()">Cadastrar</button>
                     </div>
                 </div>
             </div>
@@ -101,7 +109,7 @@
                         <select id="ft-produto" onchange="listarItensFicha(this.value)"><option>Selecione o Kit</option></select>
                         <div style="display: flex; gap: 5px;">
                             <select id="ft-insumo-item" style="flex: 2;"><option>Insumo</option></select>
-                            <input type="number" id="ft-qtd" placeholder="Qtd" style="flex: 1;">
+                            <input type="number" step="0.001" id="ft-qtd" placeholder="Qtd" style="flex: 1;">
                         </div>
                         <button class="btn-save" onclick="adicionarItemFicha()" style="background:#555;">Adicionar</button>
                     </div>
@@ -110,7 +118,20 @@
             </div>
 
             <div id="tab-producao-insumos" class="tab-content" style="display:none;">
-                <div id="lista-precos-insumos"></div>
+                <div class="card">
+                    <h3>Gestão de Custos (Preço de Compra)</h3>
+                    <p style="font-size:11px; color:#666; margin-bottom:15px;">Defina o preço pago por Unidade ou Quilo.</p>
+                    <div id="lista-precos-insumos">
+                        </div>
+                </div>
+            </div>
+
+            <div id="tab-vendas" class="tab-content" style="display:none;">
+                <div class="card"><h3>Vendas</h3><p>Em breve...</p></div>
+            </div>
+
+            <div id="tab-financeiro" class="tab-content" style="display:none;">
+                <div class="card"><h3>Financeiro</h3><p>Em breve...</p></div>
             </div>
         </section>
     </main>
