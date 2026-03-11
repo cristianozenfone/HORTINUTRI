@@ -1,4 +1,4 @@
-// --- CONTROLE DE ABAS ---
+// --- CONTROLE DE NAVEGAÇÃO ---
 function showTab(tabId) {
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.style.display = 'none');
@@ -11,7 +11,6 @@ function showTab(tabId) {
         selectedTab.style.display = 'block';
     }
 
-    // Títulos das abas
     const titles = {
         'dashboard': 'DASHBOARD',
         'clientes': 'CADASTRO DE CLIENTES',
@@ -21,15 +20,12 @@ function showTab(tabId) {
         'ficha-tecnica': 'FICHA TÉCNICA',
         'producao-insumos': 'GESTÃO DE CUSTOS',
         'vendas': 'CENTRAL DE VENDAS',
+        'relatorios': 'RELATÓRIOS E DESEMPENHO',
         'financeiro': 'RESUMO FINANCEIRO'
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
-    // Carregamento automático de dados ao abrir a aba
-    if (tabId === 'vendas') {
-        carregarClientesVenda();
-        carregarProdutosVenda();
-    }
+    // Carregamento de dados específicos
     if (tabId === 'ficha-tecnica') {
         carregarInsumosFicha();
         carregarProdutosFicha();
@@ -39,16 +35,16 @@ function showTab(tabId) {
     }
 }
 
-// --- FUNÇÕES DE CLIENTES ---
+// --- CADASTRO DE CLIENTES ---
 function salvarCliente() {
     const nome = document.getElementById('cli-nome').value;
     const fone = document.getElementById('cli-fone').value;
-    if (!nome || !fone) { alert("Preencha nome e WhatsApp!"); return; }
+    if (!nome || !fone) { alert("Preencha todos os campos!"); return; }
 
     firebase.database().ref('clientes').push({
         nome: nome,
         telefone: fone,
-        dataCadastro: new Date().toLocaleDateString('pt-BR')
+        data: new Date().toLocaleDateString()
     }).then(() => {
         alert("Cliente salvo!");
         document.getElementById('cli-nome').value = "";
@@ -56,56 +52,40 @@ function salvarCliente() {
     });
 }
 
-function carregarClientesVenda() {
-    const select = document.getElementById('venda-cliente');
-    if (!select) return;
-    select.innerHTML = '<option>Selecionar Cliente</option>';
-    firebase.database().ref('clientes').once('value', (snapshot) => {
-        snapshot.forEach((child) => {
-            const opt = document.createElement('option');
-            opt.value = child.key;
-            opt.text = child.val().nome;
-            select.appendChild(opt);
-        });
-    });
-}
-
-// --- FUNÇÕES DE INSUMOS ---
+// --- GESTÃO DE INSUMOS ---
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
-    if (!nome) { alert("Digite o nome do insumo!"); return; }
+    if (!nome) { alert("Informe o nome do insumo!"); return; }
 
     firebase.database().ref('insumos').push({
         nome: nome,
         unidade: unidade,
         custo: 0 
     }).then(() => {
-        alert(nome + " cadastrado!");
+        alert(nome + " cadastrado com sucesso!");
         document.getElementById('ins-nome').value = "";
     });
 }
 
-// GESTÃO DE CUSTOS (PREÇO DE COMPRA)
+// GESTÃO DE PREÇOS DE COMPRA
 function carregarPrecosInsumos() {
     const lista = document.getElementById('lista-precos-insumos');
     if (!lista) return;
 
     firebase.database().ref('insumos').on('value', (snapshot) => {
         lista.innerHTML = "";
-        if(!snapshot.exists()) {
-            lista.innerHTML = "<p style='padding:15px; font-size:12px;'>Nenhum insumo cadastrado.</p>";
-            return;
-        }
         snapshot.forEach((child) => {
             const ins = child.val();
             const id = child.key;
+            const unidadePadrao = ins.unidade || "Un"; // Correção do undefined
+
             lista.innerHTML += `
-                <div class="card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px;">
-                    <div style="font-size:12px;"><strong>${ins.nome}</strong> (${ins.unidade})</div>
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:10px;">
+                    <div style="font-size:12px;"><strong>${ins.nome}</strong> (${unidadePadrao})</div>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" step="0.01" id="preco-${id}" value="${ins.custo || 0}" style="width:70px; padding:5px; font-size:12px;">
-                        <button onclick="atualizarCustoInsumo('${id}')" style="background:var(--primary-color); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer;">OK</button>
+                        <input type="number" step="0.01" id="preco-${id}" value="${ins.custo || 0}" style="width:75px; padding:5px;">
+                        <button onclick="atualizarCustoInsumo('${id}')" style="background:var(--primary-color); color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">OK</button>
                     </div>
                 </div>
             `;
@@ -117,35 +97,26 @@ function atualizarCustoInsumo(id) {
     const novoCusto = parseFloat(document.getElementById('preco-' + id).value) || 0;
     firebase.database().ref('insumos/' + id).update({ custo: novoCusto }).then(() => {
         alert("Custo atualizado!");
-        recalcularTodosOsMixes();
+        recalcularCustosProdutos();
     });
 }
 
-function recalcularTodosOsMixes() {
-    firebase.database().ref('produtos').once('value', (snapshot) => {
-        snapshot.forEach((child) => { atualizarCustoTotalProduto(child.key); });
-    });
-}
-
-// --- PRODUTOS (MIX / KITS) ---
+// --- GESTÃO DE PRODUTOS (MIX) ---
 function salvarProdutoMix() {
     const nome = document.getElementById('mix-nome').value;
-    const categoria = document.getElementById('mix-categoria').value;
-    const varejo = parseFloat(document.getElementById('mix-varejo').value) || 0;
-    const atacado = parseFloat(document.getElementById('mix-atacado').value) || 0;
+    const precoVarejo = parseFloat(document.getElementById('mix-varejo').value) || 0;
+    const precoAtacado = parseFloat(document.getElementById('mix-atacado').value) || 0;
 
-    if (!nome) { alert("Digite o nome do Mix!"); return; }
+    if (!nome) { alert("Informe o nome do Mix!"); return; }
 
     firebase.database().ref('produtos').push({
         nome: nome,
-        categoria: categoria,
-        preco_varejo: varejo,
-        preco_atacado: atacado,
-        custo_total: 0 
+        preco_varejo: precoVarejo,
+        preco_atacado: precoAtacado,
+        custo_total: 0
     }).then(() => {
-        alert("Produto " + nome + " criado!");
+        alert("Produto criado!");
         document.getElementById('mix-nome').value = "";
-        document.getElementById('mix-categoria').value = "";
         document.getElementById('mix-varejo').value = "";
         document.getElementById('mix-atacado').value = "";
     });
@@ -160,7 +131,7 @@ function carregarInsumosFicha() {
         snapshot.forEach((child) => {
             const opt = document.createElement('option');
             opt.value = child.key;
-            opt.text = child.val().nome + " (" + child.val().unidade + ")";
+            opt.text = child.val().nome + " (" + (child.val().unidade || "Un") + ")";
             select.appendChild(opt);
         });
     });
@@ -183,42 +154,33 @@ function carregarProdutosFicha() {
 function adicionarItemFicha() {
     const produtoId = document.getElementById('ft-produto').value;
     const insumoId = document.getElementById('ft-insumo-item').value;
-    const quantidade = parseFloat(document.getElementById('ft-qtd').value) || 0;
+    const qtd = parseFloat(document.getElementById('ft-qtd').value) || 0;
 
-    if (produtoId === "Selecione o Kit" || insumoId === "Insumo" || quantidade <= 0) {
-        alert("Preencha todos os campos!"); return;
+    if (produtoId === "Selecione o Kit" || insumoId === "Insumo" || qtd <= 0) {
+        alert("Preencha todos os dados!"); return;
     }
 
     firebase.database().ref('insumos/' + insumoId).once('value', (snapshot) => {
-        const insumo = snapshot.val();
-        const subtotal = (insumo.custo || 0) * quantidade;
+        const ins = snapshot.val();
+        const subtotal = (ins.custo || 0) * qtd;
 
         firebase.database().ref('fichas_tecnicas/' + produtoId).push({
-            insumoNome: insumo.nome,
+            insumoNome: ins.nome,
             insumoId: insumoId,
-            quantidade: quantidade,
-            unidade: insumo.unidade,
+            quantidade: qtd,
+            unidade: ins.unidade || "Un",
             subtotal: subtotal
         }).then(() => {
             document.getElementById('ft-qtd').value = "";
-            atualizarCustoTotalProduto(produtoId);
+            atualizarCustoFinalProduto(produtoId);
             listarItensFicha(produtoId);
         });
     });
 }
 
-function atualizarCustoTotalProduto(produtoId) {
-    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', (snapshot) => {
-        let custoTotal = 0;
-        snapshot.forEach((child) => { custoTotal += child.val().subtotal; });
-        firebase.database().ref('produtos/' + produtoId).update({ custo_total: custoTotal });
-    });
-}
-
 function listarItensFicha(produtoId) {
     const lista = document.getElementById('lista-itens-ficha');
-    if (!lista) return;
-    if (produtoId === "Selecione o Kit") { lista.innerHTML = ""; return; }
+    if (!lista || produtoId === "Selecione o Kit") return;
 
     firebase.database().ref('fichas_tecnicas/' + produtoId).on('value', (snapshot) => {
         lista.innerHTML = "";
@@ -229,18 +191,17 @@ function listarItensFicha(produtoId) {
     });
 }
 
-// --- VENDAS ---
-function carregarProdutosVenda() {
-    const select = document.getElementById('venda-produto');
-    if (!select) return;
-    select.innerHTML = '<option>Selecionar Produto</option>';
+function atualizarCustoFinalProduto(produtoId) {
+    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', (snapshot) => {
+        let total = 0;
+        snapshot.forEach(c => total += c.val().subtotal);
+        firebase.database().ref('produtos/' + produtoId).update({ custo_total: total });
+    });
+}
+
+function recalcularCustosProdutos() {
     firebase.database().ref('produtos').once('value', (snapshot) => {
-        snapshot.forEach((child) => {
-            const opt = document.createElement('option');
-            opt.value = child.key;
-            opt.text = child.val().nome;
-            select.appendChild(opt);
-        });
+        snapshot.forEach(p => atualizarCustoFinalProduto(p.key));
     });
 }
 
