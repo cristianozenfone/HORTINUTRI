@@ -3,44 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HortiNutri ERP+ | Gestão Profissional</title>
+    <title>HortiNutri ERP | Gestão Profissional</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #2e7d32; --dark: #263238; --bg: #f8f9fa; }
+        :root { --primary: #2e7d32; --sidebar-bg: #263238; --bg: #f4f7f6; }
         * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
         body { display: flex; background: var(--bg); min-height: 100vh; }
 
-        /* SIDEBAR */
-        .sidebar { width: 220px; background: var(--dark); color: white; position: fixed; height: 100vh; overflow-y: auto; }
-        .sidebar h2 { padding: 20px; text-align: center; color: #4caf50; border-bottom: 1px solid #37474f; }
+        /* Sidebar Profissional */
+        .sidebar { width: 220px; background: var(--sidebar-bg); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar h2 { padding: 20px; text-align: center; color: #4caf50; font-size: 1.2rem; border-bottom: 1px solid #37474f; }
         .sidebar ul { list-style: none; }
-        .sidebar li { padding: 15px; border-bottom: 1px solid #37474f; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .sidebar li:hover { background: var(--primary); }
-        .section-title { padding: 10px 15px; font-size: 10px; color: #78909c; text-transform: uppercase; background: #1a2327; }
+        .sidebar li { padding: 12px 20px; border-bottom: 1px solid #37474f; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; transition: 0.2s; }
+        .sidebar li:hover, .sidebar li.active { background: var(--primary); }
+        .menu-label { padding: 10px 20px; font-size: 0.65rem; color: #78909c; text-transform: uppercase; letter-spacing: 1px; background: #1a2327; }
 
-        /* CONTEÚDO */
+        /* Área Principal */
         .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
-        header { background: white; padding: 15px 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .container { padding: 25px; max-width: 1100px; width: 100%; margin: 0 auto; }
-        
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 15px; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        header { background: white; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .content { padding: 30px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+        /* Cards e Inputs */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; }
         button:hover { background: #1b5e20; }
 
-        .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .btn-del { width: auto; background: #d32f2f; padding: 5px 12px; margin: 0; }
-        .card-custo { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .card-custo input { width: 80px; margin: 0; }
-        .card-custo button { width: auto; margin-left: 10px; padding: 8px; }
+        /* Estilo das Listas */
+        .data-list { margin-top: 15px; }
+        .data-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; }
+        .btn-delete { background: #d32f2f; width: auto; padding: 6px 12px; font-size: 12px; margin: 0; }
 
+        /* Mobile */
         @media (max-width: 768px) {
-            .sidebar { width: 60px; }
-            .sidebar span, .sidebar h2, .section-title { display: none; }
-            .main { margin-left: 60px; }
+            .sidebar { width: 70px; }
+            .sidebar span, .sidebar h2, .menu-label { display: none; }
+            .main { margin-left: 70px; }
+            .grid-2 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -49,94 +52,99 @@
     <aside class="sidebar">
         <h2>HortiNutri+</h2>
         <ul>
-            <li onclick="showTab('dashboard')"><i class="fas fa-chart-pie"></i> <span>DASHBOARD</span></li>
-            <div class="section-title">Cadastros</div>
-            <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> <span>INSUMOS</span></li>
-            <li onclick="showTab('mix-kits')"><i class="fas fa-box-open"></i> <span>MIX / KITS</span></li>
-            <div class="section-title">Produção</div>
-            <li onclick="showTab('ficha-tecnica')"><i class="fas fa-recipe"></i> <span>FICHA TÉCNICA</span></li>
+            <li onclick="showTab('dashboard')" class="active"><i class="fas fa-home"></i> <span>DASHBOARD</span></li>
+            
+            <div class="menu-label">Cadastros Base</div>
+            <li onclick="showTab('clientes')"><i class="fas fa-users"></i> <span>CLIENTES</span></li>
+            <li onclick="showTab('insumos')"><i class="fas fa-leaf"></i> <span>INSUMOS</span></li>
+            <li onclick="showTab('embalagens')"><i class="fas fa-box"></i> <span>EMBALAGENS</span></li>
+            
+            <div class="menu-label">Engenharia e Custos</div>
+            <li onclick="showTab('mix-kits')"><i class="fas fa-tags"></i> <span>MIX / KITS</span></li>
+            <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-alt"></i> <span>FICHA TÉCNICA</span></li>
             <li onclick="showTab('producao-insumos')"><i class="fas fa-calculator"></i> <span>GESTÃO DE CUSTOS</span></li>
-            <div class="section-title">Comercial</div>
-            <li onclick="showTab('vendas')"><i class="fas fa-cash-register"></i> <span>VENDAS</span></li>
+            
+            <div class="menu-label">Operacional</div>
+            <li onclick="showTab('vendas')"><i class="fas fa-shopping-cart"></i> <span>VENDAS</span></li>
             <li onclick="showTab('relatorios')"><i class="fas fa-chart-line"></i> <span>RELATÓRIOS</span></li>
             <li onclick="showTab('financeiro')"><i class="fas fa-wallet"></i> <span>FINANCEIRO</span></li>
         </ul>
     </aside>
 
     <main class="main">
-        <header><h3 id="current-tab-title">DASHBOARD</h3> <span>Cristiano | Admin</span></header>
+        <header><h3 id="current-tab-title">DASHBOARD</h3> <span><i class="fas fa-user-circle"></i> Admin</span></header>
         
-        <div class="container">
+        <div class="content">
             <div id="tab-dashboard" class="tab-content">
-                <div class="card"><h3>Vendas Semanais</h3><canvas id="graficoVendas"></canvas></div>
+                <div class="card"><h3>Desempenho de Vendas</h3><canvas id="graficoVendas" style="max-height: 300px;"></canvas></div>
             </div>
 
             <div id="tab-insumos" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Cadastro de Insumos</h3>
-                    <input type="text" id="ins-nome" placeholder="Nome (Ex: Cenoura)">
-                    <select id="ins-unidade"><option value="Kg">Quilo (Kg)</option><option value="Un">Unidade (Un)</option></select>
-                    <input type="number" id="ins-fc" step="0.1" placeholder="Fator de Correção (Ex: 1.2)">
-                    <button onclick="salvarInsumo()">Cadastrar</button>
+                    <div class="grid-2">
+                        <input type="text" id="ins-nome" placeholder="Nome (Ex: Batata Doce)">
+                        <select id="ins-unidade"><option value="Kg">Kg</option><option value="Un">Unidade</option></select>
+                    </div>
+                    <input type="number" id="ins-fc" step="0.01" placeholder="Fator de Correção (Ex: 1.20)">
+                    <button onclick="salvarInsumo()">Salvar Insumo</button>
                 </div>
-                <div class="card"><h4>Insumos Ativos</h4><div id="lista-insumos-cadastrados"></div></div>
+                <div class="card"><h4>Insumos Registrados</h4><div id="lista-insumos" class="data-list"></div></div>
             </div>
 
             <div id="tab-mix-kits" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Cadastro de Produtos (Mix)</h3>
-                    <input type="text" id="mix-nome" placeholder="Nome do Mix">
-                    <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
-                    <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
-                    <button onclick="salvarProduto()">Salvar Produto</button>
+                    <h3>Produtos Finais</h3>
+                    <input type="text" id="mix-nome" placeholder="Nome do Produto/Mix">
+                    <div class="grid-2">
+                        <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
+                        <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
+                    </div>
+                    <button onclick="salvarProduto()">Cadastrar Produto</button>
                 </div>
-                <div class="card"><h4>Produtos Ativos</h4><div id="lista-produtos-cadastrados"></div></div>
+                <div class="card"><h4>Mix/Kits Ativos</h4><div id="lista-produtos" class="data-list"></div></div>
             </div>
 
             <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Montagem da Receita</h3>
-                    <select id="ft-produto"></select>
-                    <select id="ft-insumo-item"></select>
-                    <input type="number" id="ft-qtd" step="0.001" placeholder="Quantidade Utilizada">
-                    <button onclick="adicionarItemFicha()">Adicionar Ingrediente</button>
-                    <ul id="lista-itens-ficha" style="margin-top:15px; font-size:14px;"></ul>
+                    <h3>Composição do Produto</h3>
+                    <select id="ft-produto" onchange="listarItensFicha(this.value)"></select>
+                    <div class="grid-2">
+                        <select id="ft-insumo-item"></select>
+                        <input type="number" id="ft-qtd" step="0.001" placeholder="Qtd Bruta">
+                    </div>
+                    <button onclick="adicionarItemFicha()">Vincular Ingrediente</button>
                 </div>
+                <div class="card"><h4>Itens da Receita</h4><div id="lista-itens-ficha" class="data-list"></div></div>
             </div>
 
             <div id="tab-producao-insumos" class="tab-content" style="display:none;">
-                <div class="card"><h3>Preços de Compra</h3><div id="lista-precos-insumos"></div></div>
+                <div class="card"><h3>Atualizar Preços de Compra</h3><div id="lista-precos-insumos"></div></div>
             </div>
 
             <div id="tab-vendas" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Registrar Venda</h3>
+                    <h3>Nova Venda</h3>
                     <select id="venda-produto"></select>
-                    <input type="number" id="venda-valor" placeholder="Valor Cobrado (R$)">
-                    <button onclick="finalizarVenda()">Confirmar Venda</button>
-                </div>
-            </div>
-
-            <div id="tab-relatorios" class="tab-content" style="display:none;">
-                <div class="card" style="display:flex; justify-content:space-around; background: var(--primary); color: white;">
-                    <div style="text-align:center;">Vendas: <br><h2 id="total-vendas-rep">R$ 0,00</h2></div>
-                    <div style="text-align:center;">Lucro: <br><h2 id="total-lucro-rep">R$ 0,00</h2></div>
+                    <input type="number" id="venda-valor" placeholder="Valor Final da Venda (R$)">
+                    <button onclick="finalizarVenda()">Confirmar Lançamento</button>
                 </div>
             </div>
 
             <div id="tab-financeiro" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Lançar Gasto Extra</h3>
-                    <input type="text" id="fin-desc" placeholder="Ex: Gasolina, Energia">
-                    <input type="number" id="fin-valor" placeholder="Valor R$">
-                    <button onclick="salvarDespesa()">Salvar Gasto</button>
+                    <h3>Lançar Despesa Extra</h3>
+                    <input type="text" id="fin-desc" placeholder="Descrição (Ex: Combustível)">
+                    <input type="number" id="fin-valor" placeholder="Valor (R$)">
+                    <button onclick="salvarDespesa()">Registrar Gasto</button>
                 </div>
-                <div class="card"><h4>Histórico Financeiro</h4><div id="lista-financeiro"></div></div>
+                <div class="card"><h4>Histórico Financeiro</h4><div id="lista-financeiro" class="data-list"></div></div>
             </div>
         </div>
     </main>
 
     <script>
+        // CONFIGURAÇÃO FIREBASE AQUI
         const firebaseConfig = {
             apiKey: "AIzaSyAtdG9St1_3VBIQDVN0VX77USqPxSvY4wg",
             authDomain: "hortinutri-3f2ea.firebaseapp.com",
