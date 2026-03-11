@@ -7,6 +7,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -189,11 +190,27 @@
                     </div>
                 </div>
             </div>
-
         </section>
     </main>
 
-    <script src="firebase.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyAtdG9St1_3VBIQDVN0VX77USqPxSvY4wg",
+        authDomain: "hortinutri-3f2ea.firebaseapp.com",
+        databaseURL: "https://hortinutri-3f2ea-default-rtdb.firebaseio.com",
+        projectId: "hortinutri-3f2ea",
+        storageBucket: "hortinutri-3f2ea.firebaseapp.com",
+        messagingSenderId: "596792658513",
+        appId: "1:596792658513:web:92bb97b0d835efc5510670",
+        measurementId: "G-2VRVCZB78K"
+      };
+
+      // Inicializa o Firebase
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+    </script>
+
     <script src="app.js"></script>
 </body>
 </html>
