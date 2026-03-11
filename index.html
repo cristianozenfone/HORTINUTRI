@@ -75,9 +75,9 @@
         /* Estilo dos Cards das Telas */
         .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; width: 100%; }
         .btn-save { background: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-
+        
         .dashboard-cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .card-mini { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
         .card-mini h3 { font-size: 12px; }
@@ -152,13 +152,40 @@
                 </div>
             </div>
 
+            <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Ficha Técnica</h3><br>
+                    <div class="form-group">
+                        <label>Produto Final (Mix/Kit):</label>
+                        <select id="ft-produto"><option>Selecione o Kit</option></select>
+                        <label>Adicionar Insumo:</label>
+                        <div style="display: flex; gap: 5px;">
+                            <select id="ft-insumo-item" style="flex: 2;"><option>Insumo</option></select>
+                            <input type="number" id="ft-qtd" placeholder="Qtd/Gramas" style="flex: 1;">
+                        </div>
+                        <button class="btn-save" style="background: #555;">Adicionar à Lista</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="tab-vendas" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Nova Venda</h3><br>
                     <div class="form-group">
                         <select id="venda-cliente"><option>Selecionar Cliente</option></select>
+                        <select id="venda-produto"><option>Selecionar Produto</option></select>
                         <input type="number" id="venda-qtd" placeholder="Quantidade">
                         <button class="btn-save">Finalizar Venda</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-financeiro" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Resumo Financeiro</h3><br>
+                    <div class="card-mini" style="border-top: 4px solid #1565c0;">
+                        <h3>Saldo em Caixa</h3>
+                        <p>R$ 0,00</p>
                     </div>
                 </div>
             </div>
