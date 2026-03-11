@@ -147,8 +147,11 @@
                     <h3>Cadastro de Insumos</h3><br>
                     <div class="form-group">
                         <input type="text" id="ins-nome" placeholder="Ex: Alface, Cenoura...">
-                        <select id="ins-unidade"><option>Unidade (Un)</option><option>Quilo (Kg)</option></select>
-                        <button class="btn-save">Cadastrar Insumo</button>
+                        <select id="ins-unidade">
+                            <option value="Un">Unidade (Un)</option>
+                            <option value="Kg">Quilo (Kg)</option>
+                        </select>
+                        <button class="btn-save" onclick="salvarInsumo()">Cadastrar Insumo</button>
                     </div>
                 </div>
             </div>
@@ -205,7 +208,6 @@
         measurementId: "G-2VRVCZB78K"
       };
 
-      // Inicializa o Firebase
       if (!firebase.apps.length) {
           firebase.initializeApp(firebaseConfig);
       }
