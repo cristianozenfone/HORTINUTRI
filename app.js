@@ -1,215 +1,118 @@
-// --- CONFIGURAÇÃO E ESTADO GLOBAL ---
-let meuGrafico = null;
-
-// --- NAVEGAÇÃO ENTRE ABAS ---
+// --- NAVEGAÇÃO ---
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.querySelectorAll('.sidebar li').forEach(l => l.classList.remove('active'));
-    
     const target = document.getElementById('tab-' + tabId);
     if (target) target.style.display = 'block';
 
-    const titles = {
-        'dashboard': 'DASHBOARD', 'clientes': 'CLIENTES', 'insumos': 'INSUMOS',
-        'embalagens': 'EMBALAGENS', 'mix-kits': 'PRODUTOS', 'ficha-tecnica': 'FICHA TÉCNICA',
-        'producao-insumos': 'GESTÃO DE CUSTOS', 'vendas': 'VENDAS',
-        'relatorios': 'RELATÓRIOS', 'financeiro': 'FINANCEIRO'
-    };
-    document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
-
-    // Gatilhos de carregamento de dados
-    if (tabId === 'dashboard') atualizarGrafico();
-    if (tabId === 'mix-kits') listarProdutosSalvos();
-    if (tabId === 'ficha-tecnica') { carregarInsumosFicha(); carregarProdutosFicha(); }
-    if (tabId === 'producao-insumos') carregarPrecosInsumos();
-    if (tabId === 'vendas') carregarDadosVenda();
-    if (tabId === 'relatorios') gerarRelatorios();
-    if (tabId === 'financeiro') listarDespesas();
+    // Carregar dados específicos de cada aba
+    if (tabId === 'insumos') listarInsumos();
+    if (tabId === 'mix-kits') listarProdutos();
+    if (tabId === 'vendas') prepararVenda();
+    if (tabId === 'relatorios') carregarRelatorios();
 }
 
 // --- GESTÃO DE INSUMOS ---
-function salvarInsumo() {
+function btnCadastrarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
-    if (!nome) return;
-    
+    if (!nome) return alert("Digite o nome do insumo!");
+
     firebase.database().ref('insumos').push({
         nome: nome,
         unidade: unidade,
         custo: 0,
         fc: 1.0
     }).then(() => {
-        alert("Insumo cadastrado com ID único!");
+        alert("Insumo Salvo!");
         document.getElementById('ins-nome').value = "";
+        listarInsumos();
     });
 }
 
-function carregarPrecosInsumos() {
-    const lista = document.getElementById('lista-precos-insumos');
-    firebase.database().ref('insumos').on('value', (snap) => {
+function listarInsumos() {
+    const lista = document.getElementById('lista-insumos-cadastrados');
+    firebase.database().ref('insumos').on('value', snap => {
         lista.innerHTML = "";
-        snap.forEach((child) => {
-            const i = child.val(); const id = child.key;
-            lista.innerHTML += `
-                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:5px;">
-                    <div style="font-size:12px;"><strong>${i.nome}</strong><br><small>FC: ${i.fc || 1.00}</small></div>
-                    <div style="display:flex; gap:5px;">
-                        <input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:70px;">
-                        <button onclick="atualizarCustoInsumo('${id}')" style="background:green; color:white; border:none; padding:8px; border-radius:3px;">OK</button>
-                    </div>
-                </div>`;
+        snap.forEach(item => {
+            lista.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">
+                ${item.val().nome} (${item.val().unidade}) 
+                <button onclick="deletarItem('insumos','${item.key}')" style="width:auto; padding:2px 5px; background:red; float:right;">X</button>
+            </div>`;
         });
     });
 }
 
-function atualizarCustoInsumo(id) {
-    const valor = parseFloat(document.getElementById('preco-' + id).value) || 0;
-    firebase.database().ref('insumos/' + id).update({ custo: valor }).then(() => recalcularTudo());
-}
-
-// --- GESTÃO DE PRODUTOS (MIX / KITS) ---
-function salvarProdutoMix() {
+// --- GESTÃO DE PRODUTOS (MIX) ---
+function btnSalvarProduto() {
     const nome = document.getElementById('mix-nome').value;
-    const varejo = parseFloat(document.getElementById('mix-varejo').value) || 0;
-    if (!nome) return;
+    const precoV = parseFloat(document.getElementById('mix-varejo').value) || 0;
+    const precoA = parseFloat(document.getElementById('mix-atacado').value) || 0;
+
+    if (!nome) return alert("Digite o nome do Mix!");
 
     firebase.database().ref('produtos').push({
         nome: nome,
-        preco_varejo: varejo,
-        custo_total: 0
+        preco_varejo: precoV,
+        preco_atacado: precoA,
+        custo_producao: 0
     }).then(() => {
-        alert("Produto salvo no banco!");
+        alert("Produto Salvo!");
         document.getElementById('mix-nome').value = "";
         document.getElementById('mix-varejo').value = "";
+        document.getElementById('mix-atacado').value = "";
+        listarProdutos();
     });
 }
 
-function listarProdutosSalvos() {
-    const lista = document.getElementById('lista-produtos-salvos');
-    firebase.database().ref('produtos').on('value', (snap) => {
+function listarProdutos() {
+    const lista = document.getElementById('lista-produtos-cadastrados');
+    firebase.database().ref('produtos').on('value', snap => {
         lista.innerHTML = "";
-        snap.forEach(child => {
-            const p = child.val();
-            lista.innerHTML += `
-                <div class="card" style="padding:10px; margin-bottom:5px; border-left:5px solid #2e7d32; display:flex; justify-content:space-between;">
-                    <div><strong>${p.nome}</strong><br><small>Venda: R$ ${p.preco_varejo.toFixed(2)}</small></div>
-                    <div style="text-align:right;"><small>Custo Prod.</small><br><strong>R$ ${(p.custo_total || 0).toFixed(2)}</strong></div>
-                </div>`;
+        snap.forEach(item => {
+            lista.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">
+                ${item.val().nome} - R$ ${item.val().preco_varejo.toFixed(2)}
+                <button onclick="deletarItem('produtos','${item.key}')" style="width:auto; padding:2px 5px; background:red; float:right;">X</button>
+            </div>`;
         });
     });
 }
 
-// --- FICHA TÉCNICA ---
-function carregarInsumosFicha() {
-    const s = document.getElementById('ft-insumo-item'); s.innerHTML = '<option>Insumo</option>';
-    firebase.database().ref('insumos').once('value', s1 => s1.forEach(c => {
-        let o = document.createElement('option'); o.value=c.key; o.text=c.val().nome; s.appendChild(o);
-    }));
-}
-
-function carregarProdutosFicha() {
-    const s = document.getElementById('ft-produto'); s.innerHTML = '<option>Selecione o Kit</option>';
-    firebase.database().ref('produtos').once('value', s1 => s1.forEach(c => {
-        let o = document.createElement('option'); o.value=c.key; o.text=c.val().nome; s.appendChild(o);
-    }));
-}
-
-function adicionarItemFicha() {
-    const pId = document.getElementById('ft-produto').value;
-    const iId = document.getElementById('ft-insumo-item').value;
-    const q = parseFloat(document.getElementById('ft-qtd').value) || 0;
-    if (pId === "Selecione o Kit" || iId === "Insumo" || q <= 0) return;
-
-    firebase.database().ref('insumos/' + iId).once('value', (snap) => {
-        const ins = snap.val();
-        const sub = (ins.custo || 0) * q * (ins.fc || 1.00);
-        firebase.database().ref('fichas_tecnicas/' + pId).push({
-            insumo_id: iId, nome: ins.nome, qtd: q, subtotal: sub
-        }).then(() => {
-            recalcularCustoProduto(pId);
-            listarItensFicha(pId);
-        });
-    });
-}
-
-function listarItensFicha(pId) {
-    const lista = document.getElementById('lista-itens-ficha');
-    firebase.database().ref('fichas_tecnicas/' + pId).on('value', (snap) => {
-        lista.innerHTML = "";
-        snap.forEach(c => {
-            lista.innerHTML += `<li>${c.val().nome}: ${c.val().qtd} - R$ ${c.val().subtotal.toFixed(2)}</li>`;
-        });
-    });
-}
-
-function recalcularCustoProduto(pId) {
-    firebase.database().ref('fichas_tecnicas/' + pId).once('value', snap => {
-        let total = 0;
-        snap.forEach(c => { total += c.val().subtotal; });
-        firebase.database().ref('produtos/' + pId).update({ custo_total: total });
-    });
-}
-
-function recalcularTudo() {
+// --- VENDAS ---
+function prepararVenda() {
+    const select = document.getElementById('venda-produto-select');
+    select.innerHTML = '<option value="">Selecione o Produto</option>';
     firebase.database().ref('produtos').once('value', snap => {
-        snap.forEach(p => recalcularCustoProduto(p.key));
+        snap.forEach(item => {
+            let opt = document.createElement('option');
+            opt.value = item.key;
+            opt.text = item.val().nome;
+            select.appendChild(opt);
+        });
     });
 }
 
-// --- VENDAS PROFISSIONAIS (MULTI-ITENS) ---
-function carregarDadosVenda() {
-    const cli = document.getElementById('venda-cliente');
-    const pro = document.getElementById('venda-produto');
-    cli.innerHTML = '<option>Selecionar Cliente</option>';
-    pro.innerHTML = '<option>Selecionar Produto</option>';
-    firebase.database().ref('clientes').once('value', s => s.forEach(c => {
-        let o = document.createElement('option'); o.value=c.key; o.text=c.val().nome; cli.appendChild(o);
-    }));
-    firebase.database().ref('produtos').once('value', s => s.forEach(p => {
-        let o = document.createElement('option'); o.value=p.key; o.text=p.val().nome; pro.appendChild(o);
-    }));
-}
-
-function finalizarVenda() {
-    const pId = document.getElementById('venda-produto').value;
-    const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
-    const cliNome = document.getElementById('venda-cliente').options[document.getElementById('venda-cliente').selectedIndex].text;
+function btnConfirmarVenda() {
+    const idProd = document.getElementById('venda-produto-select').value;
+    const valor = parseFloat(document.getElementById('venda-valor-input').value) || 0;
     
-    if (pId === "Selecionar Produto" || valor <= 0) return;
+    if (!idProd || valor <= 0) return alert("Selecione o produto e o valor!");
 
-    const novaVendaRef = firebase.database().ref('vendas').push();
-    const vendaId = novaVendaRef.key;
-
-    firebase.database().ref('produtos/' + pId).once('value', s => {
-        const p = s.val();
-        const lucro = valor - (p.custo_total || 0);
-        
-        const dadosVenda = {
-            venda_id: vendaId,
-            cliente: cliNome,
-            total: valor,
-            lucro_total: lucro,
-            data: new Date().toLocaleDateString(),
-            timestamp: Date.now()
-        };
-
-        // Salvando no nó itens_venda (Auditoria ponto 2)
-        firebase.database().ref('itens_venda/' + vendaId).push({
-            produto_id: pId, nome: p.nome, preco: valor
-        });
-
-        novaVendaRef.set(dadosVenda).then(() => {
-            alert("Venda registrada com sucesso!");
-            atualizarGrafico();
-        });
+    firebase.database().ref('vendas').push({
+        produtoId: idProd,
+        valor: valor,
+        data: new Date().toLocaleDateString(),
+        timestamp: Date.now()
+    }).then(() => {
+        alert("Venda realizada!");
+        document.getElementById('venda-valor-input').value = "";
     });
 }
 
-// --- DASHBOARD E RELATÓRIOS ---
-function atualizarGrafico() {
-    firebase.database().ref('vendas').limitToLast(10).once('value', snap => {
-        const labels = []; const valores = [];
-        snap.forEach(c => { labels.push(c.val().data); valores.push(c.val().total); });
-        const ctx = document.getElementById('graficoVendas').getContext('2d');
-        if (meuGrafico) meuGrafico.destroy();
-        meuGrafico = new Chart(
+// --- GERAL ---
+function deletarItem(pasta, id) {
+    if (confirm("Deseja realmente excluir?")) {
+        firebase.database().ref(pasta + '/' + id).remove();
+    }
+}
+
+window.onload = () => showTab('dashboard');
