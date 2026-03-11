@@ -81,11 +81,26 @@ input:focus { border-color: var(--primary-color); }
 .btn-save:hover { background: var(--secondary-color); }
 .btn-add { background: var(--accent-color); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
 
-/* Ajustes para Celular */
+/* Ajustes para Celular - Correção de Sobreposição */
 @media (max-width: 768px) {
-    .sidebar { width: 60px; }
-    .sidebar span, .sidebar .menu-title, .logo h2 { display: none; }
-    .main-content { margin-left: 60px; width: calc(100% - 60px); }
-    .top-header h1 { font-size: 16px; } /* Diminui o texto para não encavalar */
+    .sidebar { 
+        width: 60px !important; 
+    }
+    .sidebar span, .sidebar .menu-title, .sidebar .logo h2 { 
+        display: none !important; 
+    }
+    .main-content { 
+        margin-left: 60px !important; 
+        width: calc(100% - 60px) !important; 
+    }
+    .top-header {
+        padding: 10px 15px !important;
+    }
+    .top-header h1 { 
+        font-size: 14px !important; /* Diminui bem o título no celular */
+        white-space: nowrap; /* Impede o texto de quebrar linha */
+    }
+    #content-area { 
+        padding: 15px !important; 
+    }
 }
-
