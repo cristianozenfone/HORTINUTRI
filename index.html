@@ -21,7 +21,6 @@
 
         body { display: flex; background-color: var(--bg-color); min-height: 100vh; overflow-x: hidden; }
 
-        /* Sidebar Restaurada com todos os itens */
         .sidebar {
             width: 170px; 
             height: 100vh;
@@ -33,10 +32,10 @@
             display: flex;
             flex-direction: column;
             z-index: 1000;
-            overflow-y: auto; /* IMPORTANTE: Permite descer o menu no dedo */
-            scrollbar-width: none; /* Esconde a barra no Firefox */
+            overflow-y: auto;
+            scrollbar-width: none;
         }
-        .sidebar::-webkit-scrollbar { display: none; } /* Esconde a barra no Chrome/Celular */
+        .sidebar::-webkit-scrollbar { display: none; }
 
         .logo { padding: 15px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
         .logo h2 { color: var(--primary-color); font-size: 16px; }
@@ -54,7 +53,6 @@
         nav ul li:hover, nav ul li.active { background: var(--primary-color); }
         .menu-title { padding: 12px 12px 4px; font-size: 9px; color: #888; font-weight: bold; }
 
-        /* Conteúdo Principal */
         .main-content { 
             margin-left: 170px; 
             width: calc(100% - 170px); 
@@ -73,6 +71,12 @@
         .top-header h1 { font-size: 14px; }
 
         #content-area { padding: 15px; }
+
+        /* Estilo dos Cards das Telas */
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
+        .btn-save { background: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
 
         .dashboard-cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .card-mini { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
@@ -93,20 +97,16 @@
         <nav>
             <ul>
                 <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> DASHBOARD</li>
-                
                 <li class="menu-title">CADASTROS</li>
                 <li onclick="showTab('clientes')"><i class="fas fa-users"></i> CLIENTES</li>
                 <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> INSUMOS</li>
                 <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> EMBALAGENS</li>
-                
                 <li class="menu-title">PRODUTOS</li>
                 <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> MIX / KITS</li>
                 <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> FICHA TÉCNICA</li>
-                
                 <li class="menu-title">PRODUÇÃO</li>
                 <li onclick="showTab('producao-insumos')"><i class="fas fa-warehouse"></i> INSUMOS</li>
                 <li onclick="showTab('producao-produtos')"><i class="fas fa-boxes-stacked"></i> PRODUTOS</li>
-                
                 <li onclick="showTab('vendas')" class="menu-title" style="color:white; cursor:pointer; padding-top:15px; border-top:1px solid #444;"><i class="fas fa-cart-shopping"></i> VENDAS</li>
                 <li onclick="showTab('relatorios')" class="menu-title" style="color:white; cursor:pointer;"><i class="fas fa-file-invoice-dollar"></i> RELATÓRIOS</li>
                 <li onclick="showTab('financeiro')" class="menu-title" style="color:white; cursor:pointer;"><i class="fas fa-money-bill-trend-up"></i> FINANCEIRO</li>
@@ -125,10 +125,44 @@
         <section id="content-area">
             <div id="tab-dashboard" class="tab-content">
                 <div class="dashboard-cards">
-                    <div class="card-mini"><h3>Vendas Hoje</h3><p>R$ 0,00</p></div>
-                    <div class="card-mini"><h3>Produção Ativa</h3><p>0 itens</p></div>
+                    <div class="card-mini"><h3>Vendas Hoje</h3><p id="vendas-hoje">R$ 0,00</p></div>
+                    <div class="card-mini"><h3>Produção Ativa</h3><p id="prod-ativa">0 itens</p></div>
                 </div>
             </div>
+
+            <div id="tab-clientes" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Novo Cliente</h3><br>
+                    <div class="form-group">
+                        <input type="text" id="cli-nome" placeholder="Nome Completo / Razão Social">
+                        <input type="text" id="cli-fone" placeholder="WhatsApp (63) 9....">
+                        <button class="btn-save" onclick="salvarCliente()">Salvar Cliente</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-insumos" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Cadastro de Insumos</h3><br>
+                    <div class="form-group">
+                        <input type="text" id="ins-nome" placeholder="Ex: Alface, Cenoura...">
+                        <select id="ins-unidade"><option>Unidade (Un)</option><option>Quilo (Kg)</option></select>
+                        <button class="btn-save">Cadastrar Insumo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-vendas" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Nova Venda</h3><br>
+                    <div class="form-group">
+                        <select id="venda-cliente"><option>Selecionar Cliente</option></select>
+                        <input type="number" id="venda-qtd" placeholder="Quantidade">
+                        <button class="btn-save">Finalizar Venda</button>
+                    </div>
+                </div>
+            </div>
+
         </section>
     </main>
 
