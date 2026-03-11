@@ -21,73 +21,90 @@ function showTab(tabId) {
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
+    // Carregamento automático ao abrir as abas
     if (tabId === 'vendas') {
         carregarClientesVenda();
     }
+    if (tabId === 'ficha-tecnica') {
+        carregarInsumosFicha();
+    }
 }
 
-// --- FUNÇÕES DE BANCO DE DADOS (FIREBASE) ---
+// --- FUNÇÕES DE CLIENTES ---
 
 function salvarCliente() {
-    console.log("Botão salvar clicado"); // Log para debug no PC
-
-    const nomeInput = document.getElementById('cli-nome');
-    const foneInput = document.getElementById('cli-fone');
-
-    if (!nomeInput || !foneInput) {
-        alert("Erro: Campos de entrada não encontrados no HTML.");
-        return;
-    }
-
-    const nome = nomeInput.value;
-    const fone = foneInput.value;
+    const nome = document.getElementById('cli-nome').value;
+    const fone = document.getElementById('cli-fone').value;
 
     if (nome === "" || fone === "") {
-        alert("Por favor, preencha o nome e o WhatsApp do cliente!");
+        alert("Preencha o nome e o WhatsApp!");
         return;
     }
 
-    // DIAGNÓSTICO: Verifica se o Firebase foi configurado
-    if (typeof firebase === 'undefined' || !firebase.apps.length) {
-        alert("ALERTA: O Firebase não foi inicializado. Verifique se você colou as chaves de configuração no firebase.js ou index.html.");
-        return;
-    }
-
-    const novoClienteRef = firebase.database().ref('clientes').push();
-    
-    novoClienteRef.set({
+    firebase.database().ref('clientes').push({
         nome: nome,
         telefone: fone,
         dataCadastro: new Date().toLocaleDateString('pt-BR')
     }).then(() => {
-        alert("Cliente " + nome + " salvo com sucesso!");
-        nomeInput.value = "";
-        foneInput.value = "";
-    }).catch((error) => {
-        alert("Erro do Firebase: " + error.message);
-        console.error("Erro ao salvar:", error);
+        alert("Cliente salvo com sucesso!");
+        document.getElementById('cli-nome').value = "";
+        document.getElementById('cli-fone').value = "";
     });
 }
 
 function carregarClientesVenda() {
-    const selectVenda = document.getElementById('venda-cliente');
-    if (!selectVenda) return;
-    
-    selectVenda.innerHTML = '<option>Selecionar Cliente</option>';
+    const select = document.getElementById('venda-cliente');
+    if (!select) return;
+    select.innerHTML = '<option>Selecionar Cliente</option>';
 
-    if (typeof firebase !== 'undefined' && firebase.apps.length) {
-        firebase.database().ref('clientes').once('value', (snapshot) => {
-            snapshot.forEach((childSnapshot) => {
-                const cliente = childSnapshot.val();
-                const option = document.createElement('option');
-                option.value = childSnapshot.key;
-                option.text = cliente.nome;
-                selectVenda.appendChild(option);
-            });
+    firebase.database().ref('clientes').once('value', (snapshot) => {
+        snapshot.forEach((child) => {
+            const cli = child.val();
+            const opt = document.createElement('option');
+            opt.value = child.key;
+            opt.text = cli.nome;
+            select.appendChild(opt);
         });
-    }
+    });
 }
 
+// --- FUNÇÕES DE INSUMOS ---
+
+function salvarInsumo() {
+    const nome = document.getElementById('ins-nome').value;
+    const unidade = document.getElementById('ins-unidade').value;
+
+    if (nome === "") {
+        alert("Digite o nome do insumo!");
+        return;
+    }
+
+    firebase.database().ref('insumos').push({
+        nome: nome,
+        unidade: unidade
+    }).then(() => {
+        alert(nome + " cadastrado nos insumos!");
+        document.getElementById('ins-nome').value = "";
+    });
+}
+
+function carregarInsumosFicha() {
+    const select = document.getElementById('ft-insumo-item');
+    if (!select) return;
+    select.innerHTML = '<option>Insumo</option>';
+
+    firebase.database().ref('insumos').once('value', (snapshot) => {
+        snapshot.forEach((child) => {
+            const insumo = child.val();
+            const opt = document.createElement('option');
+            opt.value = child.key;
+            opt.text = insumo.nome + " (" + insumo.unidade + ")";
+            select.appendChild(opt);
+        });
+    });
+}
+
+// Inicializa na Dashboard
 window.onload = () => {
     showTab('dashboard');
 };
