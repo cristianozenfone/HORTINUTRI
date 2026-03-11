@@ -12,7 +12,82 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-   <link rel="stylesheet" href="./style.css?v=1.1">
+    <style>
+        /* CSS EMBUTIDO PARA EVITAR ERRO DE SOBREPOSIÇÃO NO CELULAR */
+        :root {
+            --primary-color: #2e7d32;
+            --sidebar-color: #263238;
+            --bg-color: #f8f9fa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { display: flex; background-color: var(--bg-color); min-height: 100vh; }
+
+        /* Sidebar Fixa */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-color);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .logo { padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
+        .logo h2 { color: var(--primary-color); font-size: 20px; }
+
+        nav ul { list-style: none; padding: 10px 0; }
+        nav ul li {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        nav ul li:hover, nav ul li.active { background: var(--primary-color); }
+        .menu-title { padding: 15px 20px 5px; font-size: 11px; color: #888; font-weight: bold; text-transform: uppercase; }
+        .menu-title-single { font-weight: bold; border-top: 1px solid #444; margin-top: 5px; }
+
+        /* Conteúdo Principal Empurrado para a Direita */
+        .main-content { 
+            margin-left: 260px; /* Isso garante que não encavale */
+            width: calc(100% - 260px); 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #content-area { padding: 25px; }
+
+        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card-mini { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
+
+        /* AJUSTES ESPECIAIS PARA O SEU CELULAR */
+        @media (max-width: 768px) {
+            .sidebar { width: 65px !important; }
+            .sidebar span, .sidebar .menu-title, .sidebar h2, .sidebar .logo span { display: none !important; }
+            .main-content { 
+                margin-left: 65px !important; 
+                width: calc(100% - 65px) !important; 
+            }
+            .top-header { padding: 10px 15px !important; }
+            .top-header h1 { font-size: 15px !important; }
+        }
+    </style>
 </head>
 <body>
 
@@ -23,26 +98,21 @@
         </div>
         <nav>
             <ul>
-                <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> DASHBOARD</li>
-                
+                <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> <span>DASHBOARD</span></li>
                 <li class="menu-title">CADASTROS</li>
-                <li onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</li>
-                <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> Insumos</li>
-                <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> Embalagens</li>
-                
+                <li onclick="showTab('clientes')"><i class="fas fa-users"></i> <span>Clientes</span></li>
+                <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> <span>Insumos</span></li>
+                <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> <span>Embalagens</span></li>
                 <li class="menu-title">PRODUTOS</li>
-                <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> Mix / Kits</li>
-                <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> Ficha Técnica</li>
-                
-                <li onclick="showTab('producao')" class="menu-title-single"><i class="fas fa-industry"></i> PRODUÇÃO</li>
-                
+                <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> <span>Mix / Kits</span></li>
+                <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> <span>Ficha Técnica</span></li>
+                <li onclick="showTab('producao')" class="menu-title-single"><i class="fas fa-industry"></i> <span>PRODUÇÃO</span></li>
                 <li class="menu-title">ESTOQUE</li>
-                <li onclick="showTab('estoque-insumos')"><i class="fas fa-warehouse"></i> Insumos</li>
-                <li onclick="showTab('estoque-produtos')"><i class="fas fa-boxes-stacked"></i> Produtos</li>
-                
-                <li onclick="showTab('vendas')" class="menu-title-single"><i class="fas fa-cart-shopping"></i> VENDAS</li>
-                <li onclick="showTab('relatorios')" class="menu-title-single"><i class="fas fa-file-invoice-dollar"></i> RELATÓRIOS</li>
-                <li onclick="showTab('financeiro')" class="menu-title-single"><i class="fas fa-money-bill-trend-up"></i> FINANCEIRO</li>
+                <li onclick="showTab('estoque-insumos')"><i class="fas fa-warehouse"></i> <span>Insumos</span></li>
+                <li onclick="showTab('estoque-produtos')"><i class="fas fa-boxes-stacked"></i> <span>Produtos</span></li>
+                <li onclick="showTab('vendas')" class="menu-title-single"><i class="fas fa-cart-shopping"></i> <span>VENDAS</span></li>
+                <li onclick="showTab('relatorios')" class="menu-title-single"><i class="fas fa-file-invoice-dollar"></i> <span>RELATÓRIOS</span></li>
+                <li onclick="showTab('financeiro')" class="menu-title-single"><i class="fas fa-money-bill-trend-up"></i> <span>FINANCEIRO</span></li>
             </ul>
         </nav>
     </aside>
@@ -63,33 +133,10 @@
                 </div>
                 <canvas id="mainChart"></canvas>
             </div>
-
-            <div id="tab-vendas" class="tab-content" style="display:none;">
-                <div class="card">
-                    <h3>Nova Venda</h3>
-                    <div class="form-grid">
-                        <select id="venda-cliente"><option>Selecionar Cliente</option></select>
-                        <select id="venda-tipo"><option>Varejo</option><option>Atacado</option></select>
-                    </div>
-                    <hr>
-                    <div class="form-grid">
-                        <select id="venda-produto"><option>Selecionar Produto</option></select>
-                        <input type="number" id="venda-qtd" placeholder="Qtd">
-                        <button class="btn-add" onclick="adicionarItemVenda()">+ Adicionar</button>
-                    </div>
-                    <div id="carrinho-venda" class="carrinho-lista">
-                        </div>
-                    <button class="btn-save" onclick="finalizarVenda()">Finalizar e Gerar PDF</button>
-                </div>
-            </div>
-
             </section>
     </main>
 
     <script src="firebase.js"></script>
-    <script src="pdf.js"></script>
-    <script src="relatorios.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
-
