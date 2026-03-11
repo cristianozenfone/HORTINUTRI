@@ -1,29 +1,50 @@
 // Controle de Abas (Navegação)
 function showTab(tabId) {
-    // Esconde todas as telas
+    // 1. Esconde todas as telas
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none';
     });
     
-    // Mostra a tela selecionada
+    // 2. Mostra a tela selecionada
     const targetTab = document.getElementById('tab-' + tabId);
     if (targetTab) {
         targetTab.style.display = 'block';
+    } else {
+        // Caso a aba ainda não exista no HTML, mostra um aviso simples
+        console.warn("Aba não encontrada: " + tabId);
     }
 
-    // Atualiza o título no topo
-    document.getElementById('current-tab-title').innerText = tabId.toUpperCase();
+    // 3. Atualiza o título no topo
+    const tabTitles = {
+        'dashboard': 'DASHBOARD',
+        'clientes': 'CADASTRO DE CLIENTES',
+        'insumos': 'GESTÃO DE INSUMOS',
+        'embalagens': 'EMBALAGENS',
+        'mix-kits': 'MIX E KITS',
+        'ficha-tecnica': 'FICHA TÉCNICA',
+        'producao': 'PRODUÇÃO',
+        'estoque-insumos': 'ESTOQUE DE INSUMOS',
+        'estoque-produtos': 'ESTOQUE DE PRODUTOS',
+        'vendas': 'SISTEMA DE VENDAS',
+        'relatorios': 'RELATÓRIOS',
+        'financeiro': 'FINANCEIRO'
+    };
     
-    // Marca o item ativo no menu
+    document.getElementById('current-tab-title').innerText = tabTitles[tabId] || tabId.toUpperCase();
+    
+    // 4. Marca o item ativo no menu (Correção do 'event')
     document.querySelectorAll('nav ul li').forEach(li => li.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+    }
 }
 
 // Inicialização
 window.onload = () => {
     console.log("HortiNutri ERP v11.0 Pronto!");
-    // Inicia na Dashboard
-    showTab('dashboard');
+    // Garante que comece na Dashboard
+    const dashboardTab = document.getElementById('tab-dashboard');
+    if(dashboardTab) dashboardTab.style.display = 'block';
 };
 
 // Funções de Venda (Base)
@@ -34,10 +55,26 @@ function adicionarItemVenda() {
     if(prod && qtd) {
         carrinho.push({ prod, qtd });
         renderCarrinho();
+        // Limpa os campos após adicionar
+        document.getElementById('venda-qtd').value = '';
+    } else {
+        alert("Selecione um produto e a quantidade!");
     }
 }
 
 function renderCarrinho() {
     const lista = document.getElementById('carrinho-venda');
-    lista.innerHTML = carrinho.map(i => `<p>${i.qtd}x ${i.prod}</p>`).join('');
+    if (lista) {
+        lista.innerHTML = carrinho.map((i, index) => `
+            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
+                <span>${i.qtd}x ${i.prod}</span>
+                <button onclick="removerItem(${index})" style="color:red; border:none; background:none; cursor:pointer;">X</button>
+            </div>
+        `).join('');
+    }
+}
+
+function removerItem(index) {
+    carrinho.splice(index, 1);
+    renderCarrinho();
 }
