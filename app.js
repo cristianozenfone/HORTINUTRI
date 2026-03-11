@@ -11,6 +11,7 @@ function showTab(tabId) {
         selectedTab.style.display = 'block';
     }
 
+    // Títulos das abas
     const titles = {
         'dashboard': 'DASHBOARD',
         'clientes': 'CADASTRO DE CLIENTES',
@@ -24,7 +25,7 @@ function showTab(tabId) {
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
-    // Gatilhos de carregamento
+    // Carregamento automático de dados ao abrir a aba
     if (tabId === 'vendas') {
         carregarClientesVenda();
         carregarProdutosVenda();
@@ -38,11 +39,11 @@ function showTab(tabId) {
     }
 }
 
-// --- CLIENTES ---
+// --- FUNÇÕES DE CLIENTES ---
 function salvarCliente() {
     const nome = document.getElementById('cli-nome').value;
     const fone = document.getElementById('cli-fone').value;
-    if (nome === "" || fone === "") { alert("Preencha nome e WhatsApp!"); return; }
+    if (!nome || !fone) { alert("Preencha nome e WhatsApp!"); return; }
 
     firebase.database().ref('clientes').push({
         nome: nome,
@@ -69,11 +70,11 @@ function carregarClientesVenda() {
     });
 }
 
-// --- INSUMOS (CADASTRO INICIAL) ---
+// --- FUNÇÕES DE INSUMOS ---
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
-    if (nome === "") { alert("Digite o nome!"); return; }
+    if (!nome) { alert("Digite o nome do insumo!"); return; }
 
     firebase.database().ref('insumos').push({
         nome: nome,
@@ -85,13 +86,17 @@ function salvarInsumo() {
     });
 }
 
-// --- GESTÃO DE PREÇOS (CUSTO DE COMPRA) ---
+// GESTÃO DE CUSTOS (PREÇO DE COMPRA)
 function carregarPrecosInsumos() {
     const lista = document.getElementById('lista-precos-insumos');
     if (!lista) return;
 
     firebase.database().ref('insumos').on('value', (snapshot) => {
         lista.innerHTML = "";
+        if(!snapshot.exists()) {
+            lista.innerHTML = "<p style='padding:15px; font-size:12px;'>Nenhum insumo cadastrado.</p>";
+            return;
+        }
         snapshot.forEach((child) => {
             const ins = child.val();
             const id = child.key;
@@ -129,7 +134,7 @@ function salvarProdutoMix() {
     const varejo = parseFloat(document.getElementById('mix-varejo').value) || 0;
     const atacado = parseFloat(document.getElementById('mix-atacado').value) || 0;
 
-    if (nome === "") { alert("Digite o nome do Mix!"); return; }
+    if (!nome) { alert("Digite o nome do Mix!"); return; }
 
     firebase.database().ref('produtos').push({
         nome: nome,
@@ -212,7 +217,8 @@ function atualizarCustoTotalProduto(produtoId) {
 
 function listarItensFicha(produtoId) {
     const lista = document.getElementById('lista-itens-ficha');
-    if (!lista || produtoId === "Selecione o Kit") return;
+    if (!lista) return;
+    if (produtoId === "Selecione o Kit") { lista.innerHTML = ""; return; }
 
     firebase.database().ref('fichas_tecnicas/' + produtoId).on('value', (snapshot) => {
         lista.innerHTML = "";
