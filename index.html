@@ -78,6 +78,10 @@
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; width: 100%; }
         .btn-save { background: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
         
+        /* Estilo para a lista de ingredientes */
+        #lista-itens-ficha { margin-top: 15px; list-style: none; padding: 0; font-size: 12px; }
+        #lista-itens-ficha li { background: #f1f1f1; padding: 8px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid var(--primary-color); }
+
         .dashboard-cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .card-mini { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
         .card-mini h3 { font-size: 12px; }
@@ -173,14 +177,20 @@
                     <h3>Ficha Técnica</h3><br>
                     <div class="form-group">
                         <label>Produto Final (Mix/Kit):</label>
-                        <select id="ft-produto"><option>Selecione o Kit</option></select>
+                        <select id="ft-produto" onchange="listarItensFicha(this.value)">
+                            <option>Selecione o Kit</option>
+                        </select>
                         <label>Adicionar Insumo:</label>
                         <div style="display: flex; gap: 5px;">
                             <select id="ft-insumo-item" style="flex: 2;"><option>Insumo</option></select>
-                            <input type="number" id="ft-qtd" placeholder="Qtd/Gramas" style="flex: 1;">
+                            <input type="number" id="ft-qtd" placeholder="Qtd" style="flex: 1;">
                         </div>
-                        <button class="btn-save" style="background: #555;">Adicionar à Lista</button>
+                        <button class="btn-save" style="background: #555;" onclick="adicionarItemFicha()">Adicionar à Lista</button>
                     </div>
+                    <hr>
+                    <h4>Ingredientes do Mix:</h4>
+                    <ul id="lista-itens-ficha">
+                        </ul>
                 </div>
             </div>
 
@@ -228,4 +238,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
