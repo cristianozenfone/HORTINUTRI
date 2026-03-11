@@ -59,3 +59,99 @@
         .menu-title-single { border-top: 1px solid #444; margin-top: 5px; font-weight: bold; }
 
         /* Conteúdo Principal com Margem Fixa */
+        .main-content { 
+            margin-left: 180px; 
+            width: calc(100% - 180px); 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-header {
+            background: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 500;
+        }
+
+        .top-header h1 { font-size: 18px; color: #333; }
+
+        #content-area { padding: 20px; }
+
+        /* Cards do Dashboard */
+        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card-mini { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
+        .card-mini h3 { font-size: 13px; color: #666; }
+        .card-mini p { font-size: 16px; font-weight: bold; margin-top: 5px; }
+
+        /* Ajustes para Celulares Pequenos */
+        @media (max-width: 480px) {
+            .sidebar { width: 150px; }
+            .main-content { margin-left: 150px; width: calc(100% - 150px); }
+            .sidebar li { font-size: 11px; padding: 10px; }
+            .top-header h1 { font-size: 14px; }
+            .user-info { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>HortiNutri</h2>
+            <span>ERP System</span>
+        </div>
+        <nav>
+            <ul>
+                <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> DASHBOARD</li>
+                
+                <li class="menu-title">CADASTROS</li>
+                <li onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</li>
+                <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> Insumos</li>
+                <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> Embalagens</li>
+                
+                <li class="menu-title">PRODUTOS</li>
+                <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> Mix / Kits</li>
+                <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> Ficha Técnica</li>
+                
+                <li onclick="showTab('producao')" class="menu-title-single"><i class="fas fa-industry"></i> PRODUÇÃO</li>
+                
+                <li class="menu-title">ESTOQUE</li>
+                <li onclick="showTab('estoque-insumos')"><i class="fas fa-warehouse"></i> Insumos</li>
+                <li onclick="showTab('estoque-produtos')"><i class="fas fa-boxes-stacked"></i> Produtos</li>
+                
+                <li onclick="showTab('vendas')" class="menu-title-single"><i class="fas fa-cart-shopping"></i> VENDAS</li>
+                <li onclick="showTab('relatorios')" class="menu-title-single"><i class="fas fa-file-invoice-dollar"></i> RELATÓRIOS</li>
+                <li onclick="showTab('financeiro')" class="menu-title-single"><i class="fas fa-money-bill-trend-up"></i> FINANCEIRO</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <h1 id="current-tab-title">Dashboard</h1>
+            <div class="user-info">
+                <span><i class="fas fa-user-circle"></i> Cristiano</span>
+            </div>
+        </header>
+
+        <section id="content-area">
+            <div id="tab-dashboard" class="tab-content">
+                <div class="dashboard-cards">
+                    <div class="card-mini"><h3>Vendas Hoje</h3><p id="vendas-hoje">R$ 0,00</p></div>
+                    <div class="card-mini"><h3>Produção Ativa</h3><p id="prod-ativa">0 itens</p></div>
+                </div>
+                <canvas id="mainChart"></canvas>
+            </div>
+            </section>
+    </main>
+
+    <script src="firebase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
