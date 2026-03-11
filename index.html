@@ -155,6 +155,19 @@
                 </div>
             </div>
 
+            <div id="tab-mix-kits" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Novo Mix / Kit (Produto Final)</h3><br>
+                    <div class="form-group">
+                        <input type="text" id="mix-nome" placeholder="Ex: Mix Sopão 500g">
+                        <input type="text" id="mix-categoria" placeholder="Categoria (Ex: Legumes)">
+                        <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
+                        <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
+                        <button class="btn-save" onclick="salvarProdutoMix()">Cadastrar Produto</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Ficha Técnica</h3><br>
@@ -215,3 +228,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
