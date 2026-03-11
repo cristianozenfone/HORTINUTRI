@@ -15,23 +15,26 @@ function showTab(tabId) {
         'dashboard': 'DASHBOARD',
         'clientes': 'CADASTRO DE CLIENTES',
         'insumos': 'GESTÃO DE INSUMOS',
+        'embalagens': 'GESTÃO DE EMBALAGENS',
+        'mix-kits': 'GESTÃO DE PRODUTOS (MIX/KITS)',
         'ficha-tecnica': 'FICHA TÉCNICA',
         'vendas': 'CENTRAL DE VENDAS',
         'financeiro': 'RESUMO FINANCEIRO'
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
-    // Carregamento automático ao abrir as abas
+    // Carregamento automático ao abrir as abas (Sincronização com Firebase)
     if (tabId === 'vendas') {
         carregarClientesVenda();
+        carregarProdutosVenda();
     }
     if (tabId === 'ficha-tecnica') {
         carregarInsumosFicha();
+        carregarProdutosFicha(); // Agora carrega os Mixes para vincular a ficha
     }
 }
 
 // --- FUNÇÕES DE CLIENTES ---
-
 function salvarCliente() {
     const nome = document.getElementById('cli-nome').value;
     const fone = document.getElementById('cli-fone').value;
@@ -69,7 +72,6 @@ function carregarClientesVenda() {
 }
 
 // --- FUNÇÕES DE INSUMOS ---
-
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
@@ -81,7 +83,8 @@ function salvarInsumo() {
 
     firebase.database().ref('insumos').push({
         nome: nome,
-        unidade: unidade
+        unidade: unidade,
+        custo: 0 // Valor inicial para ser editado depois
     }).then(() => {
         alert(nome + " cadastrado nos insumos!");
         document.getElementById('ins-nome').value = "";
@@ -104,7 +107,67 @@ function carregarInsumosFicha() {
     });
 }
 
+// --- FUNÇÕES DE PRODUTOS (MIX / KITS) ---
+function salvarProdutoMix() {
+    const nome = document.getElementById('mix-nome').value;
+    const categoria = document.getElementById('mix-categoria').value;
+    const varejo = parseFloat(document.getElementById('mix-varejo').value) || 0;
+    const atacado = parseFloat(document.getElementById('mix-atacado').value) || 0;
+
+    if (nome === "") {
+        alert("Digite o nome do Mix/Kit!");
+        return;
+    }
+
+    firebase.database().ref('produtos').push({
+        nome: nome,
+        categoria: categoria,
+        preco_varejo: varejo,
+        preco_atacado: atacado,
+        custo_total: 0 // Será calculado pela ficha técnica
+    }).then(() => {
+        alert("Produto " + nome + " criado! Vá para Ficha Técnica definir os ingredientes.");
+        document.getElementById('mix-nome').value = "";
+        document.getElementById('mix-categoria').value = "";
+        document.getElementById('mix-varejo').value = "";
+        document.getElementById('mix-atacado').value = "";
+    });
+}
+
+function carregarProdutosFicha() {
+    const select = document.getElementById('ft-produto');
+    if (!select) return;
+    select.innerHTML = '<option>Selecione o Kit</option>';
+
+    firebase.database().ref('produtos').once('value', (snapshot) => {
+        snapshot.forEach((child) => {
+            const prod = child.val();
+            const opt = document.createElement('option');
+            opt.value = child.key;
+            opt.text = prod.nome;
+            select.appendChild(opt);
+        });
+    });
+}
+
+function carregarProdutosVenda() {
+    const select = document.getElementById('venda-produto');
+    if (!select) return;
+    select.innerHTML = '<option>Selecionar Produto</option>';
+
+    firebase.database().ref('produtos').once('value', (snapshot) => {
+        snapshot.forEach((child) => {
+            const prod = child.val();
+            const opt = document.createElement('option');
+            opt.value = child.key;
+            opt.text = prod.nome;
+            select.appendChild(opt);
+        });
+    });
+}
+
 // Inicializa na Dashboard
 window.onload = () => {
     showTab('dashboard');
 };
+                         
