@@ -7,15 +7,21 @@ function showTab(tabId) {
     if (target) target.style.display = 'block';
 
     const titles = {
-        'dashboard': 'DASHBOARD', 'clientes': 'CLIENTES', 'insumos': 'INSUMOS',
-        'mix-kits': 'PRODUTOS', 'ficha-tecnica': 'FICHA TÉCNICA',
-        'producao-insumos': 'GESTÃO DE CUSTOS', 'vendas': 'VENDAS'
+        'dashboard': 'DASHBOARD', 
+        'clientes': 'CLIENTES', 
+        'insumos': 'INSUMOS',
+        'mix-kits': 'PRODUTOS', 
+        'ficha-tecnica': 'FICHA TÉCNICA',
+        'producao-insumos': 'GESTÃO DE CUSTOS', 
+        'vendas': 'VENDAS',
+        'relatorios': 'RELATÓRIOS' // Adicionado para o menu funcionar
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
     if (tabId === 'ficha-tecnica') { carregarInsumosFicha(); carregarProdutosFicha(); }
     if (tabId === 'producao-insumos') { carregarPrecosInsumos(); }
     if (tabId === 'vendas') { carregarDadosVenda(); listarVendas(); }
+    if (tabId === 'relatorios') { gerarRelatorios(); } // Chama a soma dos lucros
 }
 
 // --- CLIENTES ---
@@ -30,7 +36,6 @@ function salvarCliente() {
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
-    // Pergunta o FC no momento do cadastro
     const fc = parseFloat(prompt("Informe o Fator de Correção (FC) - Ex: 1.20 para 20% de perda", "1.00")) || 1.00;
     
     if (!nome) return;
@@ -101,7 +106,6 @@ function adicionarItemFicha() {
     firebase.database().ref('insumos/' + iId).once('value', (snap) => {
         const ins = snap.val();
         const fc = ins.fc || 1.00;
-        // CÁLCULO REAL: Preço x Quantidade x Fator de Correção
         const sub = (ins.custo || 0) * q * fc; 
 
         firebase.database().ref('fichas_tecnicas/' + pId).push({
@@ -193,6 +197,29 @@ function listarVendas() {
                 <strong>${v.cliente}</strong>: ${v.produto} | <span style="color:green;">R$ ${v.valor.toFixed(2)}</span>
             </li>`;
         });
+    });
+}
+
+// --- RELATÓRIOS (NOVA FUNÇÃO) ---
+function gerarRelatorios() {
+    firebase.database().ref('vendas').on('value', (snap) => {
+        let totalVendas = 0;
+        let totalLucro = 0;
+        let listaHTML = "";
+
+        snap.forEach(c => {
+            const v = c.val();
+            totalVendas += v.valor || 0;
+            totalLucro += v.lucro || 0;
+            listaHTML += `<div style="border-bottom: 1px solid #eee; padding: 5px 0;">
+                <small>${v.data}</small> - <strong>${v.produto}</strong><br>
+                Venda: R$ ${v.valor.toFixed(2)} | Lucro: <span style="color:green;">R$ ${v.lucro.toFixed(2)}</span>
+            </div>`;
+        });
+
+        document.getElementById('rep-total-vendas').innerText = "R$ " + totalVendas.toFixed(2);
+        document.getElementById('rep-total-lucro').innerText = "R$ " + totalLucro.toFixed(2);
+        document.getElementById('rep-lista-produtos').innerHTML = listaHTML;
     });
 }
 
