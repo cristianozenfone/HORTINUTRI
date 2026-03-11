@@ -11,72 +11,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root {
-            --primary-color: #2e7d32;
-            --sidebar-color: #263238;
-            --bg-color: #f8f9fa;
-        }
-
+        :root { --primary-color: #2e7d32; --sidebar-color: #263238; --bg-color: #f8f9fa; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-
-        body { display: flex; background-color: var(--bg-color); min-height: 100vh; overflow-x: hidden; }
+        body { display: flex; background-color: var(--bg-color); min-height: 100vh; }
 
         .sidebar {
-            width: 170px; 
-            height: 100vh;
-            background-color: var(--sidebar-color);
-            color: white;
-            position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            overflow-y: auto;
-            scrollbar-width: none;
+            width: 170px; height: 100vh; background-color: var(--sidebar-color); color: white;
+            position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 1000;
+            overflow-y: auto; scrollbar-width: none;
         }
         .sidebar::-webkit-scrollbar { display: none; }
-
         .logo { padding: 15px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
         .logo h2 { color: var(--primary-color); font-size: 16px; }
 
         nav ul { list-style: none; padding: 10px 0; }
-        nav ul li {
-            padding: 10px 12px;
-            cursor: pointer;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-        }
+        nav ul li { padding: 10px 12px; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         nav ul li:hover, nav ul li.active { background: var(--primary-color); }
         .menu-title { padding: 12px 12px 4px; font-size: 9px; color: #888; font-weight: bold; }
 
-        .main-content { 
-            margin-left: 170px; 
-            width: calc(100% - 170px); 
-            display: flex;
-            flex-direction: column;
-        }
-
-        .top-header {
-            background: white;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        .main-content { margin-left: 170px; width: calc(100% - 170px); display: flex; flex-direction: column; }
+        .top-header { background: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .top-header h1 { font-size: 14px; }
 
         #content-area { padding: 15px; }
-
         .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        
+        label { font-size: 11px; font-weight: bold; color: #555; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; width: 100%; }
-        
         .btn-save { background: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
         
         #lista-itens-ficha { margin-top: 15px; list-style: none; padding: 0; font-size: 12px; }
@@ -85,7 +46,6 @@
         @media (max-width: 480px) {
             .sidebar { width: 145px; }
             .main-content { margin-left: 145px; width: calc(100% - 145px); }
-            .sidebar li { font-size: 9px; }
         }
     </style>
 </head>
@@ -115,23 +75,21 @@
     <main class="main-content">
         <header class="top-header">
             <h1 id="current-tab-title">DASHBOARD</h1>
-            <div class="user-info" style="font-size: 10px;">
-                <span><i class="fas fa-user-circle"></i> Admin</span>
-            </div>
+            <div style="font-size: 10px;"><i class="fas fa-user-circle"></i> Admin</div>
         </header>
 
         <section id="content-area">
             <div id="tab-dashboard" class="tab-content">
-                <div class="card"><h3>Bem-vindo, Cristiano!</h3><p style="font-size:12px;">Gerencie sua produção de vegetais aqui.</p></div>
+                <div class="card"><h3>Painel de Controle</h3><p style="font-size:12px;">Olá Cristiano, selecione uma opção no menu lateral.</p></div>
             </div>
 
             <div id="tab-clientes" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Novo Cliente</h3><br>
                     <div class="form-group">
-                        <input type="text" id="cli-nome" placeholder="Nome / Razão Social">
-                        <input type="text" id="cli-fone" placeholder="WhatsApp (63)">
-                        <button class="btn-save" onclick="salvarCliente()">Salvar Cliente</button>
+                        <input type="text" id="cli-nome" placeholder="Nome do Cliente">
+                        <input type="text" id="cli-fone" placeholder="WhatsApp">
+                        <button class="btn-save" onclick="salvarCliente()">Salvar</button>
                     </div>
                 </div>
             </div>
@@ -140,62 +98,73 @@
                 <div class="card">
                     <h3>Cadastro de Insumos</h3><br>
                     <div class="form-group">
-                        <input type="text" id="ins-nome" placeholder="Ex: Batata, Cenoura">
-                        <select id="ins-unidade">
-                            <option value="Kg">Quilo (Kg)</option>
-                            <option value="Un">Unidade (Un)</option>
-                        </select>
-                        <button class="btn-save" onclick="salvarInsumo()">Cadastrar Insumo</button>
+                        <input type="text" id="ins-nome" placeholder="Ex: Alface, Tomate">
+                        <select id="ins-unidade"><option value="Kg">Quilo (Kg)</option><option value="Un">Unidade (Un)</option></select>
+                        <button class="btn-save" onclick="salvarInsumo()">Cadastrar</button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-mix-kits" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Novo Mix / Kit (Produto Final)</h3><br>
+                    <h3>Produtos Finais</h3><br>
                     <div class="form-group">
-                        <input type="text" id="mix-nome" placeholder="Ex: MIX legumes">
-                        <input type="text" id="mix-categoria" placeholder="Categoria (Ex: Mix)">
+                        <input type="text" id="mix-nome" placeholder="Nome do Mix">
                         <input type="number" id="mix-varejo" placeholder="Preço Varejo (R$)">
                         <input type="number" id="mix-atacado" placeholder="Preço Atacado (R$)">
-                        <button class="btn-save" onclick="salvarProdutoMix()">Cadastrar Produto</button>
+                        <button class="btn-save" onclick="salvarProdutoMix()">Salvar Produto</button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Ficha Técnica</h3><br>
+                    <h3>Montagem de Ficha Técnica</h3><br>
                     <div class="form-group">
-                        <label>Produto Final (Mix/Kit):</label>
-                        <select id="ft-produto" onchange="listarItensFicha(this.value)">
-                            <option>Selecione o Kit</option>
-                        </select>
-                        <label>Adicionar Insumo:</label>
+                        <label>Selecionar Mix/Kit:</label>
+                        <select id="ft-produto" onchange="listarItensFicha(this.value)"><option>Selecione o Kit</option></select>
+                        <label>Adicionar Ingrediente:</label>
                         <div style="display: flex; gap: 5px;">
                             <select id="ft-insumo-item" style="flex: 2;"><option>Insumo</option></select>
                             <input type="number" step="0.001" id="ft-qtd" placeholder="Qtd" style="flex: 1;">
                         </div>
                         <button class="btn-save" style="background: #555;" onclick="adicionarItemFicha()">Adicionar à Lista</button>
                     </div>
-                    <hr>
-                    <h4>Ingredientes do Mix:</h4>
+                    <hr><br>
+                    <h4>Composição do Produto:</h4>
                     <ul id="lista-itens-ficha"></ul>
                 </div>
             </div>
 
             <div id="tab-producao-insumos" class="tab-content" style="display:none;">
                 <div class="card">
-                    <h3>Gestão de Custos (Preço de Compra)</h3>
-                    <p style="font-size:11px; color:#666; margin-bottom:15px;">Defina o preço pago por Unidade ou Quilo para calcular o lucro.</p>
+                    <h3>Gestão de Custos (Preço de Compra)</h3><br>
                     <div id="lista-precos-insumos"></div>
                 </div>
             </div>
 
-            <div id="tab-embalagens" class="tab-content" style="display:none;"><div class="card"><h3>Embalagens</h3><p>Módulo em desenvolvimento.</p></div></div>
-            <div id="tab-vendas" class="tab-content" style="display:none;"><div class="card"><h3>Vendas</h3><p>Módulo em desenvolvimento.</p></div></div>
-            <div id="tab-relatorios" class="tab-content" style="display:none;"><div class="card"><h3>Relatórios</h3><p>Módulo em desenvolvimento.</p></div></div>
-            <div id="tab-financeiro" class="tab-content" style="display:none;"><div class="card"><h3>Financeiro</h3><p>Módulo em desenvolvimento.</p></div></div>
+            <div id="tab-vendas" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3>Registrar Venda</h3><br>
+                    <div class="form-group">
+                        <label>Cliente:</label>
+                        <select id="venda-cliente"><option>Selecionar Cliente</option></select>
+                        <label>Produto:</label>
+                        <select id="venda-produto" onchange="preencherPrecoVenda(this.value)"><option>Selecionar Produto</option></select>
+                        <label>Valor Cobrado (R$):</label>
+                        <input type="number" id="venda-valor" step="0.01">
+                        <button class="btn-save" onclick="finalizarVenda()">Confirmar Venda</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Histórico Recente</h4>
+                    <ul id="lista-vendas-recente" style="list-style:none; font-size:12px; margin-top:10px;"></ul>
+                </div>
+            </div>
+
+            <div id="tab-embalagens" class="tab-content" style="display:none;"><div class="card"><h3>Embalagens</h3></div></div>
+            <div id="tab-relatorios" class="tab-content" style="display:none;"><div class="card"><h3>Relatórios</h3></div></div>
+            <div id="tab-financeiro" class="tab-content" style="display:none;"><div class="card"><h3>Financeiro</h3></div></div>
 
         </section>
     </main>
@@ -210,7 +179,7 @@
         messagingSenderId: "596792658513",
         appId: "1:596792658513:web:92bb97b0d835efc5510670"
       };
-      if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+      firebase.initializeApp(firebaseConfig);
     </script>
     <script src="app.js"></script>
 </body>
