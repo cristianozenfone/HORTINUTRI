@@ -1,3 +1,5 @@
+let meuGrafico = null;
+
 // --- NAVEGAÇÃO ---
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
@@ -14,6 +16,7 @@ function showTab(tabId) {
     };
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
+    if (tabId === 'dashboard') { atualizarGrafico(); }
     if (tabId === 'ficha-tecnica') { carregarInsumosFicha(); carregarProdutosFicha(); }
     if (tabId === 'producao-insumos') { carregarPrecosInsumos(); }
     if (tabId === 'vendas') { carregarDadosVenda(); listarVendas(); }
@@ -21,15 +24,42 @@ function showTab(tabId) {
     if (tabId === 'financeiro') { listarDespesas(); }
 }
 
+// --- GRÁFICO DASHBOARD ---
+function atualizarGrafico() {
+    firebase.database().ref('vendas').once('value', (snap) => {
+        const dados = {};
+        snap.forEach(c => {
+            const v = c.val();
+            dados[v.data] = (dados[v.data] || 0) + v.valor;
+        });
+
+        const labels = Object.keys(dados).slice(-7); // Últimos 7 dias
+        const valores = labels.map(l => dados[l]);
+
+        const ctx = document.getElementById('graficoVendas').getContext('2d');
+        if (meuGrafico) meuGrafico.destroy();
+        
+        meuGrafico = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Vendas R$',
+                    data: valores,
+                    backgroundColor: '#2e7d32'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    });
+}
+
 // --- CLIENTES ---
 function salvarCliente() {
     const nome = document.getElementById('cli-nome').value;
     const fone = document.getElementById('cli-fone').value;
     if (!nome) return;
-    firebase.database().ref('clientes').push({ nome, telefone: fone }).then(() => {
-        alert("Cliente Salvo!");
-        document.getElementById('cli-nome').value = "";
-    });
+    firebase.database().ref('clientes').push({ nome, telefone: fone }).then(() => alert("Cliente Salvo!"));
 }
 
 // --- INSUMOS E EMBALAGENS ---
@@ -45,11 +75,7 @@ function salvarEmbalagem() {
     const nome = document.getElementById('emb-nome').value;
     const custo = parseFloat(document.getElementById('emb-custo').value) || 0;
     if (!nome) return;
-    firebase.database().ref('embalagens').push({ nome, custo }).then(() => {
-        alert("Embalagem Salva!");
-        document.getElementById('emb-nome').value = "";
-        document.getElementById('emb-custo').value = "";
-    });
+    firebase.database().ref('embalagens').push({ nome, custo }).then(() => alert("Embalagem Salva!"));
 }
 
 // --- GESTÃO DE CUSTOS ---
@@ -103,7 +129,7 @@ function adicionarItemFicha() {
         const ins = snap.val();
         const sub = (ins.custo || 0) * q * (ins.fc || 1.00);
         firebase.database().ref('fichas_tecnicas/' + pId).push({
-            insumoNome: ins.nome, quantidade: q, subtotal: sub, fc: ins.fc || 1.00
+            insumoNome: ins.nome, quantidade: q, subtotal: sub
         }).then(() => { atualizarCustoFinal(pId); listarItensFicha(pId); });
     });
 }
@@ -153,7 +179,7 @@ function finalizarVenda() {
         const lucro = valor - (p.custo_total || 0);
         firebase.database().ref('vendas').push({ 
             cliente: cliNome, produto: p.nome, valor, lucro, data: new Date().toLocaleDateString() 
-        }).then(() => { alert("Venda Realizada!"); listarVendas(); });
+        }).then(() => { alert("Venda Realizada!"); listarVendas(); atualizarGrafico(); });
     });
 }
 
@@ -199,4 +225,4 @@ function listarDespesas() {
     });
 }
 
-window.onload = () => showTab('dashboard');
+window.onload = () => { showTab('dashboard'); atualizarGrafico(); };
