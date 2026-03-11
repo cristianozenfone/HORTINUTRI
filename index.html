@@ -7,8 +7,6 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -23,9 +21,9 @@
 
         body { display: flex; background-color: var(--bg-color); min-height: 100vh; overflow-x: hidden; }
 
-        /* Sidebar com Nomes Visíveis */
+        /* Sidebar com Nomes para Celular */
         .sidebar {
-            width: 180px; 
+            width: 170px; 
             height: 100vh;
             background-color: var(--sidebar-color);
             color: white;
@@ -39,103 +37,72 @@
         }
 
         .logo { padding: 15px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
-        .logo h2 { color: var(--primary-color); font-size: 18px; }
-        .logo span { font-size: 10px; display: block; }
+        .logo h2 { color: var(--primary-color); font-size: 16px; }
 
         nav ul { list-style: none; padding: 10px 0; }
         nav ul li {
-            padding: 12px 15px;
+            padding: 12px 12px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: 0.3s;
+            gap: 8px;
+            text-transform: uppercase;
         }
-        nav ul li i { width: 20px; text-align: center; }
         nav ul li:hover, nav ul li.active { background: var(--primary-color); }
-        
-        .menu-title { padding: 15px 15px 5px; font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; }
-        .menu-title-single { border-top: 1px solid #444; margin-top: 5px; font-weight: bold; }
+        .menu-title { padding: 10px 12px 5px; font-size: 9px; color: #888; font-weight: bold; }
 
-        /* Conteúdo Principal com Margem Fixa */
+        /* Conteúdo Principal Ajustado */
         .main-content { 
-            margin-left: 180px; 
-            width: calc(100% - 180px); 
+            margin-left: 170px; 
+            width: calc(100% - 170px); 
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
 
         .top-header {
             background: white;
-            padding: 10px 20px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 500;
         }
+        .top-header h1 { font-size: 14px; }
 
-        .top-header h1 { font-size: 18px; color: #333; }
+        #content-area { padding: 15px; }
 
-        #content-area { padding: 20px; }
-
-        /* Cards do Dashboard */
-        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .dashboard-cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .card-mini { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
-        .card-mini h3 { font-size: 13px; color: #666; }
-        .card-mini p { font-size: 16px; font-weight: bold; margin-top: 5px; }
 
-        /* Ajustes para Celulares Pequenos */
         @media (max-width: 480px) {
-            .sidebar { width: 150px; }
-            .main-content { margin-left: 150px; width: calc(100% - 150px); }
-            .sidebar li { font-size: 11px; padding: 10px; }
-            .top-header h1 { font-size: 14px; }
-            .user-info { font-size: 11px; }
+            .sidebar { width: 140px; }
+            .main-content { margin-left: 140px; width: calc(100% - 140px); }
+            .sidebar li { font-size: 10px; gap: 5px; }
         }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="logo">
-            <h2>HortiNutri</h2>
-            <span>ERP System</span>
-        </div>
+        <div class="logo"><h2>HortiNutri</h2></div>
         <nav>
             <ul>
                 <li onclick="showTab('dashboard')" class="active"><i class="fas fa-chart-line"></i> DASHBOARD</li>
-                
                 <li class="menu-title">CADASTROS</li>
-                <li onclick="showTab('clientes')"><i class="fas fa-users"></i> Clientes</li>
-                <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> Insumos</li>
-                <li onclick="showTab('embalagens')"><i class="fas fa-box-open"></i> Embalagens</li>
-                
-                <li class="menu-title">PRODUTOS</li>
-                <li onclick="showTab('mix-kits')"><i class="fas fa-layer-group"></i> Mix / Kits</li>
-                <li onclick="showTab('ficha-tecnica')"><i class="fas fa-list-check"></i> Ficha Técnica</li>
-                
-                <li onclick="showTab('producao')" class="menu-title-single"><i class="fas fa-industry"></i> PRODUÇÃO</li>
-                
+                <li onclick="showTab('clientes')"><i class="fas fa-users"></i> CLIENTES</li>
+                <li onclick="showTab('insumos')"><i class="fas fa-carrot"></i> INSUMOS</li>
                 <li class="menu-title">ESTOQUE</li>
-                <li onclick="showTab('estoque-insumos')"><i class="fas fa-warehouse"></i> Insumos</li>
-                <li onclick="showTab('estoque-produtos')"><i class="fas fa-boxes-stacked"></i> Produtos</li>
-                
-                <li onclick="showTab('vendas')" class="menu-title-single"><i class="fas fa-cart-shopping"></i> VENDAS</li>
-                <li onclick="showTab('relatorios')" class="menu-title-single"><i class="fas fa-file-invoice-dollar"></i> RELATÓRIOS</li>
-                <li onclick="showTab('financeiro')" class="menu-title-single"><i class="fas fa-money-bill-trend-up"></i> FINANCEIRO</li>
+                <li onclick="showTab('est-insumos')"><i class="fas fa-warehouse"></i> INSUMOS</li>
+                <li onclick="showTab('vendas')"><i class="fas fa-cart-shopping"></i> VENDAS</li>
             </ul>
         </nav>
     </aside>
 
     <main class="main-content">
         <header class="top-header">
-            <h1 id="current-tab-title">Dashboard</h1>
-            <div class="user-info">
+            <h1 id="current-tab-title">DASHBOARD</h1>
+            <div class="user-info" style="font-size: 10px;">
                 <span><i class="fas fa-user-circle"></i> Cristiano</span>
             </div>
         </header>
@@ -143,14 +110,20 @@
         <section id="content-area">
             <div id="tab-dashboard" class="tab-content">
                 <div class="dashboard-cards">
-                    <div class="card-mini"><h3>Vendas Hoje</h3><p id="vendas-hoje">R$ 0,00</p></div>
-                    <div class="card-mini"><h3>Produção Ativa</h3><p id="prod-ativa">0 itens</p></div>
+                    <div class="card-mini"><h3>Vendas Hoje</h3><p>R$ 0,00</p></div>
+                    <div class="card-mini"><h3>Produção</h3><p>0 itens</p></div>
                 </div>
-                <canvas id="mainChart"></canvas>
             </div>
-            </section>
+        </section>
     </main>
 
+    <script>
+        // Função básica para não dar tela branca
+        function showTab(id) {
+            document.getElementById('current-tab-title').innerText = id.toUpperCase();
+            console.log("Trocando para: " + id);
+        }
+    </script>
     <script src="firebase.js"></script>
     <script src="app.js"></script>
 </body>
