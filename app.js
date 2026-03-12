@@ -244,30 +244,34 @@ function carregarProdutosFicha() {
 }
 
 function adicionarItemFicha() {
+    const produtoId = document.getElementById('ft-produto').value;
+    const insumoId = document.getElementById('ft-insumo-item').value;
+    const insumoNome = document.getElementById('ft-insumo-item').options[document.getElementById('ft-insumo-item').selectedIndex].text;
+    const qtd = document.getElementById('ft-qtd').value;
 
-    const pId = document.getElementById('ft-produto').value;
-    const iId = document.getElementById('ft-insumo-item').value;
+    if (!produtoId || produtoId === "Selecione o Kit" || !insumoId || !qtd) {
+        return alert("Por favor, selecione o kit, o insumo e a quantidade!");
+    }
 
-    const q = parseFloat(document.getElementById('ft-qtd').value) || 0;
-
-    if (pId === "Selecione o Kit" || iId === "Selecionar Insumo" || q <= 0) return;
-
-    firebase.database().ref('insumos/' + iId).once('value', (snap) => {
-
+    // Buscamos o custo e FC do insumo antes de salvar para ter o subtotal exato
+    firebase.database().ref('insumos/' + insumoId).once('value', (snap) => {
         const ins = snap.val();
+        const custoUnitario = ins.custo || 0;
+        const fator = ins.fc || 1;
+        const subtotal = (custoUnitario * fator) * parseFloat(qtd);
 
-        const sub = (ins.custo || 0) * q * (ins.fc || 1.00);
-
-        firebase.database().ref('fichas_tecnicas/' + pId).push({
-
-            insumoNome: ins.nome,
-            quantidade: q,
-            subtotal: sub
-
+        // O .push() cria um NOVO item na lista, permitindo vários ingredientes
+        firebase.database().ref(`fichas_tecnicas/${produtoId}`).push({
+            insumoId: insumoId,
+            nome: insumoNome,
+            quantidade: parseFloat(qtd),
+            subtotal: subtotal
         }).then(() => {
-calcularCustoProduto(produtoId);
-            atualizarCustoFinal(pId);
-            listarItensFicha(pId);
+            document.getElementById('ft-qtd').value = "";
+            console.log("Ingrediente adicionado!");
+        });
+    });
+}
 
         });
 
