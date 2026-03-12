@@ -854,3 +854,31 @@ function atualizarSelectsFichaTecnica() {
 
 // EXECUTA AO CARREGAR O SISTEMA
 atualizarSelectsFichaTecnica();
+// --- GESTÃO DE MIX / KITS (PRODUTOS FINAIS) ---
+
+function listarProdutosMix() {
+    const corpoTabela = document.getElementById('lista-produtos-mix-corpo');
+    if (!corpoTabela) return;
+
+    firebase.database().ref('produtos_mix').on('value', (snapshot) => {
+        corpoTabela.innerHTML = "";
+        snapshot.forEach((item) => {
+            const p = item.val();
+            const preco = p.varejo ? parseFloat(p.varejo).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+            
+            corpoTabela.innerHTML += `
+                <tr>
+                    <td><strong>${p.nome}</strong></td>
+                    <td>${preco}</td>
+                    <td style="text-align: center;">
+                        <button onclick="firebase.database().ref('produtos_mix/${item.key}').remove()" style="background:none; border:none; color:#d32f2f; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
+// IMPORTANTE: Chame a função para ela rodar ao abrir o site
+listarProdutosMix();
