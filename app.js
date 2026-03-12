@@ -772,3 +772,54 @@ function carregarDadosIniciais() {
 
 // IMPORTANTE: Essa linha abaixo faz as funções rodarem assim que o site abrir
 carregarDadosIniciais();
+// --- LÓGICA DA FICHA TÉCNICA (ADICIONE AO FINAL DO APP.JS) ---
+
+function adicionarItemFicha() {
+    const produtoId = document.getElementById('ft-produto').value;
+    const insumoId = document.getElementById('ft-insumo-item').value;
+    const insumoNome = document.getElementById('ft-insumo-item').options[document.getElementById('ft-insumo-item').selectedIndex].text;
+    const qtd = parseFloat(document.getElementById('ft-qtd').value);
+
+    if (!produtoId || !insumoId || !qtd) return alert("Selecione o produto, o insumo e a quantidade!");
+
+    // Salva o ingrediente dentro do produto selecionado
+    firebase.database().ref(`fichas_tecnicas/${produtoId}`).push({
+        insumoId: insumoId,
+        nome: insumoNome,
+        qtd: qtd
+    }).then(() => {
+        alert("Ingrediente adicionado!");
+        document.getElementById('ft-qtd').value = "";
+    });
+}
+
+function listarItensFicha(produtoId) {
+    const container = document.getElementById('lista-itens-ficha-container');
+    if (!container || !produtoId) return;
+
+    firebase.database().ref(`fichas_tecnicas/${produtoId}`).on('value', (snapshot) => {
+        container.innerHTML = `
+            <table>
+                <thead>
+                    <tr><th>Ingrediente</th><th>Qtd</th><th>Ação</th></tr>
+                </thead>
+                <tbody id="corpo-ficha"></tbody>
+            </table>`;
+        
+        const corpo = document.getElementById('corpo-ficha');
+        snapshot.forEach((item) => {
+            const dado = item.val();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${dado.nome}</td>
+                    <td>${dado.qtd}</td>
+                    <td><button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                </tr>`;
+        });
+    });
+}
+
+// Faz a lista atualizar toda vez que você mudar o produto no select lá em cima
+document.getElementById('ft-produto').addEventListener('change', function() {
+    listarItensFicha(this.value);
+});
