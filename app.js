@@ -614,3 +614,16 @@ function listarProdutosMix(){
     });
 
 }
+function editarPrecoProduto(id, precoAtual){
+
+    let novoPreco = prompt("Digite o novo preço:", precoAtual);
+
+    if(novoPreco === null) return;
+
+    firebase.database().ref('produtos/' + id).update({
+        preco_varejo: parseFloat(novoPreco)
+    }).then(()=>{
+        alert("Preço atualizado!");
+    });
+
+}
