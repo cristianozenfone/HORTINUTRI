@@ -547,14 +547,26 @@ function baixarEstoque(produtoId, qtdVenda){
             const nome = insumo.insumoNome.toLowerCase().trim();
             const qtdUsada = insumo.quantidade * qtdVenda;
 
-            firebase.database().ref('estoque/atual/' + nome).once('value', est => {
+            firebase.database().ref('insumos').once('value', lista => {
 
-                let atual = parseFloat(est.val()) || 0;
-                let novo = atual - qtdUsada;
+                lista.forEach(i => {
 
-                if(novo < 0) novo = 0;
+                    const dados = i.val();
 
-                firebase.database().ref('estoque/atual/' + nome).set(novo.toFixed(2));
+                    if(dados.nome.toLowerCase().trim() === nome){
+
+                        let atual = parseFloat(dados.estoque) || 0;
+                        let novo = atual - qtdUsada;
+
+                        if(novo < 0) novo = 0;
+
+                        firebase.database().ref('insumos/' + i.key).update({
+                            estoque: novo.toFixed(2)
+                        });
+
+                    }
+
+                });
 
             });
 
