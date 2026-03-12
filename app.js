@@ -525,3 +525,29 @@ window.onload = () => {
     showTab('dashboard');
 
 };
+function baixarEstoque(produtoId, qtdVenda){
+
+    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
+
+        snap.forEach(item => {
+
+            const insumo = item.val();
+            const nome = insumo.insumoNome.toLowerCase().trim();
+            const qtdUsada = insumo.quantidade * qtdVenda;
+
+            firebase.database().ref('estoque/atual/' + nome).once('value', est => {
+
+                let atual = parseFloat(est.val()) || 0;
+                let novo = atual - qtdUsada;
+
+                if(novo < 0) novo = 0;
+
+                firebase.database().ref('estoque/atual/' + nome).set(novo.toFixed(2));
+
+            });
+
+        });
+
+    });
+
+}
