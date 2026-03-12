@@ -731,3 +731,44 @@ function excluirInsumo(id) {
 
 // Chame a função para iniciar a listagem assim que abrir o ERP
 listarInsumos();
+// --- FUNÇÕES DE BUSCA (ADICIONE NO FINAL DO APP.JS) ---
+
+function carregarDadosIniciais() {
+    // 1. Busca Clientes e joga na tabela
+    firebase.database().ref('clientes').on('value', (snapshot) => {
+        const corpoClientes = document.getElementById('lista-clientes-corpo');
+        if (corpoClientes) {
+            corpoClientes.innerHTML = "";
+            snapshot.forEach((item) => {
+                const c = item.val();
+                corpoClientes.innerHTML += `
+                    <tr>
+                        <td>${c.nome}</td>
+                        <td>${c.fone}</td>
+                        <td><button onclick="firebase.database().ref('clientes/${item.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+            });
+        }
+    });
+
+    // 2. Busca Insumos e joga na tabela
+    firebase.database().ref('insumos').on('value', (snapshot) => {
+        const corpoInsumos = document.getElementById('lista-insumos-corpo');
+        if (corpoInsumos) {
+            corpoInsumos.innerHTML = "";
+            snapshot.forEach((item) => {
+                const i = item.val();
+                corpoInsumos.innerHTML += `
+                    <tr>
+                        <td>${i.nome}</td>
+                        <td><span class="badge">${i.unidade}</span></td>
+                        <td>${i.fc ? i.fc : '1.00'}</td>
+                        <td><button onclick="firebase.database().ref('insumos/${item.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
+            });
+        }
+    });
+}
+
+// IMPORTANTE: Essa linha abaixo faz as funções rodarem assim que o site abrir
+carregarDadosIniciais();
