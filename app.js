@@ -520,7 +520,7 @@ window.onload = () => {
 function salvarProdutoMix(){
 
     const nome = document.getElementById('mix-nome').value;
-    const preco = parseFloat(document.getElementById('mix-preco').value) || 0;
+    const preco = parseFloat(document.getElementById('mix-varejo').value) || 0;
 
     if(!nome){
         alert("Digite o nome do produto");
