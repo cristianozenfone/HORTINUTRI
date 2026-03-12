@@ -127,6 +127,7 @@ function salvarCliente() {
 }
 
 // 2. Função para Listar Clientes em Tempo Real
+// 2. Função para Listar Clientes em Tempo Real (BLINDADA)
 function listarClientes() {
     const container = document.getElementById('lista-clientes-container');
     if (!container) return;
@@ -151,14 +152,21 @@ function listarClientes() {
             snap.forEach(item => {
                 const c = item.val();
                 const id = item.key;
-                // Cor da etiqueta muda dependendo se é ATACADO ou VAREJO
-                const badgeColor = c.tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
+                
+                // PROTEÇÃO ANTI-ERROS: Garante que clientes antigos não quebrem a tabela
+                const tipo = c.tipo || 'N/A';
+                const cep = c.cep || 'Sem CEP';
+                const fone = c.fone || c.telefone || 'Sem Fone'; // Pega .fone (novo) ou .telefone (antigo)
+                const financeiro = c.situacaoFinanceira || 0;
+                
+                // Cor da etiqueta
+                const badgeColor = tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
 
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;"><strong>${c.nome}</strong><br><small style="color:#666;">CEP: ${c.cep}</small></td>
-                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${c.tipo}</span></td>
-                        <td style="padding: 10px;">${c.fone}</td>
+                        <td style="padding: 10px;"><strong>${c.nome}</strong><br><small style="color:#666;">CEP: ${cep}</small></td>
+                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
+                        <td style="padding: 10px;">${fone}</td>
                         <td style="padding: 10px; text-align:center;">
                             <button onclick="prepararEdicao('${id}')" title="Editar" style="color:#1976d2; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-edit"></i></button>
                             
@@ -166,10 +174,16 @@ function listarClientes() {
                             
                             <button onclick="alert('Módulo de Histórico em desenvolvimento para: ${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
                             
-                            <button onclick="alert('Situação Financeira atual: R$ ${c.situacaoFinanceira.toFixed(2)}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
+                            <button onclick="alert('Situação Financeira atual: R$ ${financeiro.toFixed(2)}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
                         </td>
                     </tr>`;
             });
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    });
+}
         }
 
         html += '</tbody></table>';
