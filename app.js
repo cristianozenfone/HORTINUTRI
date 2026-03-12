@@ -83,10 +83,11 @@ function salvarCliente() {
     const id = document.getElementById('cli-id').value;
     const nome = document.getElementById('cli-nome').value;
     const tipo = document.getElementById('cli-tipo').value;
-    const status = document.getElementById('cli-status').value; // Novo Campo
+    const status = document.getElementById('cli-status').value; // Campo de Status
     const cep = document.getElementById('cli-cep').value;
     const fone = document.getElementById('cli-fone').value;
     const endereco = document.getElementById('cli-endereco').value;
+    const obs = document.getElementById('cli-obs').value; // Novo Campo de Observações
 
     // Validação estrita: Não salva se faltar os campos principais
     if (!nome || !tipo || !cep || !fone) {
@@ -96,10 +97,11 @@ function salvarCliente() {
     const dadosCliente = {
         nome: nome,
         tipo: tipo,
-        status: status, // Salva o Status
+        status: status,
         cep: cep,
         fone: fone,
         endereco: endereco,
+        obs: obs, // Salva as observações no Firebase
         dataCadastro: new Date().toLocaleDateString('pt-BR'),
         situacaoFinanceira: 0 // Base para o futuro módulo financeiro
     };
@@ -149,7 +151,7 @@ function listarClientes() {
                 
                 // PROTEÇÃO ANTI-ERROS
                 const tipo = c.tipo || 'N/A';
-                const status = c.status || 'ATIVO'; // Padrão Ativo
+                const status = c.status || 'ATIVO'; 
                 const endExibir = c.endereco || 'Endereço não informado';
                 const fone = c.fone || c.telefone || 'Sem Fone';
                 const financeiro = c.situacaoFinanceira || 0;
@@ -227,10 +229,11 @@ function prepararEdicao(id) {
         document.getElementById('cli-id').value = id;
         document.getElementById('cli-nome').value = c.nome;
         document.getElementById('cli-tipo').value = c.tipo;
-        document.getElementById('cli-status').value = c.status || 'ATIVO'; // Carrega o status
+        document.getElementById('cli-status').value = c.status || 'ATIVO'; 
         document.getElementById('cli-cep').value = c.cep;
         document.getElementById('cli-fone').value = c.fone;
         document.getElementById('cli-endereco').value = c.endereco || "";
+        document.getElementById('cli-obs').value = c.obs || ""; // Carrega as observações
         
         // Muda o visual do formulário
         document.getElementById('titulo-form-cliente').innerText = "✏️ Editando Cliente";
@@ -248,10 +251,11 @@ function limparFormularioCliente() {
     document.getElementById('cli-id').value = "";
     document.getElementById('cli-nome').value = "";
     document.getElementById('cli-tipo').value = "";
-    document.getElementById('cli-status').value = "ATIVO"; // Reseta para Ativo
+    document.getElementById('cli-status').value = "ATIVO"; 
     document.getElementById('cli-cep').value = "";
     document.getElementById('cli-fone').value = "";
     document.getElementById('cli-endereco').value = "";
+    document.getElementById('cli-obs').value = ""; // Limpa o campo de observações
     
     // Retorna o visual ao normal
     document.getElementById('titulo-form-cliente').innerText = "Novo Cadastro de Cliente";
