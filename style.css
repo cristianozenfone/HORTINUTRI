@@ -1,11 +1,13 @@
-/* Cores e Estilo Geral - HortiNutri ERP */
+/* ============================================================
+   CONFIGURAÇÕES GERAIS E CORES (HortiNutri ERP)
+   ============================================================ */
 :root {
-    --primary-color: #2e7d32;
-    --secondary-color: #1b5e20;
-    --accent-color: #ef6c00;
-    --bg-color: #f8f9fa;
+    --primary: #2e7d32;
+    --primary-dark: #1b5e20;
+    --accent: #ef6c00;
+    --bg: #f4f7f6;
     --sidebar-color: #263238;
-    --text-light: #ffffff;
+    --white: #ffffff;
     --text-dark: #333333;
 }
 
@@ -13,18 +15,19 @@
 
 body { 
     display: flex; 
-    background-color: var(--bg-color); 
+    background-color: var(--bg); 
     color: var(--text-dark); 
     min-height: 100vh;
-    overflow-x: hidden; 
 }
 
-/* Menu Lateral (Sidebar) */
+/* ============================================================
+   LAYOUT PARA COMPUTADOR (PC)
+   ============================================================ */
 .sidebar {
-    width: 260px;
+    width: 200px;
     height: 100vh;
     background-color: var(--sidebar-color);
-    color: var(--text-light);
+    color: white;
     position: fixed;
     left: 0;
     top: 0;
@@ -33,158 +36,138 @@ body {
     z-index: 1000;
 }
 
-.logo { padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
-.logo h2 { color: var(--primary-color); letter-spacing: 1px; }
+.logo { padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #37474f; }
+.logo h3 { color: #4caf50; font-size: 1.1rem; letter-spacing: 1px; }
 
-nav ul { list-style: none; padding: 10px 0; }
+nav ul { list-style: none; margin-top: 10px; }
 nav ul li {
-    padding: 12px 20px;
+    padding: 12px 15px;
     cursor: pointer;
-    transition: 0.3s;
-    font-size: 14px;
+    font-size: 11px;
     display: flex;
     align-items: center;
     gap: 10px;
+    text-transform: uppercase;
+    border-left: 4px solid transparent;
+    transition: 0.3s;
+    color: #cfd8dc;
 }
+nav ul li:hover, nav ul li.active { background: #37474f; color: white; border-left-color: var(--primary); }
+nav ul li.active { background: var(--primary); }
 
-nav ul li:hover, nav ul li.active { background: var(--primary-color); }
-
-.menu-title { padding: 15px 20px 5px; font-size: 11px; color: #888; font-weight: bold; text-transform: uppercase; }
-.menu-title-single { font-weight: bold; border-top: 1px solid #444; margin-top: 5px; }
-
-/* Conteúdo Principal - ONDE ESTAVA O ERRO */
 .main-content { 
-    margin-left: 260px; 
-    width: calc(100% - 260px); 
-    display: flex;
-    flex-direction: column;
+    margin-left: 200px; 
+    width: calc(100% - 200px); 
     min-height: 100vh;
 }
 
 .top-header {
     background: white;
-    padding: 15px 30px;
+    padding: 15px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 500;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-#content-area { padding: 25px; flex: 1; }
+#content-area { padding: 20px; max-width: 1200px; margin: 0 auto; }
 
-/* Cards e Layout */
-.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.card-mini { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid var(--primary-color); }
+/* CARDS, INPUTS E BOTÕES (O QUE SUMIU NO PC) */
+.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
+.card h3 { font-size: 1rem; margin-bottom: 15px; border-left: 4px solid var(--primary); padding-left: 10px; }
 
-/* Ajustes Específicos para Celular (Mobile) */
-@media (max-width: 768px) {
-    .sidebar { 
-        width: 60px !important; 
-    }
-    /* Esconde textos do menu no celular */
-    .sidebar span, .sidebar .menu-title, .sidebar .logo h2, .sidebar .menu-title-single { 
-        display: none !important; 
-    }
-    .main-content { 
-        margin-left: 60px !important; 
-        width: calc(100% - 60px) !important; 
-    }
-    .top-header {
-        padding: 10px 15px !important;
-    }
-    .top-header h1 { 
-        font-size: 14px !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .dashboard-cards {
-        grid-template-columns: 1fr 1fr;
-    }
+input, select { 
+    width: 100%; 
+    padding: 12px; 
+    margin-top: 8px; 
+    border-radius: 8px; 
+    border: 1px solid #ddd; 
+    background: #fdfdfd; 
+    outline: none; 
+    transition: 0.3s; 
 }
-/* AJUSTE PARA CELULAR (TELAS PEQUENAS) */
-/* AJUSTE PARA TELEMÓVEL - VERSÃO FORÇADA */
-@media screen and (max-width: 600px) {
-    /* 1. Faz o menu lateral virar uma barra no topo no celular */
+input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1); }
+
+.btn-save { 
+    background: var(--primary); 
+    color: white; 
+    font-weight: bold; 
+    border: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    margin-top: 15px; 
+    transition: 0.3s; 
+    width: 100%; 
+}
+.btn-save:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+/* TABELAS */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { background: #f8f9fa; color: #666; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
+
+/* ============================================================
+   AJUSTE PARA CELULAR (MOBILE) - TUDO ORGANIZADO
+   ============================================================ */
+@media screen and (max-width: 768px) {
+    body { display: block; }
+
+    /* Menu vira barra no topo */
     .sidebar {
         width: 100% !important;
         height: auto !important;
         position: relative !important;
-        display: flex !important;
         flex-direction: row !important;
         overflow-x: auto !important;
         white-space: nowrap !important;
-        z-index: 1000;
     }
+    
+    .logo { display: none !important; }
+    
+    nav ul { display: flex !important; }
+    nav ul li { padding: 15px !important; border-left: none !important; border-bottom: 3px solid transparent; }
+    nav ul li.active { border-bottom-color: white; }
 
-    .sidebar li {
-        padding: 10px 15px !important;
-        border-bottom: none !important;
-        font-size: 13px !important;
-    }
-
-    /* 2. Libera o conteúdo para usar a tela toda */
+    /* Conteúdo ocupa a tela toda */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
+    }
+
+    /* Tabela de Clientes vira Cartão */
+    #lista-clientes-container table, 
+    #lista-clientes-container thead, 
+    #lista-clientes-container tbody, 
+    #lista-clientes-container tr, 
+    #lista-clientes-container td { display: block !important; width: 100% !important; }
+    
+    #lista-clientes-container thead { display: none !important; }
+    
+    #lista-clientes-container tr { 
+        margin-bottom: 15px !important; 
+        border: 1px solid var(--primary) !important; 
+        border-radius: 8px !important; 
         padding: 10px !important;
-        margin-top: 0 !important;
+        background: white !important;
     }
-
-    /* 3. Ajusta o cabeçalho fixo */
-    .header {
-        position: relative !important;
-        width: 100% !important;
-        left: 0 !important;
+    
+    #lista-clientes-container td { 
+        display: flex !important; 
+        justify-content: space-between !important; 
+        text-align: right !important; 
+        border: none !important; 
+        border-bottom: 1px solid #eee !important; 
+        padding: 10px 5px !important; 
     }
-    #lista-clientes-container {
-        width: 100% !important;
-        overflow-x: hidden !important;
-        padding: 0 !important;
+    
+    #lista-clientes-container td:before { 
+        font-weight: bold; 
+        color: var(--primary); 
+        text-align: left;
     }
-
-    #lista-clientes-container table {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    #lista-clientes-container thead {
-        display: none !important;
-    }
-
-    #lista-clientes-container tr {
-        display: block !important;
-        margin-bottom: 15px !important;
-        border: 1px solid #2e7d32 !important;
-        border-radius: 8px !important;
-        background: #fff !important;
-        padding: 10px !important;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1) !important;
-    }
-
-    #lista-clientes-container td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        border: none !important;
-        border-bottom: 1px solid #eee !important;
-        padding: 8px 5px !important;
-        text-align: right !important;
-        font-size: 14px !important;
-    }
-
-    #lista-clientes-container td:nth-of-type(1):before { content: "Cliente:"; font-weight: bold; color: #2e7d32; }
-    #lista-clientes-container td:nth-of-type(2):before { content: "Tipo:"; font-weight: bold; color: #2e7d32; }
-    #lista-clientes-container td:nth-of-type(3):before { content: "Contato:"; font-weight: bold; color: #2e7d32; }
-    #lista-clientes-container td:nth-of-type(4):before { content: "Ações:"; font-weight: bold; color: #2e7d32; }
-
-    #lista-clientes-container td:last-child {
-        border-bottom: none !important;
-        justify-content: center !important;
-        gap: 20px !important;
-        padding-top: 15px !important;
-    }
+    #lista-clientes-container td:nth-of-type(1):before { content: "Cliente: "; }
+    #lista-clientes-container td:nth-of-type(2):before { content: "Tipo: "; }
+    #lista-clientes-container td:nth-of-type(3):before { content: "Contato: "; }
+    #lista-clientes-container td:nth-of-type(4):before { content: "Ações: "; }
 }
