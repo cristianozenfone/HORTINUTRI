@@ -82,25 +82,33 @@
 
            <div id="tab-clientes" class="tab-content" style="display:none;">
     <div class="card">
-        <h3>Novo Cliente</h3>
-        <input id="cli-nome" placeholder="Nome Completo">
-        <input id="cli-fone" placeholder="WhatsApp/Telefone">
-        <button class="btn-save" onclick="salvarCliente()">Salvar Cliente</button>
+        <h3 id="titulo-form-cliente">Novo Cadastro de Cliente</h3>
+        <input type="hidden" id="cli-id"> <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+            <input id="cli-nome" type="text" placeholder="Nome Completo ou Razão Social">
+            <select id="cli-tipo">
+                <option value="" disabled selected>Tipo: Selecione</option>
+                <option value="VAREJO">VAREJO</option>
+                <option value="ATACADO">ATACADO</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <input id="cli-cep" type="text" placeholder="CEP (Ex: 00000-000)">
+            <input id="cli-fone" type="text" placeholder="Telefone/WhatsApp com DDD">
+        </div>
+        
+        <input id="cli-endereco" type="text" placeholder="Endereço Completo" style="margin-top: 10px;">
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-save" id="btn-salvar-cliente" onclick="salvarCliente()">Salvar Cliente</button>
+            <button class="btn-save" id="btn-cancelar-edit" onclick="limparFormularioCliente()" style="background:#607d8b; display:none; width: 30%;">Cancelar</button>
+        </div>
     </div>
 
     <div class="card">
-        <h3>Lista de Clientes Cadastrados</h3>
-        <table id="tabela-clientes">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>WhatsApp/Telefone</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-clientes-corpo">
-                </tbody>
-        </table>
+        <h3>Lista de Clientes HortiNutri+</h3>
+        <div id="lista-clientes-container">
+            </div>
     </div>
 </div>
 
@@ -277,6 +285,7 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
