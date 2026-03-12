@@ -41,16 +41,11 @@ function showTab(tabId) {
 }
 
 function atualizarGrafico() {
-
     firebase.database().ref('vendas').once('value', (snap) => {
-
         const dados = {};
-
         snap.forEach(c => {
-
             const v = c.val();
             dados[v.data] = (dados[v.data] || 0) + v.valor;
-
         });
 
         const labels = Object.keys(dados).slice(-7);
@@ -76,9 +71,7 @@ function atualizarGrafico() {
                 maintainAspectRatio: false
             }
         });
-
     });
-
 }
 
 // ==========================================
@@ -126,7 +119,6 @@ function salvarCliente() {
     }
 }
 
-// 2. Função para Listar Clientes em Tempo Real
 // 2. Função para Listar Clientes em Tempo Real (BLINDADA)
 function listarClientes() {
     const container = document.getElementById('lista-clientes-container');
@@ -178,12 +170,6 @@ function listarClientes() {
                         </td>
                     </tr>`;
             });
-        }
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    });
-}
         }
 
         html += '</tbody></table>';
@@ -255,6 +241,7 @@ function limparFormularioCliente() {
     document.getElementById('btn-salvar-cliente').style.background = "var(--primary-color)"; // Volta pro verde
     document.getElementById('btn-cancelar-edit').style.display = "none";
 }
+
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
@@ -278,7 +265,6 @@ function salvarInsumo() {
 }
 
 function salvarEmbalagem() {
-
     const nome = document.getElementById('emb-nome').value;
     const custo = parseFloat(document.getElementById('emb-custo').value) || 0;
 
@@ -288,22 +274,18 @@ function salvarEmbalagem() {
         nome,
         custo
     }).then(() => alert("Embalagem Salva!"));
-
 }
 
 function carregarPrecosInsumos() {
-
     const lista = document.getElementById('lista-precos-insumos');
 
     firebase.database().ref('insumos').on('value', (snap) => {
-
         lista.innerHTML =
        "<table><thead><tr><th>Insumo</th><th>Estoque</th><th>Custo Compra</th><th>Ação</th></tr></thead><tbody id='body-custos'></tbody></table>";
 
         const body = document.getElementById('body-custos');
 
         snap.forEach((child) => {
-
             const i = child.val();
             const id = child.key;
 
@@ -314,30 +296,23 @@ function carregarPrecosInsumos() {
                 <br>
                 <small>FC: ${i.fc || 1.00}</small>
                 </td>
-
                <td>
 <input type="number" id="estoque-${id}" value="${i.estoque || 0}" style="width:70px;">
 </td>
-
 <td>
 <input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;">
 </td>
-
                 <td>
                 <button onclick="atualizarCustoInsumo('${id}')" style="background:green;color:white;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">
                 OK
                 </button>
                 </td>
             </tr>`;
-
         });
-
     });
-
 }
 
 function atualizarCustoInsumo(id) {
-
     const valor = parseFloat(document.getElementById('preco-' + id).value) || 0;
     const estoque = parseFloat(document.getElementById('estoque-' + id).value) || 0;
 
@@ -345,58 +320,37 @@ function atualizarCustoInsumo(id) {
         custo: valor,
         estoque: estoque
     }).then(() => {
-
         alert("Dados Atualizados!");
-        recalcularTudo();
-
+        if (typeof recalcularTudo === "function") recalcularTudo();
     });
-
 }
 
 function carregarInsumosFicha() {
-
     const s = document.getElementById('ft-insumo-item');
-
     s.innerHTML = '<option>Selecionar Insumo</option>';
 
     firebase.database().ref('insumos').once('value', s1 => {
-
         s1.forEach(c => {
-
             let o = document.createElement('option');
-
             o.value = c.key;
             o.text = c.val().nome;
-
             s.appendChild(o);
-
         });
-
     });
-
 }
 
 function carregarProdutosFicha() {
-
     const s = document.getElementById('ft-produto');
-
     s.innerHTML = '<option>Selecione o Kit</option>';
 
     firebase.database().ref('produtos').once('value', s1 => {
-
         s1.forEach(c => {
-
             let o = document.createElement('option');
-
             o.value = c.key;
             o.text = c.val().nome;
-
             s.appendChild(o);
-
         });
-
     });
-
 }
 
 function adicionarItemFicha() {
