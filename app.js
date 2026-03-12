@@ -589,3 +589,28 @@ function excluirProduto(id){
     });
 
 }
+function listarProdutosMix(){
+
+    firebase.database().ref('produtos').on('value', snap => {
+
+        let html = "";
+
+        snap.forEach(item => {
+
+            const id = item.key;
+            const p = item.val();
+
+            html += `
+            <div style="margin-top:8px;">
+                ${p.nome} - R$ ${p.preco_varejo}
+                <button onclick="excluirProduto('${id}')">Excluir</button>
+            </div>
+            `;
+
+        });
+
+        document.getElementById('lista-produtos-mix').innerHTML = html;
+
+    });
+
+}
