@@ -83,11 +83,11 @@ function salvarCliente() {
     const id = document.getElementById('cli-id').value;
     const nome = document.getElementById('cli-nome').value;
     const tipo = document.getElementById('cli-tipo').value;
-    const status = document.getElementById('cli-status').value; // Campo de Status
+    const status = document.getElementById('cli-status').value; // Novo Campo
     const cep = document.getElementById('cli-cep').value;
     const fone = document.getElementById('cli-fone').value;
     const endereco = document.getElementById('cli-endereco').value;
-    const obs = document.getElementById('cli-obs').value; // Novo Campo de Observações
+    const obs = document.getElementById('cli-obs').value; // Campo de Observação
 
     // Validação estrita: Não salva se faltar os campos principais
     if (!nome || !tipo || !cep || !fone) {
@@ -97,11 +97,11 @@ function salvarCliente() {
     const dadosCliente = {
         nome: nome,
         tipo: tipo,
-        status: status,
+        status: status, // Salva o Status
         cep: cep,
         fone: fone,
         endereco: endereco,
-        obs: obs, // Salva as observações no Firebase
+        obs: obs, // Salva a Observação
         dataCadastro: new Date().toLocaleDateString('pt-BR'),
         situacaoFinanceira: 0 // Base para o futuro módulo financeiro
     };
@@ -151,10 +151,11 @@ function listarClientes() {
                 
                 // PROTEÇÃO ANTI-ERROS
                 const tipo = c.tipo || 'N/A';
-                const status = c.status || 'ATIVO'; 
+                const status = c.status || 'ATIVO'; // Padrão Ativo
                 const endExibir = c.endereco || 'Endereço não informado';
                 const fone = c.fone || c.telefone || 'Sem Fone';
                 const financeiro = c.situacaoFinanceira || 0;
+                const observacao = c.obs || ""; // Pega a observação
                 
                 // Cor da etiqueta
                 const badgeColor = tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
@@ -165,6 +166,9 @@ function listarClientes() {
                 // Link para o Google Maps
                 const linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endExibir)}`;
 
+                // Bloco de HTML da Observação (só aparece se existir texto)
+                const htmlObs = observacao ? `<small style="display: block; color: #795548; font-style: italic; margin-top: 4px;"><i class="fas fa-sticky-note"></i> ${observacao}</small>` : "";
+
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px;">
@@ -174,6 +178,7 @@ function listarClientes() {
                                     <i class="fas fa-map-marker-alt" style="color: #2e7d32;"></i> ${endExibir}
                                 </a>
                             </small>
+                            ${htmlObs}
                         </td>
                         <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
                         <td style="padding: 10px;">${fone}</td>
@@ -229,11 +234,11 @@ function prepararEdicao(id) {
         document.getElementById('cli-id').value = id;
         document.getElementById('cli-nome').value = c.nome;
         document.getElementById('cli-tipo').value = c.tipo;
-        document.getElementById('cli-status').value = c.status || 'ATIVO'; 
+        document.getElementById('cli-status').value = c.status || 'ATIVO'; // Carrega o status
         document.getElementById('cli-cep').value = c.cep;
         document.getElementById('cli-fone').value = c.fone;
         document.getElementById('cli-endereco').value = c.endereco || "";
-        document.getElementById('cli-obs').value = c.obs || ""; // Carrega as observações
+        document.getElementById('cli-obs').value = c.obs || ""; // Carrega a observação
         
         // Muda o visual do formulário
         document.getElementById('titulo-form-cliente').innerText = "✏️ Editando Cliente";
@@ -251,11 +256,11 @@ function limparFormularioCliente() {
     document.getElementById('cli-id').value = "";
     document.getElementById('cli-nome').value = "";
     document.getElementById('cli-tipo').value = "";
-    document.getElementById('cli-status').value = "ATIVO"; 
+    document.getElementById('cli-status').value = "ATIVO"; // Reseta para Ativo
     document.getElementById('cli-cep').value = "";
     document.getElementById('cli-fone').value = "";
     document.getElementById('cli-endereco').value = "";
-    document.getElementById('cli-obs').value = ""; // Limpa o campo de observações
+    document.getElementById('cli-obs').value = ""; // Limpa a observação
     
     // Retorna o visual ao normal
     document.getElementById('titulo-form-cliente').innerText = "Novo Cadastro de Cliente";
