@@ -80,14 +80,29 @@
                 <div class="card"><h3>Bem-vindo, Cristiano</h3><p>Controle sua produção e monitore seus lucros em tempo real.</p></div>
             </div>
 
-            <div id="tab-clientes" class="tab-content" style="display:none;">
-                <div class="card">
-                    <h3>Novo Cliente</h3>
-                    <input id="cli-nome" placeholder="Nome Completo">
-                    <input id="cli-fone" placeholder="WhatsApp/Telefone">
-                    <button class="btn-save" onclick="salvarCliente()">Salvar Cliente</button>
-                </div>
-            </div>
+           <div id="tab-clientes" class="tab-content" style="display:none;">
+    <div class="card">
+        <h3>Novo Cliente</h3>
+        <input id="cli-nome" placeholder="Nome Completo">
+        <input id="cli-fone" placeholder="WhatsApp/Telefone">
+        <button class="btn-save" onclick="salvarCliente()">Salvar Cliente</button>
+    </div>
+
+    <div class="card">
+        <h3>Lista de Clientes Cadastrados</h3>
+        <table id="tabela-clientes">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>WhatsApp/Telefone</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-clientes-corpo">
+                </tbody>
+        </table>
+    </div>
+</div>
 
             <div id="tab-insumos" class="tab-content" style="display:none;">
                 <div class="card">
@@ -194,3 +209,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
