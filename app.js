@@ -83,6 +83,7 @@ function salvarCliente() {
     const id = document.getElementById('cli-id').value;
     const nome = document.getElementById('cli-nome').value;
     const tipo = document.getElementById('cli-tipo').value;
+    const status = document.getElementById('cli-status').value; // Novo Campo
     const cep = document.getElementById('cli-cep').value;
     const fone = document.getElementById('cli-fone').value;
     const endereco = document.getElementById('cli-endereco').value;
@@ -95,6 +96,7 @@ function salvarCliente() {
     const dadosCliente = {
         nome: nome,
         tipo: tipo,
+        status: status, // Salva o Status
         cep: cep,
         fone: fone,
         endereco: endereco,
@@ -147,6 +149,7 @@ function listarClientes() {
                 
                 // PROTEÇÃO ANTI-ERROS
                 const tipo = c.tipo || 'N/A';
+                const status = c.status || 'ATIVO'; // Padrão Ativo
                 const endExibir = c.endereco || 'Endereço não informado';
                 const fone = c.fone || c.telefone || 'Sem Fone';
                 const financeiro = c.situacaoFinanceira || 0;
@@ -154,13 +157,16 @@ function listarClientes() {
                 // Cor da etiqueta
                 const badgeColor = tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
 
+                // Bolinha de Status
+                const bolinha = status === 'ATIVO' ? '🟢' : '⚪';
+
                 // Link para o Google Maps
                 const linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endExibir)}`;
 
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px;">
-                            <strong>${c.nome}</strong><br>
+                            <strong>${bolinha} ${c.nome}</strong><br>
                             <small style="display: block; margin-top: 4px;">
                                 <a href="${linkMapa}" target="_blank" style="text-decoration: none; color: #666;">
                                     <i class="fas fa-map-marker-alt" style="color: #2e7d32;"></i> ${endExibir}
@@ -221,6 +227,7 @@ function prepararEdicao(id) {
         document.getElementById('cli-id').value = id;
         document.getElementById('cli-nome').value = c.nome;
         document.getElementById('cli-tipo').value = c.tipo;
+        document.getElementById('cli-status').value = c.status || 'ATIVO'; // Carrega o status
         document.getElementById('cli-cep').value = c.cep;
         document.getElementById('cli-fone').value = c.fone;
         document.getElementById('cli-endereco').value = c.endereco || "";
@@ -241,6 +248,7 @@ function limparFormularioCliente() {
     document.getElementById('cli-id').value = "";
     document.getElementById('cli-nome').value = "";
     document.getElementById('cli-tipo').value = "";
+    document.getElementById('cli-status').value = "ATIVO"; // Reseta para Ativo
     document.getElementById('cli-cep').value = "";
     document.getElementById('cli-fone').value = "";
     document.getElementById('cli-endereco').value = "";
