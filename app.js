@@ -655,3 +655,38 @@ function calcularCustoProduto(produtoId){
     });
 
 }
+// Função para carregar e exibir os clientes
+function listarClientes() {
+    const corpoTabela = document.getElementById('lista-clientes-corpo');
+    
+    firebase.database().ref('clientes').on('value', (snapshot) => {
+        corpoTabela.innerHTML = ""; // Limpa a tabela antes de listar
+        
+        snapshot.forEach((item) => {
+            const cliente = item.val();
+            const id = item.key;
+            
+            corpoTabela.innerHTML += `
+                <tr>
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.fone}</td>
+                    <td>
+                        <button onclick="excluirCliente('${id}')" style="background:none; border:none; color:red; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+}
+
+// Função para excluir cliente (opcional, mas recomendada)
+function excluirCliente(id) {
+    if(confirm("Deseja realmente excluir este cliente?")) {
+        firebase.database().ref('clientes/' + id).remove();
+    }
+}
+
+// CHAME A FUNÇÃO AO CARREGAR O APP
+listarClientes();
