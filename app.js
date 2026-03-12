@@ -180,12 +180,14 @@ function carregarPrecosInsumos() {
 function atualizarCustoInsumo(id) {
 
     const valor = parseFloat(document.getElementById('preco-' + id).value) || 0;
+    const estoque = parseFloat(document.getElementById('estoque-' + id).value) || 0;
 
     firebase.database().ref('insumos/' + id).update({
-        custo: valor
+        custo: valor,
+        estoque: estoque
     }).then(() => {
 
-        alert("Custo Atualizado!");
+        alert("Dados Atualizados!");
         recalcularTudo();
 
     });
