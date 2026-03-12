@@ -972,3 +972,42 @@ function listarVendas() {
 listarCustosInsumos();
 atualizarSelectsVendas();
 listarVendas();
+// --- FINANCEIRO ---
+function salvarDespesa() {
+    const desc = document.getElementById('fin-desc').value;
+    const valor = document.getElementById('fin-valor').value;
+    if (!desc || !valor) return alert("Preencha descrição e valor!");
+
+    firebase.database().ref('financeiro').push({
+        descricao: desc,
+        valor: parseFloat(valor),
+        data: new Date().toLocaleDateString('pt-BR')
+    }).then(() => {
+        alert("Gasto registrado!");
+        document.getElementById('fin-desc').value = "";
+        document.getElementById('fin-valor').value = "";
+    });
+}
+
+function listarDespesas() {
+    const corpo = document.getElementById('lista-despesas-corpo');
+    firebase.database().ref('financeiro').on('value', snap => {
+        if(!corpo) return;
+        corpo.innerHTML = "";
+        snap.forEach(item => {
+            const d = item.val();
+            corpo.innerHTML += `<tr><td>${d.descricao}</td><td>R$ ${d.valor.toFixed(2)}</td><td><button onclick="firebase.database().ref('financeiro/${item.key}').remove()">❌</button></td></tr>`;
+        });
+    });
+}
+
+// Inicialização de todas as listas do sistema
+window.onload = function() {
+    if (typeof listarClientes === "function") listarClientes();
+    if (typeof listarInsumos === "function") listarInsumos();
+    if (typeof listarProdutosMix === "function") listarProdutosMix();
+    if (typeof listarVendas === "function") listarVendas();
+    if (typeof listarDespesas === "function") listarDespesas();
+    if (typeof atualizarSelectsFichaTecnica === "function") atualizarSelectsFichaTecnica();
+    if (typeof listarCustosInsumos === "function") listarCustosInsumos();
+};
