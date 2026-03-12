@@ -2,51 +2,15 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HortiNutri ERP | Cristiano</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=3">
-        :root { --primary: #2e7d32; --sidebar: #263238; --bg: #f4f7f6; --white: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; background-color: var(--bg); min-height: 100vh; color: #333; }
-        
-        /* Sidebar Estilizada */
-        .sidebar { width: 180px; height: 100vh; background-color: var(--sidebar); color: white; position: fixed; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: none; z-index: 100; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .logo { padding: 20px 15px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #37474f; }
-        .logo h3 { color: #4caf50; font-size: 1.1rem; letter-spacing: 1px; }
-        
-        nav ul { list-style: none; margin-top: 10px; }
-        nav ul li { padding: 12px 15px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; color: #cfd8dc; }
-        nav ul li:hover, nav ul li.active { background: #37474f; color: white; border-left-color: var(--primary); }
-        nav ul li.active { background: var(--primary); }
-
-        /* Área de Conteúdo */
-        .main-content { margin-left: 180px; width: calc(100% - 180px); }
-        .top-header { background: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        #current-tab-title { font-size: 18px; font-weight: bold; color: var(--sidebar); }
-        #content-area { padding: 20px; max-width: 1100px; margin: 0 auto; }
-        
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
-        .card h3 { font-size: 1rem; margin-bottom: 15px; border-left: 4px solid var(--primary); padding-left: 10px; }
-
-        input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #ddd; background: #fdfdfd; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1); }
-        
-        .btn-save { background: var(--primary); color: white; font-weight: bold; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: 0.3s; width: 100%; }
-        .btn-save:hover { background: #1b5e20; transform: translateY(-1px); }
-
-        /* Tabelas Profissionais */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; color: #666; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
-        td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
-        
-        .badge { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px; }
-        .resumo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .resumo-box { padding: 20px; border-radius: 10px; text-align: center; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .resumo-box strong { font-size: 1.4rem; display: block; margin-top: 5px; }
-    </style>
 </head>
 <body>
     <aside class="sidebar">
@@ -68,7 +32,11 @@
     </aside>
 
     <main class="main-content">
-        <header class="top-header"><h1 id="current-tab-title">DASHBOARD</h1> <span>Cristiano | Admin</span></header>
+        <header class="top-header">
+            <h1 id="current-tab-title">DASHBOARD</h1> 
+            <span>Cristiano | Admin</span>
+        </header>
+        
         <section id="content-area">
             
             <div id="tab-dashboard" class="tab-content">
@@ -76,74 +44,72 @@
                     <h3>Desempenho de Vendas (7 dias)</h3>
                     <canvas id="graficoVendas" style="max-height: 300px;"></canvas>
                 </div>
-                <div class="card"><h3>Bem-vindo, Cristiano</h3><p>Controle sua produção e monitore seus lucros em tempo real.</p></div>
+                <div class="card">
+                    <h3>Bem-vindo, Cristiano</h3>
+                    <p>Controle sua produção e monitore seus lucros em tempo real.</p>
+                </div>
             </div>
 
-           <div id="tab-clientes" class="tab-content" style="display:none;">
-    <div class="card">
-        <h3 id="titulo-form-cliente">Novo Cadastro de Cliente</h3>
-        <input type="hidden" id="cli-id"> <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-            <input id="cli-nome" type="text" placeholder="Nome Completo ou Razão Social">
-            <select id="cli-tipo">
-                <option value="" disabled selected>Tipo: Selecione</option>
-                <option value="VAREJO">VAREJO</option>
-                <option value="ATACADO">ATACADO</option>
-            </select>
-        </div>
+            <div id="tab-clientes" class="tab-content" style="display:none;">
+                <div class="card">
+                    <h3 id="titulo-form-cliente">Novo Cadastro de Cliente</h3>
+                    <input type="hidden" id="cli-id"> 
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                        <input id="cli-nome" type="text" placeholder="Nome Completo ou Razão Social">
+                        <select id="cli-tipo">
+                            <option value="" disabled selected>Tipo: Selecione</option>
+                            <option value="VAREJO">VAREJO</option>
+                            <option value="ATACADO">ATACADO</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <input id="cli-cep" type="text" placeholder="CEP (Ex: 00000-000)">
+                        <input id="cli-fone" type="text" placeholder="Telefone/WhatsApp com DDD">
+                    </div>
+                    <input id="cli-endereco" type="text" placeholder="Endereço Completo" style="margin-top: 10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-save" id="btn-salvar-cliente" onclick="salvarCliente()">Salvar Cliente</button>
+                        <button class="btn-save" id="btn-cancelar-edit" onclick="limparFormularioCliente()" style="background:#607d8b; display:none; width: 30%;">Cancelar</button>
+                    </div>
+                </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-            <input id="cli-cep" type="text" placeholder="CEP (Ex: 00000-000)">
-            <input id="cli-fone" type="text" placeholder="Telefone/WhatsApp com DDD">
-        </div>
-        
-        <input id="cli-endereco" type="text" placeholder="Endereço Completo" style="margin-top: 10px;">
-        
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-save" id="btn-salvar-cliente" onclick="salvarCliente()">Salvar Cliente</button>
-            <button class="btn-save" id="btn-cancelar-edit" onclick="limparFormularioCliente()" style="background:#607d8b; display:none; width: 30%;">Cancelar</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <h3 style="margin: 0;">Lista de Clientes HortiNutri+</h3>
-    <button onclick="imprimirClientes()" style="background: #455a64; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-print"></i> PDF / Imprimir
-    </button>
-</div>>
-        <div id="lista-clientes-container">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">Lista de Clientes HortiNutri+</h3>
+                        <button onclick="imprimirClientes()" style="background: #455a64; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-print"></i> PDF / Imprimir
+                        </button>
+                    </div>
+                    <div id="lista-clientes-container"></div>
+                </div>
             </div>
-    </div>
-</div>
 
             <div id="tab-insumos" class="tab-content" style="display:none;">
-    <div class="card">
-        <h3>Cadastro de Insumos</h3>
-        <input id="ins-nome" placeholder="Ex: Alface, Cenoura">
-        <select id="ins-unidade">
-            <option value="Kg">Quilograma (Kg)</option>
-            <option value="Un">Unidade (Un)</option>
-        </select>
-        <input id="ins-fc" type="number" step="0.01" placeholder="Fator de Correção (ex: 1.25 para perda de 25%)">
-        <button class="btn-save" onclick="salvarInsumo()">Cadastrar Insumo</button>
-    </div>
-
-    <div class="card">
-        <h3>Lista de Insumos</h3>
-        <table id="tabela-insumos">
-            <thead>
-                <tr>
-                    <th>Insumo</th>
-                    <th>Un.</th>
-                    <th>Fator (FC)</th>
-                    <th style="text-align: center;">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-insumos-corpo">
-                </tbody>
-        </table>
-    </div>
-</div>
+                <div class="card">
+                    <h3>Cadastro de Insumos</h3>
+                    <input id="ins-nome" placeholder="Ex: Alface, Cenoura">
+                    <select id="ins-unidade">
+                        <option value="Kg">Quilograma (Kg)</option>
+                        <option value="Un">Unidade (Un)</option>
+                    </select>
+                    <input id="ins-fc" type="number" step="0.01" placeholder="Fator de Correção (ex: 1.25 para perda de 25%)">
+                    <button class="btn-save" onclick="salvarInsumo()">Cadastrar Insumo</button>
+                </div>
+                <div class="card">
+                    <h3>Lista de Insumos</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Insumo</th>
+                                <th>Un.</th>
+                                <th>Fator (FC)</th>
+                                <th style="text-align: center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-insumos-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
 
             <div id="tab-embalagens" class="tab-content" style="display:none;">
                 <div class="card">
@@ -155,28 +121,26 @@
             </div>
 
             <div id="tab-mix-kits" class="tab-content" style="display:none;">
-    <div class="card">
-        <h3>Produtos Finais (Kits/Mix)</h3>
-        <input id="mix-nome" placeholder="Nome do Kit/Mix">
-        <input id="mix-varejo" type="number" step="0.01" placeholder="Preço de Venda Sugerido R$">
-        <button class="btn-save" onclick="salvarProdutoMix()">Criar Produto</button>
-    </div>
-
-    <div class="card">
-        <h3>Lista de Produtos/Kits</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Produto/Kit</th>
-                    <th>Preço de Venda</th>
-                    <th style="text-align: center;">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-produtos-mix-corpo">
-                </tbody>
-        </table>
-    </div>
-</div>
+                <div class="card">
+                    <h3>Produtos Finais (Kits/Mix)</h3>
+                    <input id="mix-nome" placeholder="Nome do Kit/Mix">
+                    <input id="mix-varejo" type="number" step="0.01" placeholder="Preço de Venda Sugerido R$">
+                    <button class="btn-save" onclick="salvarProdutoMix()">Criar Produto</button>
+                </div>
+                <div class="card">
+                    <h3>Lista de Produtos/Kits</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto/Kit</th>
+                                <th>Preço de Venda</th>
+                                <th style="text-align: center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-produtos-mix-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
 
             <div id="tab-ficha-tecnica" class="tab-content" style="display:none;">
                 <div class="card">
@@ -197,8 +161,7 @@
             <div id="tab-producao-insumos" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Gestão de Preços de Compra</h3>
-                    <div id="lista-precos-insumos">
-                        </div>
+                    <div id="lista-precos-insumos"></div>
                 </div>
             </div>
 
@@ -227,7 +190,7 @@
                 </div>
             </div>
 
-     <div id="tab-relatorios" class="tab-content" style="display:none;">
+            <div id="tab-relatorios" class="tab-content" style="display:none;">
                 <div class="card">
                     <div class="resumo-grid">
                         <div class="resumo-box" style="background:#2e7d32;">Vendas Totais<br><strong id="rep-total-vendas">R$ 0,00</strong></div>
@@ -268,13 +231,11 @@
                     </table>
                 </div>
             </div>
-        </section>
-    </main>
 
         </section>
     </main>
+
     <script>
-      // Configurações do Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyAtdG9St1_3VBIQDVN0VX77USqPxSvY4wg",
         authDomain: "hortinutri-3f2ea.firebaseapp.com",
@@ -289,12 +250,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
