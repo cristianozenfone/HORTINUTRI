@@ -130,7 +130,7 @@ function listarClientes() {
             <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                 <thead>
                     <tr style="background: #f8f9fa; text-align: left;">
-                        <th style="padding: 10px; border-bottom: 2px solid #ddd;">Cliente</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #ddd;">Cliente / Endereço</th>
                         <th style="padding: 10px; border-bottom: 2px solid #ddd;">Tipo</th>
                         <th style="padding: 10px; border-bottom: 2px solid #ddd;">Contato</th>
                         <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align:center;">Ações</th>
@@ -145,10 +145,10 @@ function listarClientes() {
                 const c = item.val();
                 const id = item.key;
                 
-                // PROTEÇÃO ANTI-ERROS: Garante que clientes antigos não quebrem a tabela
+                // PROTEÇÃO ANTI-ERROS
                 const tipo = c.tipo || 'N/A';
-                const cep = c.cep || 'Sem CEP';
-                const fone = c.fone || c.telefone || 'Sem Fone'; // Pega .fone (novo) ou .telefone (antigo)
+                const endExibir = c.endereco || 'Endereço não informado';
+                const fone = c.fone || c.telefone || 'Sem Fone';
                 const financeiro = c.situacaoFinanceira || 0;
                 
                 // Cor da etiqueta
@@ -156,7 +156,12 @@ function listarClientes() {
 
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;"><strong>${c.nome}</strong><br><small style="color:#666;">CEP: ${cep}</small></td>
+                        <td style="padding: 10px;">
+                            <strong>${c.nome}</strong><br>
+                            <small style="color: #666; display: block; margin-top: 4px;">
+                                <i class="fas fa-map-marker-alt" style="color: #2e7d32;"></i> ${endExibir}
+                            </small>
+                        </td>
                         <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
                         <td style="padding: 10px;">${fone}</td>
                         <td style="padding: 10px; text-align:center;">
@@ -427,6 +432,22 @@ function listarItensFicha(produtoId) {
     });
 }
 
+// FUNÇÃO PARA PESQUISAR CLIENTE (SÓ NOME)
+function filtrarClientes() {
+    let input = document.getElementById('inputPesquisa').value.toLowerCase();
+    let tabela = document.querySelector("#lista-clientes-container table tbody");
+    let linhas = tabela.getElementsByTagName('tr');
+
+    for (let i = 0; i < linhas.length; i++) {
+        let nomeCliente = linhas[i].getElementsByTagName('td')[0].innerText.toLowerCase();
+        if (nomeCliente.includes(input)) {
+            linhas[i].style.display = "";
+        } else {
+            linhas[i].style.display = "none";
+        }
+    }
+}
+
 window.onload = function() {
     if (typeof listarClientes === "function") listarClientes();
     if (typeof listarInsumos === "function") listarInsumos();
@@ -443,6 +464,7 @@ window.onload = function() {
         });
     }
 };
+
 // Função para Gerar PDF / Imprimir Lista de Clientes
 function imprimirClientes() {
     const conteudo = document.getElementById('lista-clientes-container').innerHTML;
