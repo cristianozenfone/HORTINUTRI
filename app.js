@@ -156,9 +156,13 @@ function carregarPrecosInsumos() {
                 <small>FC: ${i.fc || 1.00}</small>
                 </td>
 
-                <td>
-                <input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;">
-                </td>
+               <td>
+<input type="number" id="estoque-${id}" value="${i.estoque || 0}" style="width:70px;">
+</td>
+
+<td>
+<input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;">
+</td>
 
                 <td>
                 <button onclick="atualizarCustoInsumo('${id}')" style="background:green;color:white;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">
