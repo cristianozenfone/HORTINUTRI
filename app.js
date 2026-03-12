@@ -534,7 +534,7 @@ function salvarProdutoMix(){
     }).then(()=>{
         alert("Produto criado!");
         document.getElementById('mix-nome').value = "";
-        document.getElementById('mix-preco').value = "";
+document.getElementById('mix-varejo').value = "";
     });
 
 }
