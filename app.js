@@ -154,12 +154,17 @@ function listarClientes() {
                 // Cor da etiqueta
                 const badgeColor = tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
 
+                // Link para o Google Maps
+                const linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endExibir)}`;
+
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px;">
                             <strong>${c.nome}</strong><br>
-                            <small style="color: #666; display: block; margin-top: 4px;">
-                                <i class="fas fa-map-marker-alt" style="color: #2e7d32;"></i> ${endExibir}
+                            <small style="display: block; margin-top: 4px;">
+                                <a href="${linkMapa}" target="_blank" style="text-decoration: none; color: #666;">
+                                    <i class="fas fa-map-marker-alt" style="color: #2e7d32;"></i> ${endExibir}
+                                </a>
                             </small>
                         </td>
                         <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
