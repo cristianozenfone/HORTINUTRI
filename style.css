@@ -106,63 +106,53 @@ nav ul li:hover, nav ul li.active { background: var(--primary-color); }
     }
 }
 /* AJUSTE PARA CELULAR (TELAS PEQUENAS) */
-@media (max-width: 600px) {
-    /* Faz a tabela parar de se comportar como tabela e virar cartões */
-    #lista-clientes-container table, 
-    #lista-clientes-container thead, 
-    #lista-clientes-container tbody, 
-    #lista-clientes-container th, 
-    #lista-clientes-container td, 
+/* AJUSTE PARA TELEMÓVEL - VERSÃO FORÇADA */
+@media screen and (max-width: 600px) {
+    #lista-clientes-container {
+        width: 100% !important;
+        overflow-x: hidden !important;
+        padding: 0 !important;
+    }
+
+    #lista-clientes-container table {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    #lista-clientes-container thead {
+        display: none !important;
+    }
+
     #lista-clientes-container tr {
-        display: block;
+        display: block !important;
+        margin-bottom: 15px !important;
+        border: 1px solid #2e7d32 !important;
+        border-radius: 8px !important;
+        background: #fff !important;
+        padding: 10px !important;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1) !important;
     }
 
-    /* Esconde o cabeçalho da tabela (os títulos) no celular */
-    #lista-clientes-container thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    /* Estiliza cada linha como um "cartão" individual */
-    #lista-clientes-container tr {
-        border: 1px solid #ddd;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        padding: 10px;
-        background: #fff;
-    }
-
-    /* Ajusta as células para ocuparem a largura toda */
     #lista-clientes-container td {
-        border: none;
-        position: relative;
-        padding-left: 50% !important;
-        text-align: right;
-        border-bottom: 1px solid #eee;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border: none !important;
+        border-bottom: 1px solid #eee !important;
+        padding: 8px 5px !important;
+        text-align: right !important;
+        font-size: 14px !important;
     }
 
-    /* Adiciona o "título" do campo antes do valor */
-    #lista-clientes-container td:before {
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: bold;
-        text-align: left;
-    }
+    #lista-clientes-container td:nth-of-type(1):before { content: "Cliente:"; font-weight: bold; color: #2e7d32; }
+    #lista-clientes-container td:nth-of-type(2):before { content: "Tipo:"; font-weight: bold; color: #2e7d32; }
+    #lista-clientes-container td:nth-of-type(3):before { content: "Contato:"; font-weight: bold; color: #2e7d32; }
+    #lista-clientes-container td:nth-of-type(4):before { content: "Ações:"; font-weight: bold; color: #2e7d32; }
 
-    /* Rótulos automáticos para cada coluna */
-    #lista-clientes-container td:nth-of-type(1):before { content: "Cliente:"; }
-    #lista-clientes-container td:nth-of-type(2):before { content: "Tipo:"; }
-    #lista-clientes-container td:nth-of-type(3):before { content: "Contato:"; }
-    #lista-clientes-container td:nth-of-type(4):before { content: "Ações:"; }
-
-    /* Ajusta os botões para não ficarem colados */
     #lista-clientes-container td:last-child {
-        border-bottom: none;
-        text-align: center;
-        padding-left: 10px !important;
+        border-bottom: none !important;
+        justify-content: center !important;
+        gap: 20px !important;
+        padding-top: 15px !important;
     }
 }
