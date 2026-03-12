@@ -521,11 +521,9 @@ function listarDespesas() {
 }
 
 window.onload = () => {
-
     showTab('dashboard');
-
 };
-function baixarEstoque(produtoId, qtdVenda){
+
 function salvarProdutoMix(){
 
     const nome = document.getElementById('mix-nome').value;
@@ -547,6 +545,9 @@ function salvarProdutoMix(){
     });
 
 }
+
+function baixarEstoque(produtoId, qtdVenda){
+
     firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
 
         snap.forEach(item => {
