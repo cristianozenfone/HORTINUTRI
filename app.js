@@ -26,6 +26,7 @@ function showTab(tabId) {
     document.getElementById('current-tab-title').innerText = titles[tabId] || tabId.toUpperCase();
 
     if (tabId === 'dashboard') atualizarGrafico();
+    if (tabId === 'clientes') listarClientes();
     if (tabId === 'ficha-tecnica') {
         carregarInsumosFicha();
         carregarProdutosFicha();
@@ -80,25 +81,166 @@ function atualizarGrafico() {
 
 }
 
+// ==========================================
+// MÓDULO 1: GESTÃO DE CLIENTES (HORTINUTRI+)
+// ==========================================
+
+// 1. Função para Salvar ou Atualizar Cliente
 function salvarCliente() {
-
+    const id = document.getElementById('cli-id').value;
     const nome = document.getElementById('cli-nome').value;
+    const tipo = document.getElementById('cli-tipo').value;
+    const cep = document.getElementById('cli-cep').value;
     const fone = document.getElementById('cli-fone').value;
+    const endereco = document.getElementById('cli-endereco').value;
 
-    if (!nome) return alert("Digite o nome");
+    // Validação estrita: Não salva se faltar os campos principais
+    if (!nome || !tipo || !cep || !fone) {
+        return alert("⚠️ ERRO: Nome, Tipo, CEP e Telefone são obrigatórios!");
+    }
 
-    firebase.database().ref('clientes').push({
-        nome,
-        telefone: fone
-    }).then(() => {
+    const dadosCliente = {
+        nome: nome,
+        tipo: tipo,
+        cep: cep,
+        fone: fone,
+        endereco: endereco,
+        dataCadastro: new Date().toLocaleDateString('pt-BR'),
+        situacaoFinanceira: 0 // Base para o futuro módulo financeiro
+    };
 
-        alert("Cliente Salvo!");
-        document.getElementById('cli-nome').value = "";
-
-    });
-
+    if (id) {
+        // Se tem ID oculto, é uma ATUALIZAÇÃO (Edição)
+        firebase.database().ref('clientes/' + id).update(dadosCliente)
+            .then(() => { 
+                alert("✅ Cliente atualizado com sucesso!"); 
+                limparFormularioCliente(); 
+            });
+    } else {
+        // Se NÃO tem ID, é um NOVO CADASTRO
+        firebase.database().ref('clientes').push(dadosCliente)
+            .then(() => { 
+                alert("🚀 Cliente cadastrado com sucesso!"); 
+                limparFormularioCliente(); 
+            });
+    }
 }
 
+// 2. Função para Listar Clientes em Tempo Real
+function listarClientes() {
+    const container = document.getElementById('lista-clientes-container');
+    if (!container) return;
+
+    // O .on('value') faz a lista atualizar sozinha sempre que o banco mudar
+    firebase.database().ref('clientes').on('value', (snap) => {
+        let html = `
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background: #f8f9fa; text-align: left;">
+                        <th style="padding: 10px; border-bottom: 2px solid #ddd;">Cliente</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #ddd;">Tipo</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #ddd;">Contato</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align:center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (!snap.exists()) {
+            html += `<tr><td colspan="4" style="text-align:center; padding: 20px;">Nenhum cliente cadastrado ainda.</td></tr>`;
+        } else {
+            snap.forEach(item => {
+                const c = item.val();
+                const id = item.key;
+                // Cor da etiqueta muda dependendo se é ATACADO ou VAREJO
+                const badgeColor = c.tipo === 'ATACADO' ? '#1565c0' : '#2e7d32';
+
+                html += `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;"><strong>${c.nome}</strong><br><small style="color:#666;">CEP: ${c.cep}</small></td>
+                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${c.tipo}</span></td>
+                        <td style="padding: 10px;">${c.fone}</td>
+                        <td style="padding: 10px; text-align:center;">
+                            <button onclick="prepararEdicao('${id}')" title="Editar" style="color:#1976d2; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-edit"></i></button>
+                            
+                            <button id="del-${id}" onclick="confirmarExclusao('${id}')" title="Excluir" style="color:#d32f2f; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-trash"></i></button>
+                            
+                            <button onclick="alert('Módulo de Histórico em desenvolvimento para: ${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
+                            
+                            <button onclick="alert('Situação Financeira atual: R$ ${c.situacaoFinanceira.toFixed(2)}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    });
+}
+
+// 3. Função de Exclusão Segura (Dois Cliques)
+function confirmarExclusao(id) {
+    const btn = document.getElementById(`del-${id}`);
+    
+    // Se já foi clicado uma vez (tem a classe 'confirmar')
+    if (btn.classList.contains('confirmar')) {
+        firebase.database().ref('clientes/' + id).remove()
+            .then(() => alert("🗑️ Cliente removido com sucesso!"));
+    } else {
+        // Primeiro clique: Muda a cor e o ícone, pede confirmação
+        btn.classList.add('confirmar');
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        btn.style.color = "orange";
+        
+        // Se o usuário não clicar de novo em 3 segundos, cancela a ação
+        setTimeout(() => {
+            if(btn) {
+                btn.classList.remove('confirmar');
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+                btn.style.color = "#d32f2f";
+            }
+        }, 3000);
+    }
+}
+
+// 4. Função para preparar o formulário para Edição
+function prepararEdicao(id) {
+    firebase.database().ref('clientes/' + id).once('value', (snap) => {
+        const c = snap.val();
+        
+        // Preenche os campos com os dados do cliente
+        document.getElementById('cli-id').value = id;
+        document.getElementById('cli-nome').value = c.nome;
+        document.getElementById('cli-tipo').value = c.tipo;
+        document.getElementById('cli-cep').value = c.cep;
+        document.getElementById('cli-fone').value = c.fone;
+        document.getElementById('cli-endereco').value = c.endereco || "";
+        
+        // Muda o visual do formulário
+        document.getElementById('titulo-form-cliente').innerText = "✏️ Editando Cliente";
+        document.getElementById('btn-salvar-cliente').innerText = "Atualizar Cadastro";
+        document.getElementById('btn-salvar-cliente').style.background = "#1976d2"; // Fica azul na edição
+        document.getElementById('btn-cancelar-edit').style.display = "block";
+        
+        // Rola a tela para cima para o usuário ver o formulário
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+// 5. Função para limpar e resetar o formulário
+function limparFormularioCliente() {
+    document.getElementById('cli-id').value = "";
+    document.getElementById('cli-nome').value = "";
+    document.getElementById('cli-tipo').value = "";
+    document.getElementById('cli-cep').value = "";
+    document.getElementById('cli-fone').value = "";
+    document.getElementById('cli-endereco').value = "";
+    
+    // Retorna o visual ao normal
+    document.getElementById('titulo-form-cliente').innerText = "Novo Cadastro de Cliente";
+    document.getElementById('btn-salvar-cliente').innerText = "Salvar Cliente";
+    document.getElementById('btn-salvar-cliente').style.background = "var(--primary-color)"; // Volta pro verde
+    document.getElementById('btn-cancelar-edit').style.display = "none";
+}
 function salvarInsumo() {
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
