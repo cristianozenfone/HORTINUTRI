@@ -110,6 +110,7 @@
                     <h3>Registrar Venda</h3>
                     <select id="venda-cliente"></select>
                     <select id="venda-produto" onchange="preencherPrecoVenda(this.value)"></select>
+                    <input id="venda-qtd" type="number" placeholder="Quantidade" value="1">
                     <input id="venda-valor" type="number" step="0.01" placeholder="Valor Final R$">
                     <button class="btn-save" onclick="finalizarVenda()">Finalizar Venda</button>
                 </div>
@@ -148,3 +149,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
