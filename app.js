@@ -443,3 +443,30 @@ window.onload = function() {
         });
     }
 };
+// Função para Gerar PDF / Imprimir Lista de Clientes
+function imprimirClientes() {
+    const conteudo = document.getElementById('lista-clientes-container').innerHTML;
+    const janelaImpressao = window.open('', '', 'width=900,height=700');
+    janelaImpressao.document.write(`
+        <html>
+            <head>
+                <title>HortiNutri+ - Relatório de Clientes</title>
+                <style>
+                    body { font-family: sans-serif; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    h2 { color: #2e7d32; text-align: center; }
+                    td:last-child, th:last-child { display: none; }
+                </style>
+            </head>
+            <body>
+                <h2>Relatório de Clientes - HortiNutri+</h2>
+                <p>Data de emissão: ${new Date().toLocaleDateString('pt-BR')}</p>
+                ${conteudo}
+            </body>
+        </html>
+    `);
+    janelaImpressao.document.close();
+    janelaImpressao.print();
+}
