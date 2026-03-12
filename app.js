@@ -244,490 +244,92 @@ function carregarProdutosFicha() {
 }
 
 function adicionarItemFicha() {
+    const produtoId = document.getElementById('ft-produto').value;
+    const insumoId = document.getElementById('ft-insumo-item').value;
+    const insumoNome = document.getElementById('ft-insumo-item').options[document.getElementById('ft-insumo-item').selectedIndex].text;
+    const qtd = document.getElementById('ft-qtd').value;
 
-    const pId = document.getElementById('ft-produto').value;
-    const iId = document.getElementById('ft-insumo-item').value;
+    if (!produtoId || produtoId === "Selecione o Kit" || !insumoId || !qtd) {
+        return alert("Por favor, selecione o kit, o insumo e a quantidade!");
+    }
 
-    const q = parseFloat(document.getElementById('ft-qtd').value) || 0;
-
-    if (pId === "Selecione o Kit" || iId === "Selecionar Insumo" || q <= 0) return;
-
-    firebase.database().ref('insumos/' + iId).once('value', (snap) => {
-
+    firebase.database().ref('insumos/' + insumoId).once('value', (snap) => {
         const ins = snap.val();
+        const custoUnitario = ins.custo || 0;
+        const fator = ins.fc || 1;
+        const subtotal = (custoUnitario * fator) * parseFloat(qtd);
 
-        const sub = (ins.custo || 0) * q * (ins.fc || 1.00);
-
-        firebase.database().ref('fichas_tecnicas/' + pId).push({
-
-            insumoNome: ins.nome,
-            quantidade: q,
-            subtotal: sub
-
+        firebase.database().ref(`fichas_tecnicas/${produtoId}`).push({
+            insumoId: insumoId,
+            nome: insumoNome,
+            quantidade: parseFloat(qtd),
+            subtotal: subtotal
         }).then(() => {
-calcularCustoProduto(produtoId);
-            atualizarCustoFinal(pId);
-            listarItensFicha(pId);
-
+            document.getElementById('ft-qtd').value = "";
+            console.log("Ingrediente adicionado!");
         });
-
     });
-
 }
 
-function listarItensFicha(pId) {
-
+function listarItensFicha(produtoId) {
     const container = document.getElementById('lista-itens-ficha-container');
-
-    firebase.database().ref('fichas_tecnicas/' + pId).on('value', (snap) => {
-
-        container.innerHTML =
-        "<table><thead><tr><th>Ingrediente</th><th>Qtd</th><th>Subtotal</th></tr></thead><tbody id='body-itens-ficha'></tbody></table>";
-
-        const body = document.getElementById('body-itens-ficha');
-
-        snap.forEach(c => {
-
-            body.innerHTML += `
-            <tr>
-            <td>${c.val().insumoNome}</td>
-            <td>${c.val().quantidade}</td>
-            <td><span class="badge">R$ ${c.val().subtotal.toFixed(2)}</span></td>
-            </tr>`;
-
-        });
-
-    });
-
-}
-
-function atualizarCustoFinal(pId) {
-
-    firebase.database().ref('fichas_tecnicas/' + pId).once('value', (snap) => {
-
-        let t = 0;
-
-        snap.forEach(c => t += c.val().subtotal);
-
-        firebase.database().ref('produtos/' + pId).update({
-            custo_total: t
-        });
-
-    });
-
-}
-
-function recalcularTudo() {
-
-    firebase.database().ref('produtos').once('value', (snap) => {
-
-        snap.forEach(p => atualizarCustoFinal(p.key));
-
-    });
-
-}
-
-function carregarDadosVenda() {
-
-    const cli = document.getElementById('venda-cliente');
-    const pro = document.getElementById('venda-produto');
-
-    cli.innerHTML = '<option>Selecionar Cliente</option>';
-    pro.innerHTML = '<option>Selecionar Produto</option>';
-
-    firebase.database().ref('clientes').once('value', s => {
-
-        s.forEach(c => {
-
-            let o = document.createElement('option');
-
-            o.value = c.key;
-            o.text = c.val().nome;
-
-            cli.appendChild(o);
-
-        });
-
-    });
-
-    firebase.database().ref('produtos').once('value', s => {
-
-        s.forEach(p => {
-
-            let o = document.createElement('option');
-
-            o.value = p.key;
-            o.text = p.val().nome;
-
-            pro.appendChild(o);
-
-        });
-
-    });
-
-}
-
-function preencherPrecoVenda(id) {
-
-    firebase.database().ref('produtos/' + id).once('value', s => {
-
-        document.getElementById('venda-valor').value = s.val().preco_varejo || 0;
-
-    });
-
-}
-
-function finalizarVenda() {
-
-    const pId = document.getElementById('venda-produto').value;
-    const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
-    const quantidade = parseInt(document.getElementById('venda-qtd').value) || 1;
-
-    const cliSelect = document.getElementById('venda-cliente');
-    const cliNome = cliSelect.options[cliSelect.selectedIndex].text;
-
-    if(!pId) {
-        alert("Selecione um produto");
+    if (!container) return;
+    if (!produtoId || produtoId === "Selecione o Kit") {
+        container.innerHTML = "";
         return;
     }
 
-    firebase.database().ref('produtos/' + pId).once('value', s => {
-
-        const p = s.val();
-
-        const custoUnitario = p.custo_total || 0;
-        const custoTotal = custoUnitario * quantidade;
-        const valorTotal = valor * quantidade;
-        const lucro = valorTotal - custoTotal;
-
-        firebase.database().ref('vendas').push({
-
-            cliente: cliNome,
-            produto: p.nome,
-            produtoId: pId,
-            quantidade: quantidade,
-            valor: valorTotal,
-            lucro: lucro,
-            data: new Date().toLocaleDateString()
-
-        }).then(() => {
-
-            baixarEstoque(pId, quantidade);
-
-            alert("Venda Realizada!");
-
-            listarVendas();
-            atualizarGrafico();
-
-        });
-
-    });
-
-}
-
-function listarVendas() {
-
-    const container = document.getElementById('lista-vendas-recente');
-
-    firebase.database().ref('vendas').limitToLast(5).on('value', s => {
-
-        container.innerHTML =
-        "<table><thead><tr><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Valor</th></tr></thead><tbody id='body-vendas-recente'></tbody></table>";
-
-        const body = document.getElementById('body-vendas-recente');
-
-        s.forEach(c => {
-
-            const v = c.val();
-
-            body.innerHTML += `
-            <tr>
-            <td><strong>${v.cliente}</strong></td>
-            <td>${v.produto}</td>
-            <td>${v.quantidade || 1}</td>
-            <td><span class="badge">R$ ${v.valor.toFixed(2)}</span></td>
-            </tr>`;
-
-        });
-
-    });
-
-}
-
-function gerarRelatorios() {
-
-    firebase.database().ref('vendas').on('value', (snap) => {
-
-        let totalVendas = 0;
-        let totalLucro = 0;
-
-        let html =
-        "<table><thead><tr><th>Data</th><th>Produto</th><th>Valor</th><th>Lucro</th></tr></thead><tbody>";
-
-        snap.forEach(c => {
-
-            const v = c.val();
-
-            totalVendas += v.valor;
-            totalLucro += v.lucro;
-
-            html += `
-            <tr>
-            <td>${v.data}</td>
-            <td>${v.produto}</td>
-            <td>R$ ${v.valor.toFixed(2)}</td>
-            <td><span class="badge">R$ ${v.lucro.toFixed(2)}</span></td>
-            </tr>`;
-
-        });
-
-        html += "</tbody></table>";
-
-        document.getElementById('rep-total-vendas').innerText = "R$ " + totalVendas.toFixed(2);
-        document.getElementById('rep-total-lucro').innerText = "R$ " + totalLucro.toFixed(2);
-        document.getElementById('rep-lista-produtos').innerHTML = html;
-
-    });
-
-}
-
-function listarDespesas() {
-
-    const container = document.getElementById('lista-despesas');
-
-    firebase.database().ref('despesas').on('value', s => {
-
-        container.innerHTML =
-        "<table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead><tbody id='body-despesas'></tbody></table>";
-
-        const body = document.getElementById('body-despesas');
-
-        s.forEach(c => {
-
-            body.innerHTML += `
-            <tr>
-            <td>${c.val().data}</td>
-            <td>${c.val().descricao}</td>
-            <td>R$ ${c.val().valor.toFixed(2)}</td>
-            </tr>`;
-
-        });
-
-    });
-
-}
-
-window.onload = () => {
-    showTab('dashboard');
-    listarProdutosMix();
-};
-
-function salvarProdutoMix(){
-
-    const nome = document.getElementById('mix-nome').value;
-    const preco = parseFloat(document.getElementById('mix-varejo').value) || 0;
-
-    if(!nome){
-        alert("Digite o nome do produto");
-        return;
-    }
-
-    firebase.database().ref('produtos').push({
-        nome: nome,
-        preco_varejo: preco,
-        custo_total: 0
-    }).then(()=>{
-        alert("Produto criado!");
-        document.getElementById('mix-nome').value = "";
-document.getElementById('mix-varejo').value = "";
-    });
-
-}
-
-function baixarEstoque(produtoId, qtdVenda){
-
-    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
-
-        snap.forEach(item => {
-
-            const insumo = item.val();
-            const nome = insumo.insumoNome.toLowerCase().trim();
-            const qtdUsada = insumo.quantidade * qtdVenda;
-
-            firebase.database().ref('insumos').once('value', lista => {
-
-                lista.forEach(i => {
-
-                    const dados = i.val();
-
-                    if(dados.nome.toLowerCase().trim() === nome){
-
-                        let atual = parseFloat(dados.estoque) || 0;
-                        let novo = atual - qtdUsada;
-
-                        if(novo < 0) novo = 0;
-
-                        firebase.database().ref('insumos/' + i.key).update({
-                            estoque: novo.toFixed(2)
-                        });
-
-                    }
-
-                });
-
-            });
-
-        });
-
-    });
-
-}
-function excluirProduto(id){
-
-    if(!confirm("Deseja realmente excluir este produto?")) return;
-
-    firebase.database().ref('fichas_tecnicas/' + id).remove();
-
-    firebase.database().ref('produtos/' + id).remove()
-    .then(()=>{
-        alert("Produto excluído com sucesso!");
-    });
-
-}
-function listarProdutosMix(){
-
-    firebase.database().ref('produtos').on('value', snap => {
-
-        let html = "";
-
-        snap.forEach(item => {
-
-            const id = item.key;
-            const p = item.val();
-
-            html += `
-            <div style="margin-top:8px;">
-                ${p.nome} - R$ ${p.preco_varejo}
-                <button onclick="excluirProduto('${id}')">Excluir</button>
-            </div>
-            `;
-
-        });
-
-        document.getElementById('lista-produtos-mix').innerHTML = html;
-
-    });
-
-}
-function editarPrecoProduto(id, precoAtual){
-
-    let novoPreco = prompt("Digite o novo preço:", precoAtual);
-
-    if(novoPreco === null) return;
-
-    firebase.database().ref('produtos/' + id).update({
-        preco_varejo: parseFloat(novoPreco)
-    }).then(()=>{
-        alert("Preço atualizado!");
-    });
-
-}
-function calcularCustoProduto(produtoId){
-
-    let custoTotal = 0;
-
-    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
-
-        snap.forEach(item => {
-
-            const dados = item.val();
-            const qtd = parseFloat(dados.quantidade) || 0;
-            const custo = parseFloat(dados.custo) || 0;
-
-            custoTotal += qtd * custo;
-
-        });
-
-        firebase.database().ref('produtos/' + produtoId).update({
-            custo_total: custoTotal.toFixed(2)
-        });
-
-    });
-
-}
-// Função para carregar e exibir os clientes
-function listarClientes() {
-    const corpoTabela = document.getElementById('lista-clientes-corpo');
-    
-    firebase.database().ref('clientes').on('value', (snapshot) => {
-        corpoTabela.innerHTML = ""; // Limpa a tabela antes de listar
-        
-        snapshot.forEach((item) => {
-            const cliente = item.val();
-            const id = item.key;
-            
-            corpoTabela.innerHTML += `
-                <tr>
-                    <td>${cliente.nome}</td>
-                    <td>${cliente.fone}</td>
-                    <td>
-                        <button onclick="excluirCliente('${id}')" style="background:none; border:none; color:red; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    });
-}
-
-// Função para excluir cliente (opcional, mas recomendada)
-function excluirCliente(id) {
-    if(confirm("Deseja realmente excluir este cliente?")) {
-        firebase.database().ref('clientes/' + id).remove();
-    }
-}
-
-// CHAME A FUNÇÃO AO CARREGAR O APP
-listarClientes();
-// Função para carregar e exibir os Insumos
-function listarInsumos() {
-    const corpoTabela = document.getElementById('lista-insumos-corpo');
-    
-    firebase.database().ref('insumos').on('value', (snapshot) => {
-        if (corpoTabela) {
-            corpoTabela.innerHTML = ""; 
-            
+    firebase.database().ref('fichas_tecnicas/' + produtoId).on('value', (snapshot) => {
+        let html = `
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px; background: white;">
+                <thead>
+                    <tr style="background: #f8f9fa; text-align: left;">
+                        <th style="padding: 12px; border-bottom: 2px solid #eee;">Ingrediente</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee;">Qtd</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee;">Subtotal</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: center;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (snapshot.exists()) {
             snapshot.forEach((item) => {
-                const insumo = item.val();
-                const id = item.key;
-                
-                // Se o FC não existir no banco para itens antigos, ele exibe 1.00 por padrão
-                const fcExibicao = insumo.fc ? insumo.fc.toFixed(2) : "1.00";
-                
-                corpoTabela.innerHTML += `
+                const d = item.val();
+                const sub = d.subtotal ? d.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+                html += `
                     <tr>
-                        <td><strong>${insumo.nome}</strong></td>
-                        <td><span class="badge">${insumo.unidade}</span></td>
-                        <td>${fcExibicao}</td>
-                        <td style="text-align: center;">
-                            <button onclick="excluirInsumo('${id}')" style="background:none; border:none; color:#d32f2f; cursor:pointer;">
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${d.nome}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${d.quantidade}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${sub}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">
+                            <button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" 
+                                    style="background:none; border:none; color:#d32f2f; cursor:pointer;">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
+        } else {
+            html += '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #888;">Nenhum ingrediente.</td></tr>';
         }
+        html += '</tbody></table>';
+        container.innerHTML = html;
     });
 }
 
-// Função para excluir Insumo
-function excluirInsumo(id) {
-    if(confirm("Deseja remover este insumo do sistema?")) {
-        firebase.database().ref('insumos/' + id).remove();
+window.onload = function() {
+    if (typeof listarClientes === "function") listarClientes();
+    if (typeof listarInsumos === "function") listarInsumos();
+    if (typeof listarProdutosMix === "function") listarProdutosMix();
+    if (typeof listarVendas === "function") listarVendas();
+    if (typeof listarDespesas === "function") listarDespesas();
+    if (typeof atualizarSelectsFichaTecnica === "function") atualizarSelectsFichaTecnica();
+    if (typeof listarCustosInsumos === "function") listarCustosInsumos();
+    
+    const selectFT = document.getElementById('ft-produto');
+    if(selectFT) {
+        selectFT.addEventListener('change', function() {
+            listarItensFicha(this.value);
+        });
     }
-}
-
-// Chame a função para iniciar a listagem assim que abrir o ERP
-listarInsumos();
+};
