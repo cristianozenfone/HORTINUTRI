@@ -628,3 +628,26 @@ function editarPrecoProduto(id, precoAtual){
     });
 
 }
+function calcularCustoProduto(produtoId){
+
+    let custoTotal = 0;
+
+    firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
+
+        snap.forEach(item => {
+
+            const dados = item.val();
+            const qtd = parseFloat(dados.quantidade) || 0;
+            const custo = parseFloat(dados.custo) || 0;
+
+            custoTotal += qtd * custo;
+
+        });
+
+        firebase.database().ref('produtos/' + produtoId).update({
+            custo_total: custoTotal.toFixed(2)
+        });
+
+    });
+
+}
