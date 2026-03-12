@@ -882,3 +882,93 @@ function listarProdutosMix() {
 
 // IMPORTANTE: Chame a função para ela rodar ao abrir o site
 listarProdutosMix();
+// --- GESTÃO DE CUSTOS (PREÇOS DE COMPRA) ---
+function listarCustosInsumos() {
+    const container = document.getElementById('lista-precos-insumos');
+    if (!container) return;
+
+    firebase.database().ref('insumos').on('value', (snapshot) => {
+        container.innerHTML = "";
+        snapshot.forEach((item) => {
+            const i = item.val();
+            container.innerHTML += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+                    <span><strong>${i.nome}</strong> (${i.unidade})</span>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        R$ <input type="number" step="0.01" value="${i.custo || 0}" 
+                            onchange="atualizarCustoInsumo('${item.key}', this.value)" 
+                            style="width: 80px; margin: 0; padding: 5px;">
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+function atualizarCustoInsumo(id, novoCusto) {
+    firebase.database().ref(`insumos/${id}`).update({
+        custo: parseFloat(novoCusto)
+    }).then(() => console.log("Custo atualizado"));
+}
+
+// --- SISTEMA DE VENDAS ---
+function atualizarSelectsVendas() {
+    const selCliente = document.getElementById('venda-cliente');
+    const selProduto = document.getElementById('venda-produto');
+
+    firebase.database().ref('clientes').on('value', snap => {
+        if(selCliente) {
+            selCliente.innerHTML = '<option value="">Selecione o Cliente</option>';
+            snap.forEach(item => { selCliente.innerHTML += `<option value="${item.key}">${item.val().nome}</option>`; });
+        }
+    });
+
+    firebase.database().ref('produtos_mix').on('value', snap => {
+        if(selProduto) {
+            selProduto.innerHTML = '<option value="">Selecione o Produto</option>';
+            snap.forEach(item => { selProduto.innerHTML += `<option value="${item.key}">${item.val().nome}</option>`; });
+        }
+    });
+}
+
+function finalizarVenda() {
+    const cliente = document.getElementById('venda-cliente').options[document.getElementById('venda-cliente').selectedIndex].text;
+    const produto = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
+    const valor = document.getElementById('venda-valor').value;
+    const qtd = document.getElementById('venda-qtd').value;
+
+    if (!valor || valor <= 0) return alert("Insira o valor da venda!");
+
+    firebase.database().ref('vendas').push({
+        cliente: cliente,
+        produto: produto,
+        qtd: qtd,
+        total: parseFloat(valor),
+        data: new Date().toLocaleDateString('pt-BR')
+    }).then(() => {
+        alert("Venda registrada!");
+        document.getElementById('venda-valor').value = "";
+    });
+}
+
+function listarVendas() {
+    const corpo = document.getElementById('lista-vendas-corpo');
+    firebase.database().ref('vendas').limitToLast(10).on('value', snap => {
+        if(!corpo) return;
+        corpo.innerHTML = "";
+        snap.forEach(item => {
+            const v = item.val();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${v.cliente}</td>
+                    <td>${v.qtd}x ${v.produto}</td>
+                    <td>R$ ${v.total.toFixed(2)}</td>
+                    <td><button onclick="firebase.database().ref('vendas/${item.key}').remove()">❌</button></td>
+                </tr>`;
+        });
+    });
+}
+
+// Inicializa as funções
+listarCustosInsumos();
+atualizarSelectsVendas();
+listarVendas();
