@@ -261,7 +261,7 @@ function adicionarItemFicha() {
             subtotal: sub
 
         }).then(() => {
-
+calcularCustoProduto(produtoId);
             atualizarCustoFinal(pId);
             listarItensFicha(pId);
 
