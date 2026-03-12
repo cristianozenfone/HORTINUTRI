@@ -54,12 +54,16 @@
                 <div class="card">
                     <h3 id="titulo-form-cliente">Novo Cadastro de Cliente</h3>
                     <input type="hidden" id="cli-id"> 
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
                         <input id="cli-nome" type="text" placeholder="Nome Completo ou Razão Social">
                         <select id="cli-tipo">
                             <option value="" disabled selected>Tipo: Selecione</option>
                             <option value="VAREJO">VAREJO</option>
                             <option value="ATACADO">ATACADO</option>
+                        </select>
+                        <select id="cli-status">
+                            <option value="ATIVO">🟢 ATIVO</option>
+                            <option value="INATIVO">⚪ INATIVO</option>
                         </select>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
