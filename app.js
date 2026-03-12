@@ -515,6 +515,7 @@ function listarDespesas() {
 
 window.onload = () => {
     showTab('dashboard');
+    listarProdutosMix();
 };
 
 function salvarProdutoMix(){
