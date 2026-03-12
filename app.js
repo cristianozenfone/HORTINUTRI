@@ -526,7 +526,27 @@ window.onload = () => {
 
 };
 function baixarEstoque(produtoId, qtdVenda){
+function salvarProdutoMix(){
 
+    const nome = document.getElementById('mix-nome').value;
+    const preco = parseFloat(document.getElementById('mix-preco').value) || 0;
+
+    if(!nome){
+        alert("Digite o nome do produto");
+        return;
+    }
+
+    firebase.database().ref('produtos').push({
+        nome: nome,
+        preco_varejo: preco,
+        custo_total: 0
+    }).then(()=>{
+
+        alert("Produto criado!");
+
+    });
+
+}
     firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snap => {
 
         snap.forEach(item => {
