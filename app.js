@@ -577,3 +577,15 @@ function baixarEstoque(produtoId, qtdVenda){
     });
 
 }
+function excluirProduto(id){
+
+    if(!confirm("Deseja realmente excluir este produto?")) return;
+
+    firebase.database().ref('fichas_tecnicas/' + id).remove();
+
+    firebase.database().ref('produtos/' + id).remove()
+    .then(()=>{
+        alert("Produto excluído com sucesso!");
+    });
+
+}
