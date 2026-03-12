@@ -108,6 +108,38 @@ nav ul li:hover, nav ul li.active { background: var(--primary-color); }
 /* AJUSTE PARA CELULAR (TELAS PEQUENAS) */
 /* AJUSTE PARA TELEMÓVEL - VERSÃO FORÇADA */
 @media screen and (max-width: 600px) {
+    /* 1. Faz o menu lateral virar uma barra no topo no celular */
+    .sidebar {
+        width: 100% !important;
+        height: auto !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        z-index: 1000;
+    }
+
+    .sidebar li {
+        padding: 10px 15px !important;
+        border-bottom: none !important;
+        font-size: 13px !important;
+    }
+
+    /* 2. Libera o conteúdo para usar a tela toda */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 10px !important;
+        margin-top: 0 !important;
+    }
+
+    /* 3. Ajusta o cabeçalho fixo */
+    .header {
+        position: relative !important;
+        width: 100% !important;
+        left: 0 !important;
+    }
     #lista-clientes-container {
         width: 100% !important;
         overflow-x: hidden !important;
