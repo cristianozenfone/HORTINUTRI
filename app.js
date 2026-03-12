@@ -139,7 +139,7 @@ function carregarPrecosInsumos() {
     firebase.database().ref('insumos').on('value', (snap) => {
 
         lista.innerHTML =
-        "<table><thead><tr><th>Insumo</th><th>Custo Compra</th><th>Ação</th></tr></thead><tbody id='body-custos'></tbody></table>";
+       "<table><thead><tr><th>Insumo</th><th>Estoque</th><th>Custo Compra</th><th>Ação</th></tr></thead><tbody id='body-custos'></tbody></table>";
 
         const body = document.getElementById('body-custos');
 
