@@ -48,7 +48,6 @@ function atualizarGrafico() {
         snap.forEach(c => {
 
             const v = c.val();
-
             dados[v.data] = (dados[v.data] || 0) + v.valor;
 
         });
@@ -377,20 +376,15 @@ function preencherPrecoVenda(id) {
 function finalizarVenda() {
 
     const pId = document.getElementById('venda-produto').value;
-
     const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
-
     const quantidade = parseInt(document.getElementById('venda-qtd').value) || 1;
 
     const cliSelect = document.getElementById('venda-cliente');
-
     const cliNome = cliSelect.options[cliSelect.selectedIndex].text;
 
     if(!pId) {
-
         alert("Selecione um produto");
         return;
-
     }
 
     firebase.database().ref('produtos/' + pId).once('value', s => {
@@ -398,11 +392,8 @@ function finalizarVenda() {
         const p = s.val();
 
         const custoUnitario = p.custo_total || 0;
-
         const custoTotal = custoUnitario * quantidade;
-
         const valorTotal = valor * quantidade;
-
         const lucro = valorTotal - custoTotal;
 
         firebase.database().ref('vendas').push({
@@ -416,7 +407,9 @@ function finalizarVenda() {
             data: new Date().toLocaleDateString()
 
         }).then(() => {
-baixarEstoque(pId, quantidade);
+
+            baixarEstoque(pId, quantidade);
+
             alert("Venda Realizada!");
 
             listarVendas();
@@ -539,9 +532,7 @@ function salvarProdutoMix(){
         preco_varejo: preco,
         custo_total: 0
     }).then(()=>{
-
         alert("Produto criado!");
-
     });
 
 }
