@@ -690,3 +690,44 @@ function excluirCliente(id) {
 
 // CHAME A FUNÇÃO AO CARREGAR O APP
 listarClientes();
+// Função para carregar e exibir os Insumos
+function listarInsumos() {
+    const corpoTabela = document.getElementById('lista-insumos-corpo');
+    
+    firebase.database().ref('insumos').on('value', (snapshot) => {
+        if (corpoTabela) {
+            corpoTabela.innerHTML = ""; 
+            
+            snapshot.forEach((item) => {
+                const insumo = item.val();
+                const id = item.key;
+                
+                // Se o FC não existir no banco para itens antigos, ele exibe 1.00 por padrão
+                const fcExibicao = insumo.fc ? insumo.fc.toFixed(2) : "1.00";
+                
+                corpoTabela.innerHTML += `
+                    <tr>
+                        <td><strong>${insumo.nome}</strong></td>
+                        <td><span class="badge">${insumo.unidade}</span></td>
+                        <td>${fcExibicao}</td>
+                        <td style="text-align: center;">
+                            <button onclick="excluirInsumo('${id}')" style="background:none; border:none; color:#d32f2f; cursor:pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    });
+}
+
+// Função para excluir Insumo
+function excluirInsumo(id) {
+    if(confirm("Deseja remover este insumo do sistema?")) {
+        firebase.database().ref('insumos/' + id).remove();
+    }
+}
+
+// Chame a função para iniciar a listagem assim que abrir o ERP
+listarInsumos();
