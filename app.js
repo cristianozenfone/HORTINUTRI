@@ -157,11 +157,10 @@ function preencherPrecoVenda(id) {
     firebase.database().ref('produtos/' + id).once('value', s => document.getElementById('venda-valor').value = s.val().preco_varejo || 0);
 }
 
-function finalizarVenda() {
-    const pId = document.getElementById('venda-produto').value;
-    const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
-    const cliNome = document.getElementById('venda-cliente').options[document.getElementById('venda-cliente').selectedIndex].text;
-    if(!pId) return;
+const pId = document.getElementById('venda-produto').value;
+const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
+const quantidade = parseInt(document.getElementById('venda-qtd').value) || 1;
+const cliNome = document.getElementById('venda-cliente').options[document.getElementById('venda-cliente').selectedIndex].text;
 
     firebase.database().ref('produtos/' + pId).once('value', s => {
         const p = s.val();
