@@ -105,3 +105,64 @@ nav ul li:hover, nav ul li.active { background: var(--primary-color); }
         grid-template-columns: 1fr 1fr;
     }
 }
+/* AJUSTE PARA CELULAR (TELAS PEQUENAS) */
+@media (max-width: 600px) {
+    /* Faz a tabela parar de se comportar como tabela e virar cartões */
+    #lista-clientes-container table, 
+    #lista-clientes-container thead, 
+    #lista-clientes-container tbody, 
+    #lista-clientes-container th, 
+    #lista-clientes-container td, 
+    #lista-clientes-container tr {
+        display: block;
+    }
+
+    /* Esconde o cabeçalho da tabela (os títulos) no celular */
+    #lista-clientes-container thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    /* Estiliza cada linha como um "cartão" individual */
+    #lista-clientes-container tr {
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+    }
+
+    /* Ajusta as células para ocuparem a largura toda */
+    #lista-clientes-container td {
+        border: none;
+        position: relative;
+        padding-left: 50% !important;
+        text-align: right;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Adiciona o "título" do campo antes do valor */
+    #lista-clientes-container td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    /* Rótulos automáticos para cada coluna */
+    #lista-clientes-container td:nth-of-type(1):before { content: "Cliente:"; }
+    #lista-clientes-container td:nth-of-type(2):before { content: "Tipo:"; }
+    #lista-clientes-container td:nth-of-type(3):before { content: "Contato:"; }
+    #lista-clientes-container td:nth-of-type(4):before { content: "Ações:"; }
+
+    /* Ajusta os botões para não ficarem colados */
+    #lista-clientes-container td:last-child {
+        border-bottom: none;
+        text-align: center;
+        padding-left: 10px !important;
+    }
+}
