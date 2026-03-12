@@ -416,7 +416,7 @@ function finalizarVenda() {
             data: new Date().toLocaleDateString()
 
         }).then(() => {
-
+baixarEstoque(pId, quantidade);
             alert("Venda Realizada!");
 
             listarVendas();
