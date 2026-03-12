@@ -993,19 +993,54 @@ function salvarDespesa() {
     });
 }
 
-function listarDespesas() {
-    const corpo = document.getElementById('lista-despesas-corpo');
-    firebase.database().ref('financeiro').on('value', snap => {
-        if(!corpo) return;
-        corpo.innerHTML = "";
-        snap.forEach(item => {
-            const d = item.val();
-            corpo.innerHTML += `<tr><td>${d.descricao}</td><td>R$ ${d.valor.toFixed(2)}</td><td><button onclick="firebase.database().ref('financeiro/${item.key}').remove()">❌</button></td></tr>`;
-        });
+// --- COPIE A PARTIR DAQUI ---
+
+function listarItensFicha(produtoId) {
+    const container = document.getElementById('lista-itens-ficha-container');
+    if (!container) return;
+    
+    if (!produtoId || produtoId === "Selecione o Kit") {
+        container.innerHTML = "";
+        return;
+    }
+
+    firebase.database().ref('fichas_tecnicas/' + produtoId).on('value', (snapshot) => {
+        let html = `
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px; background: white;">
+                <thead>
+                    <tr style="background: #f8f9fa; text-align: left;">
+                        <th style="padding: 12px; border-bottom: 2px solid #eee;">Ingrediente</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee;">Qtd</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; text-align: center;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (snapshot.exists()) {
+            snapshot.forEach((item) => {
+                const dado = item.val();
+                html += `
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${dado.insumoNome || 'Item'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${dado.quantidade}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">
+                            <button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" 
+                                    style="background:none; border:none; color:#d32f2f; cursor:pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        } else {
+            html += '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #888;">Nenhum ingrediente.</td></tr>';
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
     });
 }
 
-// Inicialização de todas as listas do sistema
+// Inicialização final do HortiNutri+
 window.onload = function() {
     if (typeof listarClientes === "function") listarClientes();
     if (typeof listarInsumos === "function") listarInsumos();
@@ -1013,5 +1048,11 @@ window.onload = function() {
     if (typeof listarVendas === "function") listarVendas();
     if (typeof listarDespesas === "function") listarDespesas();
     if (typeof atualizarSelectsFichaTecnica === "function") atualizarSelectsFichaTecnica();
-    if (typeof listarCustosInsumos === "function") listarCustosInsumos();
+    
+    const selectFT = document.getElementById('ft-produto');
+    if(selectFT) {
+        selectFT.addEventListener('change', function() {
+            listarItensFicha(this.value);
+        });
+    }
 };
