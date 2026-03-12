@@ -823,3 +823,34 @@ function listarItensFicha(produtoId) {
 document.getElementById('ft-produto').addEventListener('change', function() {
     listarItensFicha(this.value);
 });
+// --- FUNÇÃO PARA PREENCHER OS SELECTS AUTOMATICAMENTE ---
+
+function atualizarSelectsFichaTecnica() {
+    const selectProduto = document.getElementById('ft-produto');
+    const selectInsumo = document.getElementById('ft-insumo-item');
+
+    // 1. Busca os Produtos (Mix/Kits) para o primeiro select
+    firebase.database().ref('produtos_mix').on('value', (snapshot) => {
+        if (selectProduto) {
+            selectProduto.innerHTML = '<option value="">Selecione o Kit...</option>';
+            snapshot.forEach((item) => {
+                const p = item.val();
+                selectProduto.innerHTML += `<option value="${item.key}">${p.nome}</option>`;
+            });
+        }
+    });
+
+    // 2. Busca os Insumos para o segundo select
+    firebase.database().ref('insumos').on('value', (snapshot) => {
+        if (selectInsumo) {
+            selectInsumo.innerHTML = '<option value="">Selecione o Insumo...</option>';
+            snapshot.forEach((item) => {
+                const i = item.val();
+                selectInsumo.innerHTML += `<option value="${item.key}">${i.nome}</option>`;
+            });
+        }
+    });
+}
+
+// EXECUTA AO CARREGAR O SISTEMA
+atualizarSelectsFichaTecnica();
