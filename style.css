@@ -1,13 +1,11 @@
-/* ============================================================
-   CONFIGURAÇÕES GERAIS E CORES (HortiNutri ERP)
-   ============================================================ */
+/* Cores e Estilo Geral - HortiNutri ERP */
 :root {
-    --primary: #2e7d32;
-    --primary-dark: #1b5e20;
-    --accent: #ef6c00;
-    --bg: #f4f7f6;
+    --primary-color: #2e7d32;
+    --secondary-color: #1b5e20;
+    --accent-color: #ef6c00;
+    --bg-color: #f8f9fa;
     --sidebar-color: #263238;
-    --white: #ffffff;
+    --text-light: #ffffff;
     --text-dark: #333333;
 }
 
@@ -15,19 +13,19 @@
 
 body { 
     display: flex; 
-    background-color: var(--bg); 
+    background-color: var(--bg-color); 
     color: var(--text-dark); 
     min-height: 100vh;
 }
 
-/* ============================================================
-   LAYOUT PARA COMPUTADOR (PC)
-   ============================================================ */
+/* ==========================================
+   MENU LATERAL (SIDEBAR) - PC
+   ========================================== */
 .sidebar {
     width: 200px;
     height: 100vh;
     background-color: var(--sidebar-color);
-    color: white;
+    color: var(--text-light);
     position: fixed;
     left: 0;
     top: 0;
@@ -36,82 +34,61 @@ body {
     z-index: 1000;
 }
 
-.logo { padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #37474f; }
-.logo h3 { color: #4caf50; font-size: 1.1rem; letter-spacing: 1px; }
+.logo { padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid #444; }
+.logo h2 { color: var(--primary-color); letter-spacing: 1px; font-size: 1.2rem; }
 
-nav ul { list-style: none; margin-top: 10px; }
+nav ul { list-style: none; padding: 10px 0; }
 nav ul li {
-    padding: 12px 15px;
+    padding: 12px 20px;
     cursor: pointer;
+    transition: 0.3s;
     font-size: 11px;
     display: flex;
     align-items: center;
     gap: 10px;
     text-transform: uppercase;
-    border-left: 4px solid transparent;
-    transition: 0.3s;
-    color: #cfd8dc;
 }
-nav ul li:hover, nav ul li.active { background: #37474f; color: white; border-left-color: var(--primary); }
-nav ul li.active { background: var(--primary); }
+nav ul li:hover, nav ul li.active { background: var(--primary-color); color: white; }
 
+/* ==========================================
+   CONTEÚDO PRINCIPAL - PC
+   ========================================== */
 .main-content { 
     margin-left: 200px; 
     width: calc(100% - 200px); 
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
 .top-header {
     background: white;
-    padding: 15px 25px;
+    padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-#content-area { padding: 20px; max-width: 1200px; margin: 0 auto; }
+#content-area { padding: 25px; flex: 1; }
 
-/* CARDS, INPUTS E BOTÕES (O QUE SUMIU NO PC) */
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
-.card h3 { font-size: 1rem; margin-bottom: 15px; border-left: 4px solid var(--primary); padding-left: 10px; }
+/* Cards, Inputs e Tabelas */
+.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
+.card h3 { font-size: 1rem; margin-bottom: 15px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
 
-input, select { 
-    width: 100%; 
-    padding: 12px; 
-    margin-top: 8px; 
-    border-radius: 8px; 
-    border: 1px solid #ddd; 
-    background: #fdfdfd; 
-    outline: none; 
-    transition: 0.3s; 
-}
-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1); }
+input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
+.btn-save { background: var(--primary-color); color: white; font-weight: bold; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 15px; width: 100%; transition: 0.3s; }
+.btn-save:hover { background: var(--secondary-color); }
 
-.btn-save { 
-    background: var(--primary); 
-    color: white; 
-    font-weight: bold; 
-    border: none; 
-    padding: 12px; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    margin-top: 15px; 
-    transition: 0.3s; 
-    width: 100%; 
-}
-.btn-save:hover { background: var(--primary-dark); transform: translateY(-1px); }
-
-/* TABELAS */
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th { background: #f8f9fa; color: #666; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
 td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
 
-/* ============================================================
-   AJUSTE PARA CELULAR (MOBILE) - TUDO ORGANIZADO
-   ============================================================ */
-@media screen and (max-width: 768px) {
-    body { display: block; }
+/* ==========================================
+   AJUSTE PARA CELULAR (MOBILE) - UNIFICADO
+   ========================================== */
+@media screen and (max-width: 800px) {
+    body { display: block !important; }
 
     /* Menu vira barra no topo */
     .sidebar {
@@ -125,9 +102,9 @@ td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
     
     .logo { display: none !important; }
     
-    nav ul { display: flex !important; }
-    nav ul li { padding: 15px !important; border-left: none !important; border-bottom: 3px solid transparent; }
-    nav ul li.active { border-bottom-color: white; }
+    nav ul { display: flex !important; padding: 0 !important; }
+    nav ul li { padding: 15px !important; border-bottom: 3px solid transparent; }
+    nav ul li.active { border-bottom-color: white; background: var(--primary-color) !important; }
 
     /* Conteúdo ocupa a tela toda */
     .main-content {
@@ -146,10 +123,11 @@ td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
     
     #lista-clientes-container tr { 
         margin-bottom: 15px !important; 
-        border: 1px solid var(--primary) !important; 
+        border: 1px solid var(--primary-color) !important; 
         border-radius: 8px !important; 
         padding: 10px !important;
         background: white !important;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1) !important;
     }
     
     #lista-clientes-container td { 
@@ -163,7 +141,7 @@ td { padding: 12px; font-size: 14px; border-bottom: 1px solid #eee; }
     
     #lista-clientes-container td:before { 
         font-weight: bold; 
-        color: var(--primary); 
+        color: var(--primary-color); 
         text-align: left;
     }
     #lista-clientes-container td:nth-of-type(1):before { content: "Cliente: "; }
