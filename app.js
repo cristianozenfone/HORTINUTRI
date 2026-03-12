@@ -100,21 +100,25 @@ function salvarCliente() {
 }
 
 function salvarInsumo() {
-
     const nome = document.getElementById('ins-nome').value;
     const unidade = document.getElementById('ins-unidade').value;
-
-    const fc = parseFloat(prompt("Fator de Correção (FC):", "1.00")) || 1.00;
-
-    if (!nome) return;
+    // Captura o FC do input do formulário. Se estiver vazio, usa 1.00
+    const fc = parseFloat(document.getElementById('ins-fc').value) || 1.00;
+    
+    if (!nome) return alert("Por favor, digite o nome do insumo.");
 
     firebase.database().ref('insumos').push({
-        nome,
-        unidade,
+        nome: nome,
+        unidade: unidade,
         custo: 0,
-        fc: fc
-    }).then(() => alert("Insumo Cadastrado!"));
-
+        fc: fc,
+        estoque: 0
+    }).then(() => {
+        alert("Insumo Cadastrado com sucesso!");
+        // Limpa os campos após salvar
+        document.getElementById('ins-nome').value = "";
+        document.getElementById('ins-fc').value = "";
+    });
 }
 
 function salvarEmbalagem() {
