@@ -71,7 +71,11 @@
                         <input id="cli-fone" type="text" placeholder="Telefone/WhatsApp com DDD">
                     </div>
                     <input id="cli-endereco" type="text" placeholder="Endereço Completo" style="margin-top: 10px;">
-                    <div style="display: flex; gap: 10px;">
+                    
+                    <textarea id="cli-obs" placeholder="Observações Estratégicas (Ex: Prefere entregas na terça, só quer cenoura em rodelas...)" 
+                              style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; height: 60px;"></textarea>
+
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button class="btn-save" id="btn-salvar-cliente" onclick="salvarCliente()">Salvar Cliente</button>
                         <button class="btn-save" id="btn-cancelar-edit" onclick="limparFormularioCliente()" style="background:#607d8b; display:none; width: 30%;">Cancelar</button>
                     </div>
