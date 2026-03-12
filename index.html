@@ -215,25 +215,49 @@
                 </div>
             </div>
 
-            <div id="tab-relatorios" class="tab-content" style="display:none;">
+     <div id="tab-relatorios" class="tab-content" style="display:none;">
                 <div class="card">
                     <div class="resumo-grid">
                         <div class="resumo-box" style="background:#2e7d32;">Vendas Totais<br><strong id="rep-total-vendas">R$ 0,00</strong></div>
-                        <div class="resumo-box" style="background:#1565c0;">Lucro Estimado<br><strong id="rep-total-lucro">R$ 0,00</strong></div>
+                        <div class="resumo-box" style="background:#1565c0;">Lucro Bruto Est.<br><strong id="rep-total-lucro">R$ 0,00</strong></div>
                     </div>
                 </div>
-                <div class="card"><h4>Histórico Detalhado</h4><div id="rep-lista-produtos"></div></div>
+                <div class="card">
+                    <h3>Lucratividade por Produto</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Custo</th>
+                                <th>Venda</th>
+                                <th>Margem</th>
+                                <th>Lucro R$</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rep-lista-lucro-corpo"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="tab-financeiro" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Despesas Diversas</h3>
-                    <input id="fin-desc" placeholder="Descrição do Gasto">
-                    <input id="fin-valor" type="number" placeholder="Valor R$">
+                    <input id="fin-desc" placeholder="Descrição (Ex: Combustível Yamaha)">
+                    <input id="fin-valor" type="number" step="0.01" placeholder="Valor R$">
                     <button class="btn-save" onclick="salvarDespesa()">Salvar Gasto</button>
                 </div>
-                <div class="card"><h4>Lista de Gastos</h4><div id="lista-despesas"></div></div>
+                <div class="card">
+                    <h3>Lista de Gastos</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Descrição</th><th>Valor</th><th>Ação</th></tr>
+                        </thead>
+                        <tbody id="lista-despesas-corpo"></tbody>
+                    </table>
+                </div>
             </div>
+        </section>
+    </main>
 
         </section>
     </main>
@@ -253,6 +277,7 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
