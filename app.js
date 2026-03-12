@@ -409,6 +409,7 @@ function finalizarVenda() {
 
             cliente: cliNome,
             produto: p.nome,
+            produtoId: pId,
             quantidade: quantidade,
             valor: valorTotal,
             lucro: lucro,
