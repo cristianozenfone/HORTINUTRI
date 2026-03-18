@@ -26,6 +26,7 @@
                 <li onclick="showTab('producao-insumos')"><i class="fas fa-dollar-sign"></i> Gestão de Custos</li>
                 <li onclick="showTab('vendas')"><i class="fas fa-shopping-cart"></i> Vendas</li>
                 <li onclick="showTab('relatorios')"><i class="fas fa-chart-bar"></i> Relatórios</li>
+                <li onclick="showTab('mapa-compras')"><i class="fas fa-list-check"></i> Mapa de Compras</li>
                 <li onclick="showTab('financeiro')"><i class="fas fa-wallet"></i> Financeiro</li>
             </ul>
         </nav>
@@ -239,6 +240,20 @@
                         </thead>
                         <tbody id="rep-lista-lucro-corpo"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <div id="tab-mapa-compras" class="tab-content" style="display:none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>🛒 Mapa de Compras (Necessidade de Feira)</h3>
+                        <button onclick="gerarMapaCompras()" style="background: #2e7d32; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-sync"></i> Atualizar Mapa
+                        </button>
+                    </div>
+                    <p>Baseado em todas as vendas registradas, este mapa calcula quanto de cada ingrediente você precisa comprar, já aplicando o Fator de Correção.</p>
+                    <div id="mapa-compras-container">
+                        </div>
                 </div>
             </div>
 
