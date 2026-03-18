@@ -148,7 +148,6 @@
                     <button class="btn-save" onclick="salvarEmbalagem()">Salvar Embalagem</button>
                 </div>
             </div>
-
             <div id="tab-mix-kits" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Produtos Finais (Kits/Mix)</h3>
@@ -197,8 +196,14 @@
             <div id="tab-vendas" class="tab-content" style="display:none;">
                 <div class="card">
                     <h3>Registrar Venda</h3>
-                    <select id="venda-cliente"></select>
+                    
+                    <label>Pesquisar Cliente:</label>
+                    <input type="text" id="venda-cliente" list="lista-clientes-venda" placeholder="Digite o nome do cliente...">
+                    <datalist id="lista-clientes-venda"></datalist>
+
+                    <label style="margin-top: 10px; display: block;">Selecionar Produto:</label>
                     <select id="venda-produto"></select>
+                    
                     <input id="venda-qtd" type="number" placeholder="Quantidade" value="1">
                     <input id="venda-valor" type="number" step="0.01" placeholder="Valor Final R$">
                     <button class="btn-save" onclick="finalizarVenda()">Finalizar Venda</button>
