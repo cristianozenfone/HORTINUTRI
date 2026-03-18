@@ -291,7 +291,7 @@ function verHistorico(nomeCliente) {
         let mensagem = `📋 HISTÓRICO DE VENDAS: ${nomeCliente}\n\n`;
         historico.forEach(h => {
             mensagem += `📅 ${h.data} - ${h.produto}\n`;
-            mensagem += `   Qtd: ${h.quantidade} | Total: R$ ${h.valor.toFixed(2)}\n`;
+            mensagem += `    Qtd: ${h.quantidade} | Total: R$ ${h.valor.toFixed(2)}\n`;
             mensagem += `----------------------------\n`;
         });
 
@@ -538,6 +538,7 @@ function listarItensFicha(produtoId) {
 function filtrarClientes() {
     let input = document.getElementById('inputPesquisa').value.toLowerCase();
     let tabela = document.querySelector("#lista-clientes-container table tbody");
+    if (!tabela) return;
     let linhas = tabela.getElementsByTagName('tr');
 
     for (let i = 0; i < linhas.length; i++) {
