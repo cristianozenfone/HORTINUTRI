@@ -195,8 +195,22 @@ function listarClientes() {
                             </small>
                             ${htmlObs}
                         </td>
-                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size
-                        // 3. Função de Exclusão Segura (Dois Cliques)
+                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
+                        <td style="padding: 10px;">${fone}</td>
+                        <td style="padding: 10px; text-align:center;">
+                            ${botoesAdmin}
+                            <button onclick="verHistorico('${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
+                            <button onclick="verFinanceiroAcumulado('${c.nome}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    });
+}
+// 3. Função de Exclusão Segura (Dois Cliques)
 function confirmarExclusao(id) {
     if (!isAdmin()) return alert("⚠️ Acesso negado.");
     const btn = document.getElementById(`del-${id}`);
