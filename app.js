@@ -386,6 +386,55 @@ function listarInsumos() {
         });
     });
 }
+
+function salvarEmbalagem() {
+    const nome = document.getElementById('emb-nome').value;
+    const custo = parseFloat(document.getElementById('emb-custo').value) || 0;
+
+    if (!nome) return;
+
+    firebase.database().ref('embalagens').push({
+        nome,
+        custo
+    }).then(() => alert("Embalagem Salva!"));
+}
+
+function carregarPrecosInsumos() {
+    const lista = document.getElementById('lista-precos-insumos');
+
+    firebase.database().ref('insumos').on('value', (snap) => {
+        lista.innerHTML =
+       "<table><thead><tr><th>Insumo</th><th>Estoque</th><th>Custo Compra</th><th>Ação</th></tr></thead><tbody id='body-custos'></tbody></table>";
+
+        const body = document.getElementById('body-custos');
+
+        snap.forEach((child) => {
+            const i = child.val();
+            const id = child.key;
+            
+            const disabled = isAdmin() ? "" : "disabled";
+            const btnAcao = isAdmin() ? `<button onclick="atualizarCustoInsumo('${id}')" style="background:green;color:white;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">OK</button>` : `<i class="fas fa-lock"></i>`;
+
+            body.innerHTML += `
+            <tr>
+                <td>
+                <strong>${i.nome}</strong>
+                <br>
+                <small>FC: ${i.fc || 1.00}</small>
+                </td>
+               <td>
+<input type="number" id="estoque-${id}" value="${i.estoque || 0}" style="width:70px;" ${disabled}>
+</td>
+<td>
+<input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;" ${disabled}>
+</td>
+                <td>
+                ${btnAcao}
+                </td>
+            </tr>`;
+        });
+    });
+}
 function atualizarCustoInsumo(id) {
     if (!isAdmin()) return;
     const valor = parseFloat(document.getElementById('preco-' + id).value) || 0;
@@ -402,7 +451,6 @@ function atualizarCustoInsumo(id) {
 
 function carregarInsumosFicha() {
     const s = document.getElementById('ft-insumo-item');
-    if (!s) return;
     s.innerHTML = '<option>Selecionar Insumo</option>';
 
     firebase.database().ref('insumos').once('value', s1 => {
@@ -417,7 +465,6 @@ function carregarInsumosFicha() {
 
 function carregarProdutosFicha() {
     const s = document.getElementById('ft-produto');
-    if (!s) return;
     s.innerHTML = '<option>Selecione o Kit</option>';
 
     firebase.database().ref('produtos').once('value', s1 => {
@@ -445,7 +492,6 @@ function adicionarItemFicha() {
         const ins = snap.val();
         const custoUnitario = ins.custo || 0;
         const fator = ins.fc || 1;
-        // Lógica do seu Excel: (Custo * Fator de Correção) * Quantidade
         const subtotal = (custoUnitario * fator) * parseFloat(qtd);
 
         firebase.database().ref(`fichas_tecnicas/${produtoId}`).push({
@@ -455,7 +501,7 @@ function adicionarItemFicha() {
             subtotal: subtotal
         }).then(() => {
             document.getElementById('ft-qtd').value = "";
-            console.log("Ingrediente adicionado com sucesso!");
+            console.log("Ingrediente adicionado!");
         });
     });
 }
@@ -485,13 +531,7 @@ function listarItensFicha(produtoId) {
             snapshot.forEach((item) => {
                 const d = item.val();
                 const sub = d.subtotal ? d.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
-                
-                const btnTrash = isAdmin() ? `
-                    <button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" 
-                            style="background:none; border:none; color:#d32f2f; cursor:pointer;">
-                        <i class="fas fa-trash"></i>
-                    </button>` : "-";
-
+                const btnTrash = isAdmin() ? `<button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" style="background:none; border:none; color:#d32f2f; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
                 html += `
                     <tr>
                         <td style="padding: 10px; border-bottom: 1px solid #eee;">${d.nome}</td>
@@ -503,7 +543,7 @@ function listarItensFicha(produtoId) {
                     </tr>`;
             });
         } else {
-            html += '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #888;">Nenhum ingrediente cadastrado para este produto.</td></tr>';
+            html += '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #888;">Nenhum ingrediente.</td></tr>';
         }
         html += '</tbody></table>';
         container.innerHTML = html;
@@ -525,12 +565,37 @@ function filtrarClientes() {
         }
     }
 }
-// FUNÇÃO FINALIZAR VENDA CORRIGIDA PARA O MAPA DE COMPRAS
+
+function carregarDadosVenda() {
+    const selCliente = document.getElementById('venda-cliente');
+    const selProd = document.getElementById('venda-produto');
+    
+    selCliente.innerHTML = '<option value="">Selecionar Cliente</option>';
+    selProd.innerHTML = '<option value="">Selecionar Produto</option>';
+
+    firebase.database().ref('clientes').once('value', snap => {
+        snap.forEach(c => {
+            let o = document.createElement('option');
+            o.value = c.val().nome; 
+            o.text = c.val().nome;
+            selCliente.appendChild(o);
+        });
+    });
+
+    firebase.database().ref('produtos').once('value', snap => {
+        snap.forEach(p => {
+            let o = document.createElement('option');
+            o.value = p.key; // Usamos a KEY para buscar a ficha técnica depois
+            o.text = p.val().nome;
+            selProd.appendChild(o);
+        });
+    });
+}
+
 function finalizarVenda() {
     const cliente = document.getElementById('venda-cliente').value;
-    const produtoSelect = document.getElementById('venda-produto');
-    const produtoId = produtoSelect.value; 
-    const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
+    const produtoId = document.getElementById('venda-produto').value;
+    const produtoNome = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
     const qtdVenda = parseFloat(document.getElementById('venda-qtd').value) || 0;
     const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
     const data = new Date().toLocaleDateString('pt-BR');
@@ -539,11 +604,10 @@ function finalizarVenda() {
         return alert("Preencha todos os campos da venda corretamente!");
     }
 
-    // REGISTRAR A VENDA (Incluindo produtoId para o Mapa de Compras conseguir ler)
+    // REGISTRAR A VENDA
     firebase.database().ref('vendas').push({
         cliente: cliente,
         produto: produtoNome,
-        produtoId: produtoId, 
         quantidade: qtdVenda,
         valor: valor,
         data: data
@@ -569,7 +633,7 @@ function finalizarVenda() {
             }
         });
 
-        alert("✅ Venda Finalizada e Estoque Atualizado!");
+        alert("Venda Finalizada e Estoque Atualizado!");
         document.getElementById('venda-qtd').value = "1";
         document.getElementById('venda-valor').value = "";
         listarVendas();
@@ -584,7 +648,7 @@ function listarVendas() {
         corpo.innerHTML = "";
         snap.forEach(child => {
             const v = child.val();
-            const trash = isAdmin() ? `<button onclick="if(confirm('Excluir venda?')) firebase.database().ref('vendas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
+            const trash = isAdmin() ? `<button onclick="firebase.database().ref('vendas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
             corpo.innerHTML += `
                 <tr>
                     <td>${v.cliente}</td>
@@ -680,7 +744,7 @@ function listarDespesas() {
 function gerarRelatorios() {
     firebase.database().ref('vendas').once('value', snapV => {
         let totalVendas = 0;
-        snapV.forEach(c => { totalVendas += (parseFloat(c.val().valor) || 0); });
+        snapV.forEach(c => { totalVendas += c.val().valor; });
         document.getElementById('rep-total-vendas').innerText = `R$ ${totalVendas.toFixed(2)}`;
     });
 }
@@ -727,7 +791,6 @@ function imprimirClientes() {
     janelaImpressao.document.close();
     janelaImpressao.print();
 }
-
 // ==========================================
 // MÓDULO: MAPA DE COMPRAS (INTEGRAÇÃO EXCEL)
 // ==========================================
