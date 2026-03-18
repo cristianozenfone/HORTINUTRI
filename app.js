@@ -154,7 +154,6 @@ function listarClientes() {
                 const status = c.status || 'ATIVO'; // Padrão Ativo
                 const endExibir = c.endereco || 'Endereço não informado';
                 const fone = c.fone || c.telefone || 'Sem Fone';
-                const financeiro = c.situacaoFinanceira || 0;
                 const observacao = c.obs || ""; // Pega a observação
                 
                 // Cor da etiqueta
@@ -189,7 +188,7 @@ function listarClientes() {
                             
                             <button onclick="verHistorico('${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
                             
-                            <button onclick="alert('Situação Financeira atual: R$ ${financeiro.toFixed(2)}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
+                            <button onclick="verFinanceiroAcumulado('${c.nome}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
                         </td>
                     </tr>`;
             });
@@ -296,6 +295,27 @@ function verHistorico(nomeCliente) {
         });
 
         alert(mensagem);
+    });
+}
+
+// 7. Função para ver Total Financeiro Acumulado do Cliente
+function verFinanceiroAcumulado(nomeCliente) {
+    firebase.database().ref('vendas').once('value', (snap) => {
+        let total = 0;
+        let contador = 0;
+        snap.forEach(child => {
+            const v = child.val();
+            if (v.cliente === nomeCliente) {
+                total += parseFloat(v.valor) || 0;
+                contador++;
+            }
+        });
+        
+        if (contador === 0) {
+            alert(`💰 Situação Financeira: ${nomeCliente}\n\nEste cliente ainda não possui compras registradas.`);
+        } else {
+            alert(`💰 Situação Financeira: ${nomeCliente}\n\nCompras Totais: ${contador}\nValor Total Acumulado: R$ ${total.toFixed(2)}`);
+        }
     });
 }
 
@@ -498,6 +518,81 @@ function filtrarClientes() {
             linhas[i].style.display = "none";
         }
     }
+}
+
+// Funções de Vendas corrigidas para Histórico
+function carregarDadosVenda() {
+    const selCliente = document.getElementById('venda-cliente');
+    const selProd = document.getElementById('venda-produto');
+    
+    selCliente.innerHTML = '<option value="">Selecionar Cliente</option>';
+    selProd.innerHTML = '<option value="">Selecionar Produto</option>';
+
+    firebase.database().ref('clientes').once('value', snap => {
+        snap.forEach(c => {
+            let o = document.createElement('option');
+            o.value = c.val().nome; // Salva o NOME para bater com o histórico
+            o.text = c.val().nome;
+            selCliente.appendChild(o);
+        });
+    });
+
+    firebase.database().ref('produtos').once('value', snap => {
+        snap.forEach(p => {
+            let o = document.createElement('option');
+            o.value = p.val().nome;
+            o.text = p.val().nome;
+            selProd.appendChild(o);
+        });
+    });
+}
+
+function finalizarVenda() {
+    const cliente = document.getElementById('venda-cliente').value;
+    const produto = document.getElementById('venda-produto').value;
+    const qtd = parseFloat(document.getElementById('venda-qtd').value) || 0;
+    const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
+    const data = new Date().toLocaleDateString('pt-BR');
+
+    if (!cliente || !produto || qtd <= 0 || valor <= 0) {
+        return alert("Preencha todos os campos da venda corretamente!");
+    }
+
+    firebase.database().ref('vendas').push({
+        cliente,
+        produto,
+        quantidade: qtd,
+        valor,
+        data
+    }).then(() => {
+        alert("Venda Finalizada!");
+        document.getElementById('venda-qtd').value = "1";
+        document.getElementById('venda-valor').value = "";
+        listarVendas();
+    });
+}
+
+function listarVendas() {
+    const corpo = document.getElementById('lista-vendas-corpo');
+    if(!corpo) return;
+
+    firebase.database().ref('vendas').limitToLast(10).on('value', snap => {
+        corpo.innerHTML = "";
+        snap.forEach(child => {
+            const v = child.val();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${v.cliente}</td>
+                    <td>${v.produto}</td>
+                    <td>R$ ${v.valor.toFixed(2)}</td>
+                    <td>
+                        <button onclick="firebase.database().ref('vendas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
 }
 
 window.onload = function() {
