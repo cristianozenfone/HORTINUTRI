@@ -187,7 +187,7 @@ function listarClientes() {
                             
                             <button id="del-${id}" onclick="confirmarExclusao('${id}')" title="Excluir" style="color:#d32f2f; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-trash"></i></button>
                             
-                            <button onclick="alert('Módulo de Histórico em desenvolvimento para: ${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
+                            <button onclick="verHistorico('${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
                             
                             <button onclick="alert('Situação Financeira atual: R$ ${financeiro.toFixed(2)}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
                         </td>
@@ -267,6 +267,36 @@ function limparFormularioCliente() {
     document.getElementById('btn-salvar-cliente').innerText = "Salvar Cliente";
     document.getElementById('btn-salvar-cliente').style.background = "var(--primary-color)"; // Volta pro verde
     document.getElementById('btn-cancelar-edit').style.display = "none";
+}
+
+// 6. Função para Ver Histórico de Vendas Real
+function verHistorico(nomeCliente) {
+    firebase.database().ref('vendas').once('value', (snap) => {
+        let historico = [];
+        snap.forEach(child => {
+            const v = child.val();
+            // Filtra as vendas que pertencem a este cliente
+            if (v.cliente === nomeCliente) {
+                historico.push(v);
+            }
+        });
+
+        if (historico.length === 0) {
+            return alert(`ℹ️ Nenhuma venda encontrada para: ${nomeCliente}`);
+        }
+
+        // Ordenar por data (mais recente primeiro)
+        historico.sort((a, b) => new Date(b.data.split('/').reverse().join('-')) - new Date(a.data.split('/').reverse().join('-')));
+
+        let mensagem = `📋 HISTÓRICO DE VENDAS: ${nomeCliente}\n\n`;
+        historico.forEach(h => {
+            mensagem += `📅 ${h.data} - ${h.produto}\n`;
+            mensagem += `   Qtd: ${h.quantidade} | Total: R$ ${h.valor.toFixed(2)}\n`;
+            mensagem += `----------------------------\n`;
+        });
+
+        alert(mensagem);
+    });
 }
 
 function salvarInsumo() {
