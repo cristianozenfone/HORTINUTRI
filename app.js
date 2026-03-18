@@ -352,14 +352,15 @@ function listarInsumos() {
             const i = child.val();
             const id = child.key;
             const estoque = i.estoque || 0;
+            const unidade = i.unidade || "Kg"; // Proteção contra undefined
             const corEstoque = estoque < 1 ? 'color: red; font-weight: bold;' : 'color: #2e7d32; font-weight: bold;';
 
             corpo.innerHTML += `
                 <tr>
                     <td>${i.nome}</td>
-                    <td>${i.unidade}</td>
+                    <td>${unidade}</td>
                     <td>${i.fc || 1.00}</td>
-                    <td style="${corEstoque}">${estoque.toFixed(3)} ${i.unidade}</td>
+                    <td style="${corEstoque}">${estoque.toFixed(3)} ${unidade}</td>
                     <td style="text-align: center;">
                         <button onclick="firebase.database().ref('insumos/${id}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
                             <i class="fas fa-trash"></i>
