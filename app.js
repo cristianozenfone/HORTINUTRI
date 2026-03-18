@@ -594,9 +594,8 @@ function carregarDadosVenda() {
 
 function finalizarVenda() {
     const cliente = document.getElementById('venda-cliente').value;
-    const produtoSelect = document.getElementById('venda-produto');
-    const produtoId = produtoSelect.value; 
-    const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
+    const produtoId = document.getElementById('venda-produto').value;
+    const produtoNome = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
     const qtdVenda = parseFloat(document.getElementById('venda-qtd').value) || 0;
     const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
     const data = new Date().toLocaleDateString('pt-BR');
@@ -604,39 +603,6 @@ function finalizarVenda() {
     if (!cliente || !produtoId || qtdVenda <= 0 || valor <= 0) {
         return alert("Preencha todos os campos da venda corretamente!");
     }
-
-    // REGISTRAR A VENDA (Agora salvando o produtoId para o Mapa de Compras ler)
-    firebase.database().ref('vendas').push({
-        cliente: cliente,
-        produto: produtoNome,
-        produtoId: produtoId, 
-        quantidade: qtdVenda,
-        valor: valor,
-        data: data
-    }).then(() => {
-        // BAIXA DE ESTOQUE AUTOMÁTICA
-        firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snapFT => {
-            if (snapFT.exists()) {
-                snapFT.forEach(itemFT => {
-                    const ficha = itemFT.val();
-                    const insumoId = ficha.insumoId;
-                    const qtdNecessaria = ficha.quantidade * qtdVenda;
-
-                    firebase.database().ref('insumos/' + insumoId).once('value', snapIns => {
-                        const insumoDados = snapIns.val();
-                        const novoEstoque = (insumoDados.estoque || 0) - qtdNecessaria;
-                        firebase.database().ref('insumos/' + insumoId).update({ estoque: novoEstoque });
-                    });
-                });
-            }
-        });
-
-        alert("✅ Venda Finalizada! O Mapa de Compras já pode calcular os itens.");
-        document.getElementById('venda-qtd').value = "1";
-        document.getElementById('venda-valor').value = "";
-        listarVendas();
-    });
-}
 
     // REGISTRAR A VENDA
     firebase.database().ref('vendas').push({
