@@ -27,6 +27,7 @@ function showTab(tabId) {
 
     if (tabId === 'dashboard') atualizarGrafico();
     if (tabId === 'clientes') listarClientes();
+    if (tabId === 'insumos') listarInsumos();
     if (tabId === 'ficha-tecnica') {
         carregarInsumosFicha();
         carregarProdutosFicha();
@@ -341,6 +342,34 @@ function salvarInsumo() {
     });
 }
 
+function listarInsumos() {
+    const corpo = document.getElementById('lista-insumos-corpo');
+    if (!corpo) return;
+
+    firebase.database().ref('insumos').on('value', snap => {
+        corpo.innerHTML = "";
+        snap.forEach(child => {
+            const i = child.val();
+            const id = child.key;
+            const estoque = i.estoque || 0;
+            const corEstoque = estoque < 1 ? 'color: red; font-weight: bold;' : 'color: #2e7d32; font-weight: bold;';
+
+            corpo.innerHTML += `
+                <tr>
+                    <td>${i.nome}</td>
+                    <td>${i.unidade}</td>
+                    <td>${i.fc || 1.00}</td>
+                    <td style="${corEstoque}">${estoque.toFixed(3)} ${i.unidade}</td>
+                    <td style="text-align: center;">
+                        <button onclick="firebase.database().ref('insumos/${id}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
 function salvarEmbalagem() {
     const nome = document.getElementById('emb-nome').value;
     const custo = parseFloat(document.getElementById('emb-custo').value) || 0;
@@ -520,7 +549,7 @@ function filtrarClientes() {
     }
 }
 
-// Funções de Vendas corrigidas para Histórico
+// Funções de Vendas corrigidas para Histórico e Baixa Automática de Estoque
 function carregarDadosVenda() {
     const selCliente = document.getElementById('venda-cliente');
     const selProd = document.getElementById('venda-produto');
@@ -531,7 +560,7 @@ function carregarDadosVenda() {
     firebase.database().ref('clientes').once('value', snap => {
         snap.forEach(c => {
             let o = document.createElement('option');
-            o.value = c.val().nome; // Salva o NOME para bater com o histórico
+            o.value = c.val().nome; 
             o.text = c.val().nome;
             selCliente.appendChild(o);
         });
@@ -540,7 +569,7 @@ function carregarDadosVenda() {
     firebase.database().ref('produtos').once('value', snap => {
         snap.forEach(p => {
             let o = document.createElement('option');
-            o.value = p.val().nome;
+            o.value = p.key; // Usamos a KEY para buscar a ficha técnica depois
             o.text = p.val().nome;
             selProd.appendChild(o);
         });
@@ -549,23 +578,46 @@ function carregarDadosVenda() {
 
 function finalizarVenda() {
     const cliente = document.getElementById('venda-cliente').value;
-    const produto = document.getElementById('venda-produto').value;
-    const qtd = parseFloat(document.getElementById('venda-qtd').value) || 0;
+    const produtoId = document.getElementById('venda-produto').value;
+    const produtoNome = document.getElementById('venda-produto').options[document.getElementById('venda-produto').selectedIndex].text;
+    const qtdVenda = parseFloat(document.getElementById('venda-qtd').value) || 0;
     const valor = parseFloat(document.getElementById('venda-valor').value) || 0;
     const data = new Date().toLocaleDateString('pt-BR');
 
-    if (!cliente || !produto || qtd <= 0 || valor <= 0) {
+    if (!cliente || !produtoId || qtdVenda <= 0 || valor <= 0) {
         return alert("Preencha todos os campos da venda corretamente!");
     }
 
+    // REGISTRAR A VENDA
     firebase.database().ref('vendas').push({
-        cliente,
-        produto,
-        quantidade: qtd,
-        valor,
-        data
+        cliente: cliente,
+        produto: produtoNome,
+        quantidade: qtdVenda,
+        valor: valor,
+        data: data
     }).then(() => {
-        alert("Venda Finalizada!");
+        // INICIAR BAIXA DE ESTOQUE BASEADO NA FICHA TÉCNICA
+        firebase.database().ref('fichas_tecnicas/' + produtoId).once('value', snapFT => {
+            if (snapFT.exists()) {
+                snapFT.forEach(itemFT => {
+                    const ficha = itemFT.val();
+                    const insumoId = ficha.insumoId;
+                    const qtdNecessaria = ficha.quantidade * qtdVenda;
+
+                    // Atualizar estoque do insumo
+                    firebase.database().ref('insumos/' + insumoId).once('value', snapIns => {
+                        const insumoDados = snapIns.val();
+                        const novoEstoque = (insumoDados.estoque || 0) - qtdNecessaria;
+                        
+                        firebase.database().ref('insumos/' + insumoId).update({
+                            estoque: novoEstoque
+                        });
+                    });
+                });
+            }
+        });
+
+        alert("Venda Finalizada e Estoque Atualizado!");
         document.getElementById('venda-qtd').value = "1";
         document.getElementById('venda-valor').value = "";
         listarVendas();
@@ -595,14 +647,101 @@ function listarVendas() {
     });
 }
 
+function salvarProdutoMix() {
+    const nome = document.getElementById('mix-nome').value;
+    const preco = parseFloat(document.getElementById('mix-varejo').value) || 0;
+
+    if (!nome) return alert("Digite o nome do produto.");
+
+    firebase.database().ref('produtos').push({
+        nome: nome,
+        precoVenda: preco
+    }).then(() => {
+        alert("Produto Criado!");
+        document.getElementById('mix-nome').value = "";
+        document.getElementById('mix-varejo').value = "";
+        listarProdutosMix();
+    });
+}
+
+function listarProdutosMix() {
+    const corpo = document.getElementById('lista-produtos-mix-corpo');
+    if (!corpo) return;
+
+    firebase.database().ref('produtos').on('value', snap => {
+        corpo.innerHTML = "";
+        snap.forEach(child => {
+            const p = child.val();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${p.nome}</td>
+                    <td>R$ ${p.precoVenda.toFixed(2)}</td>
+                    <td style="text-align: center;">
+                        <button onclick="firebase.database().ref('produtos/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
+function salvarDespesa() {
+    const desc = document.getElementById('fin-desc').value;
+    const valor = parseFloat(document.getElementById('fin-valor').value) || 0;
+    const data = new Date().toLocaleDateString('pt-BR');
+
+    if (!desc || valor <= 0) return alert("Preencha a despesa corretamente.");
+
+    firebase.database().ref('despesas').push({
+        descricao: desc,
+        valor: valor,
+        data: data
+    }).then(() => {
+        alert("Gasto Registrado!");
+        document.getElementById('fin-desc').value = "";
+        document.getElementById('fin-valor').value = "";
+        listarDespesas();
+    });
+}
+
+function listarDespesas() {
+    const corpo = document.getElementById('lista-despesas-corpo');
+    if (!corpo) return;
+
+    firebase.database().ref('despesas').on('value', snap => {
+        corpo.innerHTML = "";
+        snap.forEach(child => {
+            const d = child.val();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${d.descricao}</td>
+                    <td>R$ ${d.valor.toFixed(2)}</td>
+                    <td>
+                        <button onclick="firebase.database().ref('despesas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
+function gerarRelatorios() {
+    firebase.database().ref('vendas').once('value', snapV => {
+        let totalVendas = 0;
+        snapV.forEach(c => { totalVendas += c.val().valor; });
+        document.getElementById('rep-total-vendas').innerText = `R$ ${totalVendas.toFixed(2)}`;
+    });
+}
+
 window.onload = function() {
     if (typeof listarClientes === "function") listarClientes();
     if (typeof listarInsumos === "function") listarInsumos();
     if (typeof listarProdutosMix === "function") listarProdutosMix();
     if (typeof listarVendas === "function") listarVendas();
     if (typeof listarDespesas === "function") listarDespesas();
-    if (typeof atualizarSelectsFichaTecnica === "function") atualizarSelectsFichaTecnica();
-    if (typeof listarCustosInsumos === "function") listarCustosInsumos();
+    if (typeof carregarDadosVenda === "function") carregarDadosVenda();
     
     const selectFT = document.getElementById('ft-produto');
     if(selectFT) {
@@ -612,7 +751,6 @@ window.onload = function() {
     }
 };
 
-// Função para Gerar PDF / Imprimir Lista de Clientes
 function imprimirClientes() {
     const conteudo = document.getElementById('lista-clientes-container').innerHTML;
     const janelaImpressao = window.open('', '', 'width=900,height=700');
