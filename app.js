@@ -26,6 +26,7 @@ function showTab(tabId) {
         'producao-insumos': 'GESTÃO DE CUSTOS',
         'vendas': 'VENDAS',
         'relatorios': 'RELATÓRIOS',
+        'mapa-compras': 'MAPA DE COMPRAS', // Adicionado
         'financeiro': 'FINANCEIRO'
     };
 
@@ -44,9 +45,9 @@ function showTab(tabId) {
         listarVendas();
     }
     if (tabId === 'relatorios') gerarRelatorios();
+    if (tabId === 'mapa-compras') gerarMapaCompras(); // Adicionado
     if (tabId === 'financeiro') listarDespesas();
 }
-
 function atualizarGrafico() {
     firebase.database().ref('vendas').once('value', (snap) => {
         const dados = {};
@@ -789,4 +790,67 @@ function imprimirClientes() {
     `);
     janelaImpressao.document.close();
     janelaImpressao.print();
+}
+// ==========================================
+// MÓDULO: MAPA DE COMPRAS (INTEGRAÇÃO EXCEL)
+// ==========================================
+function gerarMapaCompras() {
+    const container = document.getElementById('mapa-compras-container');
+    if (!container) return;
+    container.innerHTML = "🔍 Calculando necessidades de compra baseadas nas vendas...";
+
+    Promise.all([
+        firebase.database().ref('vendas').once('value'),
+        firebase.database().ref('insumos').once('value'),
+        firebase.database().ref('fichas_tecnicas').once('value')
+    ]).then(([snapVendas, snapInsumos, snapFichas]) => {
+        const vendas = snapVendas.val() || {};
+        const insumos = snapInsumos.val() || {};
+        const fichas = snapFichas.val() || {};
+        let necessidade = {};
+
+        // Percorre as vendas e soma os ingredientes das fichas técnicas
+        Object.values(vendas).forEach(v => {
+            const pId = v.produtoId;
+            if (pId && fichas[pId]) {
+                Object.values(fichas[pId]).forEach(ing => {
+                    const iId = ing.insumoId;
+                    if (!necessidade[iId]) necessidade[iId] = 0;
+                    // Peso Líquido Total = Qtd na Receita * Qtd Vendida
+                    necessidade[iId] += (parseFloat(ing.quantidade) * v.quantidade);
+                });
+            }
+        });
+
+        let html = `<table style="width:100%; border-collapse:collapse; background:white; font-size:14px;">
+            <thead style="background:#2e7d32; color:white;">
+                <tr>
+                    <th style="padding:10px; border:1px solid #ddd;">INSUMO</th>
+                    <th style="padding:10px; border:1px solid #ddd;">PESO LÍQUIDO</th>
+                    <th style="padding:10px; border:1px solid #ddd;">FC</th>
+                    <th style="padding:10px; border:1px solid #ddd; background:#1b5e20;">COMPRAR (BRUTO)</th>
+                </tr>
+            </thead><tbody>`;
+
+        let temDados = false;
+        Object.keys(necessidade).forEach(id => {
+            const i = insumos[id];
+            if (i) {
+                temDados = true;
+                const liq = necessidade[id];
+                const fc = parseFloat(i.fc) || 1.00;
+                const bruto = liq * fc;
+                html += `<tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px; border:1px solid #eee;"><strong>${i.nome}</strong></td>
+                    <td style="padding:10px; border:1px solid #eee;">${liq.toFixed(3)} ${i.unidade || 'Kg'}</td>
+                    <td style="padding:10px; border:1px solid #eee;">${fc.toFixed(2)}</td>
+                    <td style="padding:10px; border:1px solid #eee; font-weight:bold; color:#d32f2f;">${bruto.toFixed(3)} ${i.unidade || 'Kg'}</td>
+                </tr>`;
+            }
+        });
+
+        if (!temDados) html += "<tr><td colspan='4' style='padding:20px; text-align:center;'>Nenhuma venda registrada para calcular o mapa.</td></tr>";
+        html += "</tbody></table>"; 
+        container.innerHTML = html;
+    });
 }
