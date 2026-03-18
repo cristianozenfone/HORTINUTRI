@@ -1,5 +1,11 @@
 let meuGrafico = null;
 
+// FUNÇÃO DE SEGURANÇA: Verifica se é o Administrador pelo link
+function isAdmin() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('admin') === '1'; 
+}
+
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
     document.querySelectorAll('.sidebar li').forEach(l => l.classList.remove('active'));
@@ -108,6 +114,7 @@ function salvarCliente() {
     };
 
     if (id) {
+        if (!isAdmin()) return alert("⚠️ Acesso negado para edição.");
         // Se tem ID oculto, é uma ATUALIZAÇÃO (Edição)
         firebase.database().ref('clientes/' + id).update(dadosCliente)
             .then(() => { 
@@ -169,6 +176,14 @@ function listarClientes() {
                 // Bloco de HTML da Observação (só aparece se existir texto)
                 const htmlObs = observacao ? `<small style="display: block; color: #795548; font-style: italic; margin-top: 4px;"><i class="fas fa-sticky-note"></i> ${observacao}</small>` : "";
 
+                let botoesAdmin = "";
+                if (isAdmin()) {
+                    botoesAdmin = `
+                        <button onclick="prepararEdicao('${id}')" title="Editar" style="color:#1976d2; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-edit"></i></button>
+                        <button id="del-${id}" onclick="confirmarExclusao('${id}')" title="Excluir" style="color:#d32f2f; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-trash"></i></button>
+                    `;
+                }
+
                 html += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px;">
@@ -180,28 +195,10 @@ function listarClientes() {
                             </small>
                             ${htmlObs}
                         </td>
-                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${tipo}</span></td>
-                        <td style="padding: 10px;">${fone}</td>
-                        <td style="padding: 10px; text-align:center;">
-                            <button onclick="prepararEdicao('${id}')" title="Editar" style="color:#1976d2; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-edit"></i></button>
-                            
-                            <button id="del-${id}" onclick="confirmarExclusao('${id}')" title="Excluir" style="color:#d32f2f; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-trash"></i></button>
-                            
-                            <button onclick="verHistorico('${c.nome}')" title="Histórico" style="color:#455a64; border:none; background:none; cursor:pointer; font-size: 16px; margin-right: 10px;"><i class="fas fa-history"></i></button>
-                            
-                            <button onclick="verFinanceiroAcumulado('${c.nome}')" title="Financeiro" style="color:#2e7d32; border:none; background:none; cursor:pointer; font-size: 16px;"><i class="fas fa-dollar-sign"></i></button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    });
-}
-
-// 3. Função de Exclusão Segura (Dois Cliques)
+                        <td style="padding: 10px;"><span style="background:${badgeColor}; color:white; padding: 4px 8px; border-radius: 4px; font-size
+                        // 3. Função de Exclusão Segura (Dois Cliques)
 function confirmarExclusao(id) {
+    if (!isAdmin()) return alert("⚠️ Acesso negado.");
     const btn = document.getElementById(`del-${id}`);
     
     // Se já foi clicado uma vez (tem a classe 'confirmar')
@@ -227,6 +224,7 @@ function confirmarExclusao(id) {
 
 // 4. Função para preparar o formulário para Edição
 function prepararEdicao(id) {
+    if (!isAdmin()) return alert("⚠️ Acesso negado.");
     firebase.database().ref('clientes/' + id).once('value', (snap) => {
         const c = snap.val();
         
@@ -355,17 +353,20 @@ function listarInsumos() {
             const unidade = i.unidade || "Kg"; // Proteção contra undefined
             const corEstoque = estoque < 1 ? 'color: red; font-weight: bold;' : 'color: #2e7d32; font-weight: bold;';
 
+            let btnExcluir = isAdmin() ? `
+                <td style="text-align: center;">
+                    <button onclick="firebase.database().ref('insumos/${id}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>` : `<td style="text-align: center;">-</td>`;
+
             corpo.innerHTML += `
                 <tr>
                     <td>${i.nome}</td>
                     <td>${unidade}</td>
                     <td>${i.fc || 1.00}</td>
                     <td style="${corEstoque}">${estoque.toFixed(3)} ${unidade}</td>
-                    <td style="text-align: center;">
-                        <button onclick="firebase.database().ref('insumos/${id}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
+                    ${btnExcluir}
                 </tr>`;
         });
     });
@@ -395,6 +396,9 @@ function carregarPrecosInsumos() {
         snap.forEach((child) => {
             const i = child.val();
             const id = child.key;
+            
+            const disabled = isAdmin() ? "" : "disabled";
+            const btnAcao = isAdmin() ? `<button onclick="atualizarCustoInsumo('${id}')" style="background:green;color:white;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">OK</button>` : `<i class="fas fa-lock"></i>`;
 
             body.innerHTML += `
             <tr>
@@ -404,22 +408,20 @@ function carregarPrecosInsumos() {
                 <small>FC: ${i.fc || 1.00}</small>
                 </td>
                <td>
-<input type="number" id="estoque-${id}" value="${i.estoque || 0}" style="width:70px;">
+<input type="number" id="estoque-${id}" value="${i.estoque || 0}" style="width:70px;" ${disabled}>
 </td>
 <td>
-<input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;">
+<input type="number" step="0.01" id="preco-${id}" value="${i.custo || 0}" style="width:80px;" ${disabled}>
 </td>
                 <td>
-                <button onclick="atualizarCustoInsumo('${id}')" style="background:green;color:white;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">
-                OK
-                </button>
+                ${btnAcao}
                 </td>
             </tr>`;
         });
     });
 }
-
 function atualizarCustoInsumo(id) {
+    if (!isAdmin()) return;
     const valor = parseFloat(document.getElementById('preco-' + id).value) || 0;
     const estoque = parseFloat(document.getElementById('estoque-' + id).value) || 0;
 
@@ -461,6 +463,7 @@ function carregarProdutosFicha() {
 }
 
 function adicionarItemFicha() {
+    if (!isAdmin()) return alert("⚠️ Acesso negado.");
     const produtoId = document.getElementById('ft-produto').value;
     const insumoId = document.getElementById('ft-insumo-item').value;
     const insumoNome = document.getElementById('ft-insumo-item').options[document.getElementById('ft-insumo-item').selectedIndex].text;
@@ -513,16 +516,14 @@ function listarItensFicha(produtoId) {
             snapshot.forEach((item) => {
                 const d = item.val();
                 const sub = d.subtotal ? d.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+                const btnTrash = isAdmin() ? `<button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" style="background:none; border:none; color:#d32f2f; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
                 html += `
                     <tr>
                         <td style="padding: 10px; border-bottom: 1px solid #eee;">${d.nome}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #eee;">${d.quantidade}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #eee;">${sub}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">
-                            <button onclick="firebase.database().ref('fichas_tecnicas/${produtoId}/${item.key}').remove()" 
-                                    style="background:none; border:none; color:#d32f2f; cursor:pointer;">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            ${btnTrash}
                         </td>
                     </tr>`;
             });
@@ -534,7 +535,6 @@ function listarItensFicha(produtoId) {
     });
 }
 
-// FUNÇÃO PARA PESQUISAR CLIENTE (SÓ NOME)
 function filtrarClientes() {
     let input = document.getElementById('inputPesquisa').value.toLowerCase();
     let tabela = document.querySelector("#lista-clientes-container table tbody");
@@ -551,7 +551,6 @@ function filtrarClientes() {
     }
 }
 
-// Funções de Vendas corrigidas para Histórico e Baixa Automática de Estoque
 function carregarDadosVenda() {
     const selCliente = document.getElementById('venda-cliente');
     const selProd = document.getElementById('venda-produto');
@@ -634,15 +633,14 @@ function listarVendas() {
         corpo.innerHTML = "";
         snap.forEach(child => {
             const v = child.val();
+            const trash = isAdmin() ? `<button onclick="firebase.database().ref('vendas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
             corpo.innerHTML += `
                 <tr>
                     <td>${v.cliente}</td>
                     <td>${v.produto}</td>
                     <td>R$ ${v.valor.toFixed(2)}</td>
-                    <td>
-                        <button onclick="firebase.database().ref('vendas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    <td style="text-align:center;">
+                        ${trash}
                     </td>
                 </tr>`;
         });
@@ -650,6 +648,7 @@ function listarVendas() {
 }
 
 function salvarProdutoMix() {
+    if (!isAdmin()) return alert("⚠️ Acesso negado.");
     const nome = document.getElementById('mix-nome').value;
     const preco = parseFloat(document.getElementById('mix-varejo').value) || 0;
 
@@ -674,14 +673,13 @@ function listarProdutosMix() {
         corpo.innerHTML = "";
         snap.forEach(child => {
             const p = child.val();
+            const trash = isAdmin() ? `<button onclick="firebase.database().ref('produtos/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
             corpo.innerHTML += `
                 <tr>
                     <td>${p.nome}</td>
                     <td>R$ ${p.precoVenda.toFixed(2)}</td>
                     <td style="text-align: center;">
-                        <button onclick="firebase.database().ref('produtos/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        ${trash}
                     </td>
                 </tr>`;
         });
@@ -715,14 +713,13 @@ function listarDespesas() {
         corpo.innerHTML = "";
         snap.forEach(child => {
             const d = child.val();
+            const trash = isAdmin() ? `<button onclick="firebase.database().ref('despesas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>` : "-";
             corpo.innerHTML += `
                 <tr>
                     <td>${d.descricao}</td>
                     <td>R$ ${d.valor.toFixed(2)}</td>
-                    <td>
-                        <button onclick="firebase.database().ref('despesas/${child.key}').remove()" style="border:none; background:none; color:red; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    <td style="text-align:center;">
+                        ${trash}
                     </td>
                 </tr>`;
         });
